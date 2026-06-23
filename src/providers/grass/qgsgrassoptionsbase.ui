@@ -156,7 +156,7 @@
            <item>
             <widget class="QLabel" name="mGrassVersionLabel">
              <property name="toolTip">
-              <string>The version of GRASS which was used to build the GRASS provider and plugin in QGIS. Exactly the same version must be used on runtime.</string>
+              <string>The version of GRASS which was used to build the GRASS provider and plugin in Hake Geospatial. Exactly the same version must be used on runtime.</string>
              </property>
              <property name="text">
               <string notr="true">GRASS version</string>

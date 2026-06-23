@@ -58,8 +58,8 @@ QString QgsExportToRegisteredSpatialiteAlgorithm::shortHelpString() const
   return QObject::tr(
     "Exports a vector layer to a SpatiaLite database, creating "
     "a new table.\n\n"
-    "Prior to this a connection between QGIS and the SpatiaLite "
-    "database has to be created (for example through the QGIS "
+    "Prior to this a connection between Hake Geospatial and the SpatiaLite "
+    "database has to be created (for example through the Hake Geospatial "
     "Browser panel)."
   );
 }

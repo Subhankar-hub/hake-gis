@@ -2616,7 +2616,7 @@ QgsProcessingExpressionParameterDefinitionWidget::QgsProcessingExpressionParamet
 
   vlayout->addWidget( new QLabel( tr( "Expression type" ) ) );
   mExpressionTypeComboBox = new QComboBox();
-  mExpressionTypeComboBox->addItem( tr( "QGIS" ), static_cast<int>( Qgis::ExpressionType::Qgis ) );
+  mExpressionTypeComboBox->addItem( tr( "Hake Geospatial" ), static_cast<int>( Qgis::ExpressionType::Qgis ) );
   mExpressionTypeComboBox->addItem( tr( "Point Cloud" ), static_cast<int>( Qgis::ExpressionType::PointCloud ) );
   mExpressionTypeComboBox->addItem( tr( "Raster Calculator" ), static_cast<int>( Qgis::ExpressionType::RasterCalculator ) );
 

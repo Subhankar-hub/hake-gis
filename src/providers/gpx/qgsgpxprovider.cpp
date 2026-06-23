@@ -518,7 +518,7 @@ void QgsGPXProvider::changeAttributeValues( QgsGpsObject &obj, const QgsAttribut
 QVariant QgsGPXProvider::defaultValue( int fieldId ) const
 {
   if ( fieldId == SrcAttr )
-    return tr( "Digitized in QGIS" );
+    return tr( "Digitized in Hake Geospatial" );
   return QVariant();
 }
 

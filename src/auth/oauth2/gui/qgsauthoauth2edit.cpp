@@ -1255,7 +1255,7 @@ void QgsAuthOAuth2Edit::updatePredefinedLocationsTooltip()
                         "Defined configurations are JSON-formatted files, with a single configuration per file. "
                         "This allows configurations to be swapped out via filesystem tools without affecting user "
                         "configurations. It is recommended to use the Configure tab’s export function, then edit the "
-                        "resulting file. See QGIS documentation for further details."
+                        "resulting file. See Hake Geospatial documentation for further details."
                       )
                       + u"</p><p>"_s
                       + tr( "Configurations files can be placed in the directories:" )

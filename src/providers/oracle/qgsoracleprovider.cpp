@@ -3519,7 +3519,7 @@ void QgsOracleProvider::insertGeomMetadata( QgsOracleConn *conn, const QString &
       const QString sql { QStringLiteral(
         "INSERT"
         " INTO sdo_coord_ref_system(srid,coord_ref_sys_name,coord_ref_sys_kind,legacy_wktext,is_valid,is_legacy,information_source)"
-        " VALUES (?,?,?,?,'TRUE','TRUE','GDAL/OGR via QGIS')"
+        " VALUES (?,?,?,?,'TRUE','TRUE','GDAL/OGR via Hake Geospatial')"
       ) };
 
 

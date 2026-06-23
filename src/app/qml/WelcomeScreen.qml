@@ -12,18 +12,12 @@ Item {
   id: welcomeScreen
 
   property bool narrowLayout: height < 350 || width < 480
-  property real layoutSizeFactor: width > 1200 && height > 880 ? 1.25 : 1
 
-  property real titleFontSize: Application.font.pointSize * 1.3 * layoutSizeFactor
-  property real largeFontSize: Application.font.pointSize * 1.1 * layoutSizeFactor
-  property real normalFontSize: Application.font.pointSize * layoutSizeFactor
-  property real smallFontSize: Application.font.pointSize * 0.925 * layoutSizeFactor
-  property real tinyFontSize: Application.font.pointSize * 0.875 * layoutSizeFactor
+  visible: height >= 300 && width >= 360
+  width: 1100
+  height: 720
 
-  width: 2100
-  height: 1420
-
-  Material.accent: "#93b023"
+  Material.accent: "#14baee"
   Material.foreground: "#ffffff"
 
   ColumnLayout {
@@ -32,14 +26,10 @@ Item {
 
     Rectangle {
       id: mainCard
-
-      property bool tinyHeight: height < 175
-      property bool shortHeight: height < 350
-
       Layout.fillWidth: true
       Layout.fillHeight: true
       radius: 10
-      color: "#002033"
+      color: "#0f265c"
       clip: true
 
       GridLayout {
@@ -48,22 +38,20 @@ Item {
           left: parent.left
           right: parent.right
           bottom: footer.top
-          topMargin: mainCard.shortHeight ? 16 : 20
+          topMargin: 28
           leftMargin: 28
           rightMargin: 28
           bottomMargin: 8
         }
         columns: welcomeScreen.narrowLayout ? 1 : 2
         columnSpacing: 20
-        rowSpacing: welcomeScreen.narrowLayout ? 0 : 10
+        rowSpacing: 10
 
         Column {
           Layout.maximumWidth: welcomeScreen.narrowLayout ? parent.width : parent.width * 0.52
           Layout.fillWidth: true
-          Layout.preferredHeight: mainCard.shortHeight ? 0 : -1
           Layout.alignment: Qt.AlignTop
           spacing: 10
-          clip: true
 
           Image {
             source: "images/qgis.svg"
@@ -77,8 +65,8 @@ Item {
 
           Text {
             width: parent.width
-            text: qsTr("Spatial without Compromise")
-            font.pointSize: normalFontSize
+            text: qsTr("Turning Spatial Information to Knowledge")
+            font.pointSize: Application.font.pointSize
             font.bold: true
             wrapMode: Text.WordWrap
 
@@ -112,15 +100,13 @@ Item {
 
             TabBar {
               id: tabBar
-              width: parent.width
               background: Item {
                 anchors.fill: parent
               }
-              clip: true
 
               TabButton {
                 text: qsTr("Recent")
-                font.pointSize: largeFontSize
+                font.pointSize: Application.font.pointSize * 1.1
                 font.bold: true
                 visible: recentProjectsListView.count > 0
                 width: recentProjectsListView.count > 0 ? implicitWidth : 0
@@ -129,7 +115,7 @@ Item {
               TabButton {
                 text: qsTr("Templates")
                 width: implicitWidth
-                font.pointSize: largeFontSize
+                font.pointSize: Application.font.pointSize * 1.1
                 font.bold: true
                 background: null
               }
@@ -376,8 +362,8 @@ Item {
 
             Text {
               Layout.fillWidth: true
-              text: newsSwitch.checked && newsListView.count != 0 ? qsTr("Latest news") : qsTr("Welcome to QGIS!")
-              font.pointSize: titleFontSize
+              text: newsSwitch.checked && newsListView.count != 0 ? qsTr("Latest news") : qsTr("Welcome to Hake Geospatial!")
+              font.pointSize: Application.font.pointSize * 1.3
               font.bold: true
               color: "#ffffff"
               elide: Text.ElideRight
@@ -392,7 +378,7 @@ Item {
             Rectangle {
               id: newsSwitchBackground
               Layout.rightMargin: 12
-              Layout.preferredWidth: newsSwitchText.width + 40
+              width: 70
               height: 28
               radius: 14
 
@@ -400,20 +386,19 @@ Item {
                 orientation: Gradient.Horizontal
                 GradientStop {
                   position: 0.0
-                  color: newsSwitch.checked ? "#589632" : "#333333"
+                  color: newsSwitch.checked ? "#0e8cb5" : "#333333"
                 }
                 GradientStop {
                   position: 1.0
-                  color: newsSwitch.checked ? "#93b023" : "#ffffff"
+                  color: newsSwitch.checked ? "#14baee" : "#ffffff"
                 }
               }
 
               Text {
-                id: newsSwitchText
-                x: newsSwitch.checked ? 10 : parent.width - width - 10
+                x: newsSwitch.checked ? 10 : 30
                 anchors.verticalCenter: parent.verticalCenter
                 text: qsTr("News")
-                font.pointSize: tinyFontSize
+                font.pointSize: Application.font.pointSize * 0.8
                 font.bold: true
                 color: newsSwitch.checked ? "#ffffff" : "#666666"
               }
@@ -485,8 +470,8 @@ Item {
                   id: welcomeDescription
                   anchors.fill: parent
                   anchors.margins: 16
-                  text: qsTr("The free and open-source geographic information system that empowers users worldwide to create, edit, visualize, analyze, and share geospatial data. Whether you're a beginner or a seasoned GIS expert, QGIS gives you the tools to turn spatial data into impactful maps and insights. Join our vibrant global community and start exploring the world through the power of open-source geospatial technology.")
-                  font.pointSize: tinyFontSize
+                  text: qsTr("HAKE Technologies offers business intelligence solutions that deliver actionable data insights into subscriber, device, and network performance, all powered by geo-located data and advanced analytics.")
+                  font.pointSize: Application.font.pointSize * 0.8
                   color: "black"
                   wrapMode: Text.WordWrap
                   lineHeight: 1.3
@@ -508,32 +493,32 @@ Item {
 
                   Text {
                     text: qsTr("Stay up to date!")
-                    font.pointSize: normalFontSize
+                    font.pointSize: Application.font.pointSize
                     font.bold: true
                     color: "black"
                   }
 
                   Text {
                     Layout.fillWidth: true
-                    text: qsTr("Would you like to enable the QGIS news feed to stay updated on new features, releases, and community highlights?")
-                    font.pointSize: tinyFontSize
+                    text: qsTr("Would you like to enable the Hake Geospatial news feed to stay updated on new features, releases, and community highlights?")
+                    font.pointSize: Application.font.pointSize * 0.8
                     color: "black"
                     wrapMode: Text.WordWrap
                   }
 
                   Rectangle {
                     width: enableNewsText.implicitWidth + 24
-                    height: 24 * layoutSizeFactor
-                    radius: height / 2
+                    height: 24
+                    radius: 12
                     color: "transparent"
                     border.width: 1
-                    border.color: "#93b023"
+                    border.color: "#14baee"
 
                     Text {
                       id: enableNewsText
                       anchors.centerIn: parent
                       text: qsTr("Enable news feed")
-                      font.pointSize: tinyFontSize
+                      font.pointSize: Application.font.pointSize * 0.8
                       color: "black"
                     }
 
@@ -610,14 +595,9 @@ Item {
           bottom: parent.bottom
           bottomMargin: 0
         }
-        height: mainCard.tinyHeight ? 0 : implicitHeight
-
-        onSupportClicked: {
-          Qt.openUrlExternally("https://www.qgis.org/funding/donate/")
-        }
 
         onWebsiteClicked: {
-          Qt.openUrlExternally("https://www.qgis.org/")
+          Qt.openUrlExternally("https://haketech.com")
         }
       }
       
@@ -688,7 +668,7 @@ Item {
       color: mainCard.color
 
       onInstallClicked: {
-        Qt.openUrlExternally("https://download.qgis.org/")
+        Qt.openUrlExternally("https://haketech.com")
       }
     }
   }
@@ -709,7 +689,7 @@ Item {
     target: welcomeScreenController
     
     function onNewVersionAvailable(versionString) {
-      qgisUpdateBar.message = qsTr("QGIS %1 is out!").arg(versionString);
+      qgisUpdateBar.message = qsTr("Hake Geospatial %1 is out!").arg(versionString);
       qgisUpdateBar.visible = true;
     }
     

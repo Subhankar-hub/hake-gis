@@ -167,7 +167,8 @@ CMAKE_OPTS := \
 	-DPUSH_TO_CDASH=TRUE \
 	-DQT_PLUGINS_DIR=lib/$(DEB_BUILD_MULTIARCH)/qt6/plugins \
 	-DWITH_SFCGAL=TRUE \
-	-DWITH_GEOGRAPHICLIB=TRUE
+	-DWITH_GEOGRAPHICLIB=TRUE \
+	-DWITH_BINDINGS=ON
 
 ifneq (,$(filter $(DISTRIBUTION),trixie plucky questing sid))
 	CMAKE_OPTS += -DWITH_INTERNAL_SPATIALINDEX=TRUE
@@ -333,7 +334,7 @@ override_dh_auto_install:
 	# qgis binaries info
 	install -m 755 -d $(CURDIR)/debian/qgis/usr/bin
 
-	install -m 755 $(CURDIR)/debian/tmp/usr/bin/qgis $(CURDIR)/debian/qgis/usr/bin/qgis.bin
+	install -m 755 $(CURDIR)/debian/tmp/usr/bin/hake-gis $(CURDIR)/debian/qgis/usr/bin/qgis.bin
 	install -m 755 $(CURDIR)/debian/tmp/usr/bin/qgis_process $(CURDIR)/debian/qgis/usr/bin/qgis_process.bin
 	install -m 755 -d $(CURDIR)/debian/tmp/usr/lib/$(DEB_BUILD_MULTIARCH)/qt6/qml/QgsQuick
 	install -m 755 \
@@ -341,7 +342,7 @@ override_dh_auto_install:
 		$(CURDIR)/debian/tmp/usr/lib/$(DEB_BUILD_MULTIARCH)/qt6/qml/QgsQuick/libqgis_quick_plugin.so
 
 	$(RM) \
-		$(CURDIR)/debian/tmp/usr/bin/qgis \
+		$(CURDIR)/debian/tmp/usr/bin/hake-gis \
 		$(CURDIR)/debian/tmp/usr/bin/qgis_process \
 		$(CURDIR)/debian/tmp/usr/share/qgis/qml/QgsQuick/libqgis_quick_plugin.so
 

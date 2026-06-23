@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Welcome to QGIS</string>
+   <string>Welcome to Hake Geospatial</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <property name="horizontalSpacing">
@@ -26,7 +26,7 @@
       <item row="1" column="0" colspan="2">
        <widget class="QRadioButton" name="mImportSettingsYes">
         <property name="text">
-         <string>Import settings from QGIS 2.</string>
+         <string>Import settings from Hake Geospatial 2.</string>
         </property>
         <property name="checked">
          <bool>true</bool>
@@ -46,7 +46,7 @@
       <item row="2" column="0" colspan="2">
        <widget class="QRadioButton" name="mImportSettingsNo">
         <property name="text">
-         <string>I want a clean start. Don't import my QGIS 2 settings.</string>
+         <string>I want a clean start. Don't import my Hake Geospatial 2 settings.</string>
         </property>
        </widget>
       </item>
@@ -68,14 +68,14 @@
       </font>
      </property>
      <property name="text">
-      <string>Welcome to QGIS 3</string>
+      <string>Welcome to Hake Geospatial 3</string>
      </property>
     </widget>
    </item>
    <item row="2" column="1">
     <widget class="QLabel" name="mWelcomeProdLabel">
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;a href=&quot;https://www.qgis.org/en/site/forusers/visualchangelogVERSION_TOKEN/index.html&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#2a76c6;&quot;&gt;Check out &lt;/span&gt;&lt;/a&gt;the change log for all the great new features introduced with this release!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;a href=&quot;https://haketech.com&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#2a76c6;&quot;&gt;Check out &lt;/span&gt;&lt;/a&gt;the change log for all the great new features introduced with this release!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>

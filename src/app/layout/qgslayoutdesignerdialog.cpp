@@ -324,7 +324,7 @@ QgsLayoutDesignerDialog::QgsLayoutDesignerDialog( QWidget *parent, Qt::WindowFla
   setStyleSheet( QgisApp::instance()->styleSheet() );
 
   setupUi( this );
-  setWindowTitle( tr( "QGIS Layout Designer" ) );
+  setWindowTitle( tr( "Hake Geospatial Layout Designer" ) );
   setAcceptDrops( true );
 
   setAttribute( Qt::WA_DeleteOnClose );
@@ -4105,14 +4105,14 @@ void QgsLayoutDesignerDialog::showSvgExportWarning()
     m.setCheckBoxQgsSettingsLabel( u"/UI/displaySVGWarning"_s );
     m.setMessageAsHtml(
       tr(
-        "<p>The SVG export function in QGIS has several "
+        "<p>The SVG export function in Hake Geospatial has several "
         "problems due to bugs and deficiencies in the "
         "underlying Qt SVG library. In particular, there are problems "
         "with layers not being clipped to the map bounding box.</p>"
       )
       + tr(
         "If you require a vector-based output file from "
-        "QGIS it is suggested that you try exporting "
+        "Hake Geospatial it is suggested that you try exporting "
         "to PDF if the SVG output is not "
         "satisfactory."
         "</p>"

@@ -33,23 +33,23 @@ QgsCrashDialog::QgsCrashDialog( QWidget *parent )
 
   connect( mUserFeedbackText, &QPlainTextEdit::textChanged, this, &QgsCrashDialog::userFeedbackText_textChanged );
 
-  mCrashHeaderMessage->setText( tr( "QGIS ended unexpectedly" ) );
+  mCrashHeaderMessage->setText( tr( "Hake Geospatial ended unexpectedly" ) );
   connect( mReloadQGISButton, &QPushButton::clicked, this, &QgsCrashDialog::reloadQGIS );
   connect( mCopyReportButton, &QPushButton::clicked, this, &QgsCrashDialog::createBugReport );
   mCopyReportButton->setEnabled( false );
 
   mCrashMessage->setText(
     tr(
-      "Oh dear! Something unexpected happened and QGIS ended without being able to handle the error gracefully."
+      "Oh dear! Something unexpected happened and Hake Geospatial ended without being able to handle the error gracefully."
       "<br><br>"
     )
     + tr(
-      "Are you keen to help us fix bugs? QGIS relies on donations to pay developers to do funded bug fixing to improve the stability of the software. "
-      "We also have a team of enthusiastic volunteers who are all working hard to improve the quality of QGIS. To do that, we need your help. "
-      "<a href=\"https://qgis.org/resources/support/bug-reporting/#bugs-features-and-issues\">Find out how to help our developers</a>."
+      "Are you keen to help us fix bugs? Hake Geospatial relies on donations to pay developers to do funded bug fixing to improve the stability of the software. "
+      "We also have a team of enthusiastic volunteers who are all working hard to improve the quality of Hake Geospatial. To do that, we need your help. "
+      "<a href=\"https://haketech.com#bugs-features-and-issues\">Find out how to help our developers</a>."
       "<br><br>"
       "Send us a helpful bug report by using the 'Copy Report' button below, <br>then open a ticket on the "
-      "<a href=\"https://github.com/qgis/QGIS/issues\">QGIS Issue Tracker</a>."
+      "<a href=\"https://github.com/qgis/Hake Geospatial/issues\">Hake Geospatial Issue Tracker</a>."
     )
   );
   mCrashMessage->setTextInteractionFlags( Qt::TextBrowserInteraction );
@@ -77,9 +77,9 @@ void QgsCrashDialog::setPythonFault( const QgsCrashReport::PythonFault &fault )
       break;
 
     case QgsCrashReport::LikelyPythonFaultCause::ProcessingScript:
-      mCrashHeaderMessage->setText( tr( "A user script crashed QGIS" ).arg( fault.title ) );
+      mCrashHeaderMessage->setText( tr( "A user script crashed Hake Geospatial" ).arg( fault.title ) );
       mCrashMessage->setText(
-        tr( "This user script <b>%1</b> caused QGIS to crash." ).arg( fault.filePath )
+        tr( "This user script <b>%1</b> caused Hake Geospatial to crash." ).arg( fault.filePath )
         + "<br><br>"
         + tr( "This is a third party custom script, and this issue should be reported to the author of that script." )
       );
@@ -88,15 +88,15 @@ void QgsCrashDialog::setPythonFault( const QgsCrashReport::PythonFault &fault )
       break;
 
     case QgsCrashReport::LikelyPythonFaultCause::Plugin:
-      mCrashHeaderMessage->setText( tr( "Plugin %1 crashed QGIS" ).arg( fault.title ) );
-      mCrashMessage->setText( tr( "The plugin <b>%1</b> caused QGIS to crash." ).arg( fault.title ) + "<br><br>" + tr( "Please report this issue to the author of this plugin." ) );
+      mCrashHeaderMessage->setText( tr( "Plugin %1 crashed Hake Geospatial" ).arg( fault.title ) );
+      mCrashMessage->setText( tr( "The plugin <b>%1</b> caused Hake Geospatial to crash." ).arg( fault.title ) + "<br><br>" + tr( "Please report this issue to the author of this plugin." ) );
       splitter->setSizes( { 0, splitter->width() } );
       mCopyReportButton->setEnabled( true );
       break;
 
     case QgsCrashReport::LikelyPythonFaultCause::ConsoleCommand:
-      mCrashHeaderMessage->setText( tr( "Command crashed QGIS" ).arg( fault.title ) );
-      mCrashMessage->setText( tr( "A command entered in the Python console caused QGIS to crash." ) );
+      mCrashHeaderMessage->setText( tr( "Command crashed Hake Geospatial" ).arg( fault.title ) );
+      mCrashMessage->setText( tr( "A command entered in the Python console caused Hake Geospatial to crash." ) );
       splitter->setSizes( { 0, splitter->width() } );
       mCopyReportButton->setEnabled( true );
       break;

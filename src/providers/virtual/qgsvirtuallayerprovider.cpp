@@ -547,7 +547,7 @@ bool QgsVirtualLayerProvider::supportsSubsetString() const
 
 QString QgsVirtualLayerProvider::subsetStringDialect() const
 {
-  return tr( "QGIS expression" );
+  return tr( "Hake Geospatial expression" );
 }
 
 QString QgsVirtualLayerProvider::subsetStringHelpUrl() const

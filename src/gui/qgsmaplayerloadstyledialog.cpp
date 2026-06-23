@@ -87,11 +87,11 @@ QgsMapLayerLoadStyleDialog::QgsMapLayerLoadStyleDialog( QgsMapLayer *layer, QWid
   switch ( mLayer->type() )
   {
     case Qgis::LayerType::Vector:
-      mFileWidget->setFilter( tr( "QGIS Layer Style File, SLD File" ) + u" (*.qml *.sld)"_s );
+      mFileWidget->setFilter( tr( "Hake Geospatial Layer Style File, SLD File" ) + u" (*.qml *.sld)"_s );
       break;
 
     case Qgis::LayerType::VectorTile:
-      mFileWidget->setFilter( tr( "All Styles" ) + u" (*.qml *.json);;"_s + tr( "QGIS Layer Style File" ) + u" (*.qml);;"_s + tr( "MapBox GL Style JSON File" ) + u" (*.json)"_s );
+      mFileWidget->setFilter( tr( "All Styles" ) + u" (*.qml *.json);;"_s + tr( "Hake Geospatial Layer Style File" ) + u" (*.qml);;"_s + tr( "MapBox GL Style JSON File" ) + u" (*.json)"_s );
       break;
 
     case Qgis::LayerType::Raster:

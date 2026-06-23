@@ -542,7 +542,7 @@ void QgsCodeEditorPython::populateContextMenu( QMenu *menu )
     return;
   }
 
-  QAction *pyQgisHelpAction = new QAction( QgsApplication::getThemeIcon( u"console/iconHelpConsole.svg"_s ), tr( "Search Selection in PyQGIS Documentation" ), menu );
+  QAction *pyQgisHelpAction = new QAction( QgsApplication::getThemeIcon( u"console/iconHelpConsole.svg"_s ), tr( "Search Selection in PyHake Geospatial Documentation" ), menu );
 
   pyQgisHelpAction->setEnabled( hasSelectedText() );
   pyQgisHelpAction->setShortcut( QKeySequence::StandardKey::HelpContents );

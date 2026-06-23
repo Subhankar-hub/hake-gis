@@ -103,7 +103,7 @@ bool QgsLayoutManager::readXml( const QDomElement &element, const QDomDocument &
   //restore each composer
   bool result = true;
   QDomNodeList composerNodes = element.elementsByTagName( u"Composer"_s );
-  QgsScopedRuntimeProfile profile( tr( "Loading QGIS 2.x compositions" ), u"projectload"_s );
+  QgsScopedRuntimeProfile profile( tr( "Loading Hake Geospatial 2.x compositions" ), u"projectload"_s );
   for ( int i = 0; i < composerNodes.size(); ++i )
   {
     // This legacy title is the Composer "title" (that can be overridden by the Composition "name")

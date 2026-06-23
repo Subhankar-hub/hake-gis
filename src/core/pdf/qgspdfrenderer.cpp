@@ -81,7 +81,7 @@ int QgsPdfRenderer::pageCount() const
 #else
 int QgsPdfRenderer::pageCount() const
 {
-  throw QgsNotSupportedException( QObject::tr( "Rendering PDF requires a QGIS build with PDF4Qt library support" ) );
+  throw QgsNotSupportedException( QObject::tr( "Rendering PDF requires a Hake Geospatial build with PDF4Qt library support" ) );
 }
 #endif
 
@@ -97,7 +97,7 @@ QRectF QgsPdfRenderer::pageMediaBox( int pageNumber ) const
 #else
 QRectF QgsPdfRenderer::pageMediaBox( int ) const
 {
-  throw QgsNotSupportedException( QObject::tr( "Rendering PDF requires a QGIS build with PDF4Qt library support" ) );
+  throw QgsNotSupportedException( QObject::tr( "Rendering PDF requires a Hake Geospatial build with PDF4Qt library support" ) );
 }
 #endif
 
@@ -110,7 +110,7 @@ bool QgsPdfRenderer::render( QPainter *painter, const QRectF &rectangle, int pag
 #else
 bool QgsPdfRenderer::render( QPainter *, const QRectF &, int )
 {
-  throw QgsNotSupportedException( QObject::tr( "Rendering PDF requires a QGIS build with PDF4Qt library support" ) );
+  throw QgsNotSupportedException( QObject::tr( "Rendering PDF requires a Hake Geospatial build with PDF4Qt library support" ) );
 }
 
 #endif

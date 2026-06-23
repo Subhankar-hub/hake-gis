@@ -179,8 +179,8 @@ void QgsO2::setVerificationResponseContent()
   {
     setReplyContent(
       QString::fromUtf8( verhtml.readAll() )
-        .replace( "{{ H2_TITLE }}"_L1, tr( "QGIS OAuth2 verification has finished." ) )
-        .replace( "{{ H3_TITLE }}"_L1, tr( "You can close this window and return to QGIS." ) )
+        .replace( "{{ H2_TITLE }}"_L1, tr( "Hake Geospatial OAuth2 verification has finished." ) )
+        .replace( "{{ H3_TITLE }}"_L1, tr( "You can close this window and return to Hake Geospatial." ) )
         .toUtf8()
     );
   }

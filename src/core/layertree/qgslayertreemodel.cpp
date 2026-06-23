@@ -1305,7 +1305,7 @@ bool QgsLayerTreeModel::dropMimeData( const QMimeData *data, Qt::DropAction acti
     QgsReadWriteContext context;
     QString errorMessage;
     QgsLayerDefinition::loadLayerDefinition( layerDefinitionDoc, QgsProject::instance(), QgsLayerTree::toGroup( nodeParent ), errorMessage, context ); // skip-keyword-check
-    emit messageEmitted( tr( "New layers added from another QGIS instance" ) );
+    emit messageEmitted( tr( "New layers added from another Hake Geospatial instance" ) );
   }
   else
   {

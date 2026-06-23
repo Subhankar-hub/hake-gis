@@ -66,7 +66,7 @@ QgsSfcgalGeometry::QgsSfcgalGeometry( sfcgal::shared_prim sfcgalPrim, sfcgal::pr
 #else
   ( void ) sfcgalPrim;
   ( void ) type;
-  throw QgsNotSupportedException( QObject::tr( "This operation requires a QGIS build based on SFCGAL 2.3 or later" ) );
+  throw QgsNotSupportedException( QObject::tr( "This operation requires a Hake Geospatial build based on SFCGAL 2.3 or later" ) );
 #endif
 }
 
@@ -250,7 +250,7 @@ bool QgsSfcgalGeometry::operator==( const QgsSfcgalGeometry &other ) const
 {
 #if SFCGAL_VERSION_NUM < SFCGAL_MAKE_VERSION( 2, 1, 0 )
   ( void ) other;
-  throw QgsNotSupportedException( QObject::tr( "This operation requires a QGIS build based on SFCGAL 2.1 or later" ) );
+  throw QgsNotSupportedException( QObject::tr( "This operation requires a Hake Geospatial build based on SFCGAL 2.1 or later" ) );
 #else
   QString errorMsg;
   sfcgal::errorHandler()->clearText( &errorMsg );
@@ -580,7 +580,7 @@ std::unique_ptr<QgsSfcgalGeometry> QgsSfcgalGeometry::transform( const QgsMatrix
   return resultGeom;
 #else
   ( void ) mat;
-  throw QgsNotSupportedException( QObject::tr( "This operation requires a QGIS build based on SFCGAL 2.3 or later" ) );
+  throw QgsNotSupportedException( QObject::tr( "This operation requires a Hake Geospatial build based on SFCGAL 2.3 or later" ) );
 #endif
 }
 
@@ -659,7 +659,7 @@ double QgsSfcgalGeometry::volume( bool withDiscretization ) const
   result = QgsSfcgalEngine::primitiveVolume( mSfcgalPrim.get(), withDiscretization, &errorMsg );
 #else
   ( void ) withDiscretization;
-  throw QgsNotSupportedException( QObject::tr( "This operation requires a QGIS build based on SFCGAL 2.3 or later" ) );
+  throw QgsNotSupportedException( QObject::tr( "This operation requires a Hake Geospatial build based on SFCGAL 2.3 or later" ) );
 #endif
 
   THROW_ON_ERROR( &errorMsg );
@@ -998,7 +998,7 @@ std::unique_ptr<QgsSfcgalGeometry> QgsSfcgalGeometry::createCube( double size )
   return resultGeom;
 #else
   ( void ) size;
-  throw QgsNotSupportedException( QObject::tr( "This operation requires a QGIS build based on SFCGAL 2.3 or later" ) );
+  throw QgsNotSupportedException( QObject::tr( "This operation requires a Hake Geospatial build based on SFCGAL 2.3 or later" ) );
 #endif
 }
 
@@ -1074,7 +1074,7 @@ std::unique_ptr<QgsSfcgalGeometry> QgsSfcgalGeometry::primitiveAsPolyhedralSurfa
   THROW_ON_ERROR( &errorMsg );
   return resultGeom;
 #else
-  throw QgsNotSupportedException( QObject::tr( "This operation requires a QGIS build based on SFCGAL 2.3 or later" ) );
+  throw QgsNotSupportedException( QObject::tr( "This operation requires a Hake Geospatial build based on SFCGAL 2.3 or later" ) );
 #endif
 }
 
@@ -1104,7 +1104,7 @@ QgsMatrix4x4 QgsSfcgalGeometry::primitiveTransform() const
   sfcgal_free_buffer( data );
   return transformMatrix;
 #else
-  throw QgsNotSupportedException( QObject::tr( "This operation requires a QGIS build based on SFCGAL 2.3 or later" ) );
+  throw QgsNotSupportedException( QObject::tr( "This operation requires a Hake Geospatial build based on SFCGAL 2.3 or later" ) );
 #endif
 }
 
@@ -1127,7 +1127,7 @@ QList<std::pair<QString, QString>> QgsSfcgalGeometry::primitiveParameters() cons
 
   return out;
 #else
-  throw QgsNotSupportedException( QObject::tr( "This operation requires a QGIS build based on SFCGAL 2.3 or later" ) );
+  throw QgsNotSupportedException( QObject::tr( "This operation requires a Hake Geospatial build based on SFCGAL 2.3 or later" ) );
 #endif
 }
 
@@ -1145,7 +1145,7 @@ QVariant QgsSfcgalGeometry::primitiveParameter( const QString &name ) const
   return result;
 #else
   ( void ) name;
-  throw QgsNotSupportedException( QObject::tr( "This operation requires a QGIS build based on SFCGAL 2.3 or later" ) );
+  throw QgsNotSupportedException( QObject::tr( "This operation requires a Hake Geospatial build based on SFCGAL 2.3 or later" ) );
 #endif
 }
 
@@ -1163,7 +1163,7 @@ void QgsSfcgalGeometry::primitiveSetParameter( const QString &name, const QVaria
 #else
   ( void ) name;
   ( void ) value;
-  throw QgsNotSupportedException( QObject::tr( "This operation requires a QGIS build based on SFCGAL 2.3 or later" ) );
+  throw QgsNotSupportedException( QObject::tr( "This operation requires a Hake Geospatial build based on SFCGAL 2.3 or later" ) );
 #endif
 }
 

@@ -62,7 +62,7 @@ QString QgsCheckValidityAlgorithm::shortHelpString() const
     "ring self intersections' option is checked, then this rule will be ignored and a more "
     "lenient validity check will be performed.\n\n"
     "The GEOS method is faster and performs better on larger geometries, but is limited to only "
-    "returning the first error encountered in a geometry. The QGIS method will be slower but "
+    "returning the first error encountered in a geometry. The Hake Geospatial method will be slower but "
     "reports all errors encountered in the geometry, not just the first."
   );
 }

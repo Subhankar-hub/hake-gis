@@ -83,9 +83,9 @@ QgsCptCityColorRampDialog::QgsCptCityColorRampDialog( const QgsCptCityColorRamp 
           "1) Install the \"Color Ramp Manager\" python plugin "
           "(you must enable Experimental plugins in the plugin manager) "
           "and use it to download latest cpt-city package.\n"
-          "You can install the entire cpt-city archive or a selection for QGIS.\n\n"
+          "You can install the entire cpt-city archive or a selection for Hake Geospatial.\n\n"
           "2) Download the complete archive (in svg format) "
-          "and unzip it to your QGIS settings directory [%1] .\n\n"
+          "and unzip it to your Hake Geospatial settings directory [%1] .\n\n"
           "This file can be found at [%2]\nand current file is [%3]"
       )
           .arg( QgsApplication::qgisSettingsDirPath(), u"http://soliton.vm.bytemark.co.uk/pub/cpt-city/pkg/"_s, u"http://soliton.vm.bytemark.co.uk/pub/cpt-city/pkg/cpt-city-svg-2.07.zip"_s );

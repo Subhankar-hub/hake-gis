@@ -78,7 +78,7 @@ QString QgsPdalAlgorithms::helpId() const
 
 QString QgsPdalAlgorithms::name() const
 {
-  return tr( "QGIS (PDAL)" );
+  return tr( "Hake Geospatial (PDAL)" );
 }
 
 bool QgsPdalAlgorithms::supportsNonFileBasedOutput() const
@@ -103,7 +103,7 @@ QStringList QgsPdalAlgorithms::supportedOutputPointCloudLayerExtensions() const
 
 void QgsPdalAlgorithms::loadAlgorithms()
 {
-  const QgsScopedRuntimeProfile profile( QObject::tr( "QGIS PDAL provider" ) );
+  const QgsScopedRuntimeProfile profile( QObject::tr( "Hake Geospatial PDAL provider" ) );
 
   addAlgorithm( new QgsPdalAssignProjectionAlgorithm() );
   addAlgorithm( new QgsPdalBoundaryAlgorithm() );

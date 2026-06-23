@@ -654,7 +654,7 @@ void QgsOWSSourceSelect::addDefaultServers()
         "Several WMS servers have "
         "been added to the server list. Note that if "
         "you access the Internet via a web proxy, you will "
-        "need to set the proxy settings in the QGIS options dialog."
+        "need to set the proxy settings in the Hake Geospatial options dialog."
       )
       + "</p>"
   );

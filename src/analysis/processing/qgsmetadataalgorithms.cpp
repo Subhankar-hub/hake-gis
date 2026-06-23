@@ -244,7 +244,7 @@ QgsExportLayerMetadataAlgorithm *QgsExportLayerMetadataAlgorithm::createInstance
 void QgsExportLayerMetadataAlgorithm::initAlgorithm( const QVariantMap & )
 {
   addParameter( new QgsProcessingParameterMapLayer( u"INPUT"_s, QObject::tr( "Layer" ) ) );
-  addParameter( new QgsProcessingParameterFileDestination( u"OUTPUT"_s, QObject::tr( "Output" ), QObject::tr( "QGIS Metadata File" ) + u" (*.qmd *.QMD)"_s ) );
+  addParameter( new QgsProcessingParameterFileDestination( u"OUTPUT"_s, QObject::tr( "Output" ), QObject::tr( "Hake Geospatial Metadata File" ) + u" (*.qmd *.QMD)"_s ) );
 }
 
 QVariantMap QgsExportLayerMetadataAlgorithm::processAlgorithm( const QVariantMap &parameters, QgsProcessingContext &context, QgsProcessingFeedback * )

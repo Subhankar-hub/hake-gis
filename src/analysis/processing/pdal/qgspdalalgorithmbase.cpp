@@ -80,7 +80,7 @@ void QgsPdalAlgorithmBase::createVpcOutputFormatParameter()
   auto paramVpcOutputFormat = std::make_unique<QgsProcessingParameterEnum>( u"VPC_OUTPUT_FORMAT"_s, QObject::tr( "VPC Output Format" ), outputFormats, false, u"COPC"_s );
   paramVpcOutputFormat->setHelp(
     QObject::tr(
-      "Specify the underlying format in which data are stored for VPC output.\nSelect COPC if you need to render the output VPC in QGIS. LAZ/LAS may be faster to process, however only allow "
+      "Specify the underlying format in which data are stored for VPC output.\nSelect COPC if you need to render the output VPC in Hake Geospatial. LAZ/LAS may be faster to process, however only allow "
       "rendering of the point cloud extents."
     )
   );
@@ -196,7 +196,7 @@ void QgsPdalAlgorithmBase::runWrenchProcess( const QStringList &processArgs, Qgs
 
   if ( !QFileInfo::exists( wrenchPath ) )
   {
-    throw QgsProcessingException( QObject::tr( "wrench executable is not found. Either use QGIS build with PDAL support or provide correct path via QGIS_WRENCH_EXECUTABLE environment variable." ) );
+    throw QgsProcessingException( QObject::tr( "wrench executable is not found. Either use Hake Geospatial build with PDAL support or provide correct path via Hake Geospatial_WRENCH_EXECUTABLE environment variable." ) );
   }
 
   QStringList logArgs;
@@ -283,7 +283,7 @@ void QgsPdalAlgorithmBase::runWrenchProcess( const QStringList &processArgs, Qgs
     throw QgsProcessingException( QObject::tr( "Process returned error code %1" ).arg( res ) );
   }
 #else
-  throw QgsProcessingException( QObject::tr( "This algorithm requires a QGIS installation with Qt process feature enabled" ) );
+  throw QgsProcessingException( QObject::tr( "This algorithm requires a Hake Geospatial installation with Qt process feature enabled" ) );
 #endif
 }
 
@@ -366,7 +366,7 @@ void QgsPdalAlgorithmBase::applyVpcOutputFormatParameter( const QString &outputF
     if ( vpcOutputFormat == "LAZ"_L1 || vpcOutputFormat == "LAS"_L1 )
     {
       feedback->pushWarning(
-        QObject::tr( "The VPC file will contain LAS or LAZ files. Such files cannot be properly rendered in QGIS, only the point cloud extents will be displayed. Use COPC as VPC Output Format for proper rendering." )
+        QObject::tr( "The VPC file will contain LAS or LAZ files. Such files cannot be properly rendered in Hake Geospatial, only the point cloud extents will be displayed. Use COPC as VPC Output Format for proper rendering." )
       );
     }
 

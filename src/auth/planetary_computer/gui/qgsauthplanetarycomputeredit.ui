@@ -59,7 +59,7 @@
    <item row="3" column="1">
     <widget class="QLineEdit" name="leClientId">
      <property name="toolTip">
-      <string>Enter the Application ID for the QGIS application in your organization's Entra ID configuration</string>
+      <string>Enter the Application ID for the Hake Geospatial application in your organization's Entra ID configuration</string>
      </property>
      <property name="placeholderText">
       <string>Required</string>

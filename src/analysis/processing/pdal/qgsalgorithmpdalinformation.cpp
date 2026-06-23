@@ -132,7 +132,7 @@ QVariantMap QgsPdalInformationAlgorithm::processAlgorithm( const QVariantMap &pa
   Q_UNUSED( parameters )
   Q_UNUSED( context )
   Q_UNUSED( feedback )
-  throw QgsProcessingException( QObject::tr( "This algorithm requires a QGIS installation with Qt process feature enabled" ) );
+  throw QgsProcessingException( QObject::tr( "This algorithm requires a Hake Geospatial installation with Qt process feature enabled" ) );
 #endif
 }
 

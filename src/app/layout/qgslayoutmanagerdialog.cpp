@@ -112,7 +112,7 @@ QgsLayoutManagerDialog::QgsLayoutManagerDialog( QWidget *parent, Qt::WindowFlags
   addTemplates( defaultTemplateMap );
   addTemplates( otherTemplates() );
 
-  mTemplatesDefaultDirBtn->setToolTip( tr( "Use <i>Settings --> Options --> Layouts --> Layout Paths</i> to configure the folders in which QGIS will search for print layout templates." ) );
+  mTemplatesDefaultDirBtn->setToolTip( tr( "Use <i>Settings --> Options --> Layouts --> Layout Paths</i> to configure the folders in which Hake Geospatial will search for print layout templates." ) );
 
   toggleButtons();
 }

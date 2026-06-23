@@ -130,7 +130,7 @@ void QgsAbout::init()
   {
     const QString donorsHTML = tr(
       "<p>For a list of individuals and institutions who have contributed "
-      "money to fund QGIS development and other project costs see "
+      "money to fund Hake Geospatial development and other project costs see "
       "<a href=\"https://qgis.org/funding/donate/\">"
       "https://qgis.org/funding/donate/</a></p>"
     );
@@ -222,9 +222,9 @@ void QgsAbout::setPluginInfo()
 {
   QString myString;
   //provide info about the plugins available
-  myString += "<b>" + tr( "Available QGIS Data Provider Plugins" ) + "</b><br>";
+  myString += "<b>" + tr( "Available Hake Geospatial Data Provider Plugins" ) + "</b><br>";
   myString += QgsProviderRegistry::instance()->pluginList( true );
-  myString += "<b>" + tr( "Available QGIS Authentication Method Plugins" ) + "</b><br>";
+  myString += "<b>" + tr( "Available Hake Geospatial Authentication Method Plugins" ) + "</b><br>";
   myString += QgsAuthMethodRegistry::instance()->pluginList( true );
   //qt database plugins
   myString += "<b>" + tr( "Available Qt Database Plugins" ) + "</b><br>";
@@ -260,12 +260,12 @@ void QgsAbout::btnCopyToClipboard_clicked()
 
 void QgsAbout::btnQgisUser_clicked()
 {
-  openUrl( u"https://lists.osgeo.org/mailman/listinfo/qgis-user"_s );
+  openUrl( u"https://haketech.com"_s );
 }
 
 void QgsAbout::btnQgisHome_clicked()
 {
-  openUrl( u"https://qgis.org"_s );
+  openUrl( u"https://haketech.com"_s );
 }
 
 void QgsAbout::openUrl( const QUrl &url )

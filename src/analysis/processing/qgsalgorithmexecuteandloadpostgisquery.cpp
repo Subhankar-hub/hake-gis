@@ -55,7 +55,7 @@ QString QgsExecuteAndLoadPostgisQueryAlgorithm::groupId() const
 
 QString QgsExecuteAndLoadPostgisQueryAlgorithm::shortHelpString() const
 {
-  return QObject::tr( "This algorithm performs a SQL database query on a PostgreSQL database connected to QGIS and loads the query results as a new layer." );
+  return QObject::tr( "This algorithm performs a SQL database query on a PostgreSQL database connected to Hake Geospatial and loads the query results as a new layer." );
 }
 
 QString QgsExecuteAndLoadPostgisQueryAlgorithm::shortDescription() const

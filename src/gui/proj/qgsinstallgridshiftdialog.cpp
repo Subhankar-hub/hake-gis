@@ -78,7 +78,7 @@ void QgsInstallGridShiftFileDialog::installFromFile()
 
   if ( QFile::copy( gridFilePath, destFilePath ) )
   {
-    QMessageBox::information( this, tr( "Install Grid File" ), tr( "The %1 grid shift file has been successfully installed. Please restart QGIS for this change to take effect." ).arg( mGridName ) );
+    QMessageBox::information( this, tr( "Install Grid File" ), tr( "The %1 grid shift file has been successfully installed. Please restart Hake Geospatial for this change to take effect." ).arg( mGridName ) );
     accept();
   }
   else

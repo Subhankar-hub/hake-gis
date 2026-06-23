@@ -467,7 +467,7 @@ void QgsVectorFileWriter::init(
   if ( wkbType == wkbUnknown && geometryType != Qgis::WkbType::Unknown )
   {
     mError = ErrCreateLayer;
-    mErrorMessage = QObject::tr( "QGIS geometry type %1 is not supported by GDAL" ).arg( QgsWkbTypes::translatedDisplayString( geometryType ) );
+    mErrorMessage = QObject::tr( "Hake Geospatial geometry type %1 is not supported by GDAL" ).arg( QgsWkbTypes::translatedDisplayString( geometryType ) );
     return;
   }
 

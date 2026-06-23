@@ -237,7 +237,7 @@ QgsOptions::QgsOptions( QWidget *parent, Qt::WindowFlags fl, const QList<QgsOpti
   cmbUITheme->addItems( themes );
 
   // non-default themes are best rendered using the Fusion style, therefore changing themes must require a restart to
-  lblUITheme->setText( u"%1 <i>(%2)</i>"_s.arg( lblUITheme->text(), tr( "QGIS restart required" ) ) );
+  lblUITheme->setText( u"%1 <i>(%2)</i>"_s.arg( lblUITheme->text(), tr( "Hake Geospatial restart required" ) ) );
 
   mProjectTrustBehaviorComboBox->addItem( tr( "Never Execute" ), QVariant::fromValue( Qgis::EmbeddedScriptMode::Never ) );
   mProjectTrustBehaviorComboBox->addItem( tr( "Never Ask for Trust" ), QVariant::fromValue( Qgis::EmbeddedScriptMode::NeverAsk ) );
@@ -425,7 +425,7 @@ QgsOptions::QgsOptions( QWidget *parent, Qt::WindowFlags fl, const QList<QgsOpti
   connect( mBtnRemoveHiddenPath, &QAbstractButton::clicked, this, &QgsOptions::removeHiddenPath );
 
   //locations of the QGIS help
-  const QStringList helpPathList = mSettings->value( u"help/helpSearchPath"_s, "https://docs.qgis.org/$qgis_short_version/$qgis_locale/docs/user_manual/" ).toStringList();
+  const QStringList helpPathList = mSettings->value( u"help/helpSearchPath"_s, "https://haketech.com" ).toStringList();
   for ( const QString &path : helpPathList )
   {
     QTreeWidgetItem *item = new QTreeWidgetItem();
@@ -586,7 +586,7 @@ QgsOptions::QgsOptions( QWidget *parent, Qt::WindowFlags fl, const QList<QgsOpti
   leProjectGlobalCrs->setCrs( QgsCoordinateReferenceSystem( defaultProjectCrs ) );
   leProjectGlobalCrs->setMessage( tr(
     "<h1>Default projection for new projects</h1>"
-    "Select a projection that should be used for new projects that are created in QGIS."
+    "Select a projection that should be used for new projects that are created in Hake Geospatial."
   ) );
 
   const QgsGui::ProjectCrsBehavior projectCrsBehavior = mSettings->enumValue( u"/projections/newProjectCrsBehavior"_s, QgsGui::UseCrsOfFirstLayerAdded, QgsSettings::App );
@@ -1162,7 +1162,7 @@ QgsOptions::QgsOptions( QWidget *parent, Qt::WindowFlags fl, const QList<QgsOpti
 
   mValidateGeometries->clear();
   mValidateGeometries->addItem( tr( "Off" ) );
-  mValidateGeometries->addItem( tr( "QGIS" ) );
+  mValidateGeometries->addItem( tr( "Hake Geospatial" ) );
   mValidateGeometries->addItem( tr( "GEOS" ) );
 
   QString markerStyle = QgsSettingsRegistryCore::settingsDigitizingMarkerStyle->value();
@@ -1311,7 +1311,7 @@ QgsOptions::QgsOptions( QWidget *parent, Qt::WindowFlags fl, const QList<QgsOpti
   }
   QLabel *noOpenCL = new QLabel(
     tr(
-      "QGIS is compiled without OpenCL support. "
+      "Hake Geospatial is compiled without OpenCL support. "
       "GPU acceleration is not available."
     ),
     this
@@ -1503,7 +1503,7 @@ void QgsOptions::selectProjectOnLaunch()
   // Retrieve last used project dir from persistent settings
   QgsSettings settings;
   QString lastUsedDir = mSettings->value( u"/UI/lastProjectDir"_s, QDir::homePath() ).toString();
-  QString projPath = QFileDialog::getOpenFileName( this, tr( "Choose project file to open at launch" ), lastUsedDir, tr( "QGIS files" ) + " (*.qgs *.qgz *.QGS *.QGZ)" );
+  QString projPath = QFileDialog::getOpenFileName( this, tr( "Choose project file to open at launch" ), lastUsedDir, tr( "Hake Geospatial files" ) + " (*.qgs *.qgz *.QGS *.QGZ)" );
   if ( !projPath.isNull() )
   {
     mProjectOnLaunchLineEdit->setText( projPath );
@@ -2557,7 +2557,7 @@ void QgsOptions::saveGdalDriverList()
 
   if ( driverUnregisterNeeded )
   {
-    QMessageBox::information( this, tr( "Drivers Disabled" ), tr( "One or more drivers have been disabled. This will only take effect after QGIS is restarted." ) );
+    QMessageBox::information( this, tr( "Drivers Disabled" ), tr( "One or more drivers have been disabled. This will only take effect after Hake Geospatial is restarted." ) );
   }
   QgsApplication::setSkippedGdalDrivers( skippedGdalDrivers, deferredSkippedGdalDrivers );
 }

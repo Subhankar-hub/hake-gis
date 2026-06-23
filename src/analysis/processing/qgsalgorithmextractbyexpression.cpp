@@ -63,15 +63,15 @@ QString QgsExtractByExpressionAlgorithm::shortHelpString() const
 {
   return QObject::tr(
     "This algorithm creates a new vector layer that only contains matching features from an input layer. "
-    "The criteria for adding features to the resulting layer is based on a QGIS expression.\n\n"
-    "For help with QGIS expression functions, see the inbuilt help for specific functions "
+    "The criteria for adding features to the resulting layer is based on a Hake Geospatial expression.\n\n"
+    "For help with Hake Geospatial expression functions, see the inbuilt help for specific functions "
     "which is available in the expression builder."
   );
 }
 
 QString QgsExtractByExpressionAlgorithm::shortDescription() const
 {
-  return QObject::tr( "Creates a vector layer that only contains features matching a QGIS expression from an input layer." );
+  return QObject::tr( "Creates a vector layer that only contains features matching a Hake Geospatial expression from an input layer." );
 }
 
 QgsExtractByExpressionAlgorithm *QgsExtractByExpressionAlgorithm::createInstance() const

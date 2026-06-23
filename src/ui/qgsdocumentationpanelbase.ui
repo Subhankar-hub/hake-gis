@@ -84,10 +84,10 @@
      <normaloff>:/images/icons/qgis_icon.svg</normaloff>:/images/icons/qgis_icon.svg</iconset>
    </property>
    <property name="text">
-    <string>PyQGIS API Documentation</string>
+    <string>PyHake Geospatial API Documentation</string>
    </property>
    <property name="toolTip">
-    <string>PyQGIS API Documentation</string>
+    <string>PyHake Geospatial API Documentation</string>
    </property>
    <property name="menuRole">
     <enum>QAction::NoRole</enum>

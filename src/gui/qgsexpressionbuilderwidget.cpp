@@ -567,7 +567,7 @@ void QgsExpressionBuilderWidget::cmbFileNames_currentItemChanged( QListWidgetIte
 
     btnRun->setText( tr( "Load or update functions" ) );
     btnRun->setToolTip( tr(
-      "Loads or updates functions from current script file in QGIS.\n"
+      "Loads or updates functions from current script file in Hake Geospatial.\n"
       "\n"
       "Note the functions will only be stored when saving the project."
     ) );
@@ -580,18 +580,18 @@ void QgsExpressionBuilderWidget::cmbFileNames_currentItemChanged( QListWidgetIte
     {
       btnRun->setText( tr( "Load or update functions" ) );
       btnRun->setToolTip( tr(
-        "Loads or updates functions from current script file in QGIS.\n"
+        "Loads or updates functions from current script file in Hake Geospatial.\n"
         "\n"
-        "Saved scripts are auto loaded on QGIS startup."
+        "Saved scripts are auto loaded on Hake Geospatial startup."
       ) );
     }
     else
     {
       btnRun->setText( tr( "Save and Load Functions" ) );
       btnRun->setToolTip( tr(
-        "Saves current script file and loads or updates its functions in QGIS.\n"
+        "Saves current script file and loads or updates its functions in Hake Geospatial.\n"
         "\n"
-        "Saved scripts are auto loaded on QGIS startup."
+        "Saved scripts are auto loaded on Hake Geospatial startup."
       ) );
     }
   }

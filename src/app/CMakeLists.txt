@@ -420,7 +420,7 @@ if (WIN32)
   endif()
 
   win32_icon(QGIS_APPMAIN_SRCS)
-  win32_version_info("QGIS Desktop" ${QGIS_APP_NAME} QGIS_APPMAIN_SRCS)
+  win32_version_info("Hake Geospatial" ${QGIS_APP_NAME} QGIS_APPMAIN_SRCS)
 else()
   set (QGIS_APPMAIN_SRCS main.cpp ${TEST_RCCS})
 endif()

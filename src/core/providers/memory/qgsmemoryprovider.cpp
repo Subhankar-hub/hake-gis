@@ -784,7 +784,7 @@ bool QgsMemoryProvider::supportsSubsetString() const
 
 QString QgsMemoryProvider::subsetStringDialect() const
 {
-  return tr( "QGIS expression" );
+  return tr( "Hake Geospatial expression" );
 }
 
 QString QgsMemoryProvider::subsetStringHelpUrl() const

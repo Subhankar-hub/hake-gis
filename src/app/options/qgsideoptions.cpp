@@ -59,7 +59,7 @@ void QgsIdeOptionsWidget::apply()
 
 void QgsIdeOptionsWidget::generateGitHubToken()
 {
-  QDesktopServices::openUrl( QUrl( u"https://github.com/settings/tokens/new?description=%1&scopes=gist"_s.arg( tr( "QGIS Code Editor" ) ) ) );
+  QDesktopServices::openUrl( QUrl( u"https://github.com/settings/tokens/new?description=%1&scopes=gist"_s.arg( tr( "Hake Geospatial Code Editor" ) ) ) );
 }
 
 //

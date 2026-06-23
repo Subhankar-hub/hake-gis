@@ -29,7 +29,7 @@ QgsBusyIndicatorDialog::QgsBusyIndicatorDialog( const QString &message, QWidget 
   , mMessage( QString( message ) )
 
 {
-  setWindowTitle( tr( "QGIS" ) );
+  setWindowTitle( tr( "Hake Geospatial" ) );
   setLayout( new QVBoxLayout() );
   setWindowModality( Qt::WindowModal );
   setMinimumWidth( 250 );

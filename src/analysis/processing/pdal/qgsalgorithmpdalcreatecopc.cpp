@@ -89,7 +89,7 @@ bool QgsPdalCreateCopcAlgorithm::prepareAlgorithm( const QVariantMap &parameters
 #ifdef HAVE_PDAL_QGIS
   return true;
 #else
-  throw QgsProcessingException( QObject::tr( "This algorithm requires a QGIS installation with PDAL support enabled." ) );
+  throw QgsProcessingException( QObject::tr( "This algorithm requires a Hake Geospatial installation with PDAL support enabled." ) );
 #endif
 }
 
@@ -210,9 +210,9 @@ QVariantMap QgsPdalCreateCopcAlgorithm::processAlgorithm( const QVariantMap &par
   Q_UNUSED( context )
   Q_UNUSED( feedback )
 #if QT_CONFIG( process )
-  throw QgsProcessingException( QObject::tr( "This algorithm requires a QGIS installation with PDAL support enabled." ) );
+  throw QgsProcessingException( QObject::tr( "This algorithm requires a Hake Geospatial installation with PDAL support enabled." ) );
 #else
-  throw QgsProcessingException( QObject::tr( "This algorithm requires a QGIS installation with Qt process feature enabled" ) );
+  throw QgsProcessingException( QObject::tr( "This algorithm requires a Hake Geospatial installation with Qt process feature enabled" ) );
 #endif
 #endif
 }

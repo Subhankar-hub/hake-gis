@@ -32,7 +32,7 @@ class QgisCustomWidgets : public QObject, public QDesignerCustomWidgetCollection
 
     QList<QDesignerCustomWidgetInterface *> customWidgets() const override;
 
-    static QString groupName() { return tr( "QGIS custom widgets" ); }
+    static QString groupName() { return tr( "Hake Geospatial custom widgets" ); }
 
   private:
     QList<QDesignerCustomWidgetInterface *> mWidgets;

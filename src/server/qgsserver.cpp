@@ -545,7 +545,7 @@ void QgsServer::handleRequest( QgsServerRequest &request, QgsServerResponse &res
             {
               throw QgsServerException( QStringLiteral(
                 "Project file error. For OWS services: please provide a SERVICE "
-                "and a MAP parameter pointing to a valid QGIS project file"
+                "and a MAP parameter pointing to a valid Hake Geospatial project file"
               ) );
             }
 

@@ -353,7 +353,7 @@ QgsStyleXmlDataItem::QgsStyleXmlDataItem( QgsDataItem *parent, const QString &na
 {
   setState( Qgis::BrowserItemState::Populated ); // no children
   setIconName( u"/mActionStyleManager.svg"_s );
-  setToolTip( u"<b>%1</b><br>%2"_s.arg( tr( "QGIS style library" ), QDir::toNativeSeparators( path ) ) );
+  setToolTip( u"<b>%1</b><br>%2"_s.arg( tr( "Hake Geospatial style library" ), QDir::toNativeSeparators( path ) ) );
   mCapabilities |= Qgis::BrowserItemCapability::ItemRepresentsFile;
 }
 

@@ -71,7 +71,7 @@ QString QgsCombineStylesAlgorithm::groupId() const
 QString QgsCombineStylesAlgorithm::shortHelpString() const
 {
   return QObject::tr(
-    "This algorithm combines multiple QGIS style databases into a single style database. If any symbols exist with duplicate names between the different "
+    "This algorithm combines multiple Hake Geospatial style databases into a single style database. If any symbols exist with duplicate names between the different "
     "source databases these will be renamed to have unique names in the output combined database."
   );
 }

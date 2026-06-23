@@ -113,7 +113,7 @@ QgsFields QgsConcaveHullByFeatureAlgorithm::outputFields( const QgsFields &input
 bool QgsConcaveHullByFeatureAlgorithm::prepareAlgorithm( const QVariantMap &parameters, QgsProcessingContext &context, QgsProcessingFeedback * )
 {
 #if GEOS_VERSION_MAJOR == 3 && GEOS_VERSION_MINOR < 11
-  throw QgsProcessingException( QObject::tr( "This algorithm requires a QGIS build based on GEOS 3.11 or later" ) );
+  throw QgsProcessingException( QObject::tr( "This algorithm requires a Hake Geospatial build based on GEOS 3.11 or later" ) );
 #endif
   mPercentage = parameterAsDouble( parameters, u"ALPHA"_s, context );
   mAllowHoles = parameterAsBool( parameters, u"HOLES"_s, context );

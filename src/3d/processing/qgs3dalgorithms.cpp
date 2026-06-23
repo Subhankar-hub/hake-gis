@@ -54,7 +54,7 @@ QString Qgs3DAlgorithms::helpId() const
 
 QString Qgs3DAlgorithms::name() const
 {
-  return tr( "QGIS (3D)" );
+  return tr( "Hake Geospatial (3D)" );
 }
 
 bool Qgs3DAlgorithms::supportsNonFileBasedOutput() const

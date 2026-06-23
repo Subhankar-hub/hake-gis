@@ -1038,7 +1038,7 @@ int main( int argc, char *argv[] )
   if ( !myUseGuiFlag )
   {
     std::cerr << QObject::tr(
-                   "QGIS starting in non-interactive mode not supported.\n"
+                   "Hake Geospatial starting in non-interactive mode not supported.\n"
                    "You are seeing this message most likely because you "
                    "have no DISPLAY environment variable set.\n"
     )

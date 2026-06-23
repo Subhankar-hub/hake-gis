@@ -2896,8 +2896,8 @@ void QgsProjectProperties::onGenerateTsFileButton() const
       "- translate strings\n"
       "- save the TS file with the suffix of the target language (e.g. _de.ts)\n"
       "- release to get the QM file including the suffix (e.g. aproject_de.qm)\n"
-      "- open the original QGIS file (e.g. aproject.qgs)\n"
-      "- if your QGIS is set to use a specific language and the QM file for that language is found, the translated QGIS project will be generated on the fly.\n"
+      "- open the original Hake Geospatial file (e.g. aproject.qgs)\n"
+      "- if your Hake Geospatial is set to use a specific language and the QM file for that language is found, the translated Hake Geospatial project will be generated on the fly.\n"
       "- you will be redirected to this new project (e.g. aproject_de.qgs)."
     )
       .arg( l )

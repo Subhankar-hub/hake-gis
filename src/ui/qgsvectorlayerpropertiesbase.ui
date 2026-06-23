@@ -310,10 +310,10 @@
          </item>
          <item>
           <property name="text">
-           <string>QGIS Server</string>
+           <string>Hake Geospatial Server</string>
           </property>
           <property name="toolTip">
-           <string>Edit QGIS Server settings</string>
+           <string>Edit Hake Geospatial Server settings</string>
           </property>
           <property name="icon">
            <iconset resource="../../images/images.qrc">
@@ -1975,7 +1975,7 @@
                  <item>
                   <widget class="QCheckBox" name="mRefreshLayerNotificationCheckBox">
                    <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Some data providers can notify QGIS (e.g. PostgreSQL) with a message. If this is the case for this layer's data provider, notification will refresh the layer. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Some data providers can notify Hake Geospatial (e.g. PostgreSQL) with a message. If this is the case for this layer's data provider, notification will refresh the layer. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
                     <string>Refresh layer on notification</string>
@@ -2189,7 +2189,7 @@
               <item>
                <widget class="QLabel" name="label_4">
                 <property name="text">
-                 <string>Selected dependent layers should include any layers which may externally alter the data in this layer. For instance, layers with database triggers or custom PyQGIS scripting which alter this layer should be selected. Correctly specifying dependent layers allows QGIS to invalidate caches for this layer when the dependent layers are altered.</string>
+                 <string>Selected dependent layers should include any layers which may externally alter the data in this layer. For instance, layers with database triggers or custom PyHake Geospatial scripting which alter this layer should be selected. Correctly specifying dependent layers allows Hake Geospatial to invalidate caches for this layer when the dependent layers are altered.</string>
                 </property>
                 <property name="wordWrap">
                  <bool>true</bool>

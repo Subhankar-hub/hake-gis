@@ -373,7 +373,7 @@ void QgsPluginManager::getCppPluginsMetadata()
 
     if ( pluginDir.count() == 0 )
     {
-      QMessageBox::information( this, tr( "No Plugins" ), tr( "No QGIS plugins found in %1" ).arg( myPluginDir ) );
+      QMessageBox::information( this, tr( "No Plugins" ), tr( "No Hake Geospatial plugins found in %1" ).arg( myPluginDir ) );
       continue;
     }
 
@@ -769,7 +769,7 @@ void QgsPluginManager::showPluginDetails( QStandardItem *item )
     QString errorMsg;
     if ( metadata->value( u"error"_s ) == "incompatible"_L1 )
     {
-      errorMsg = u"<b>%1</b><br/>%2"_s.arg( tr( "This plugin is incompatible with this version of QGIS" ), metadata->value( u"error_details"_s ) );
+      errorMsg = u"<b>%1</b><br/>%2"_s.arg( tr( "This plugin is incompatible with this version of Hake Geospatial" ), metadata->value( u"error_details"_s ) );
     }
     else if ( metadata->value( u"error"_s ) == "dependent"_L1 )
     {
@@ -1214,7 +1214,7 @@ void QgsPluginManager::addToRepositoryList( const QMap<QString, QString> &reposi
       }
       else
       {
-        a->setToolTip( 0, tr( "The repository is blocked due to incompatibility with your QGIS version" ) );
+        a->setToolTip( 0, tr( "The repository is blocked due to incompatibility with your Hake Geospatial version" ) );
       }
 
       const QBrush grayBrush = QBrush( QColor( Qt::gray ) );

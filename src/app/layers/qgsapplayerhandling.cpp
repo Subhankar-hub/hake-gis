@@ -236,7 +236,7 @@ void QgsAppLayerHandling::postProcessAddedLayer( QgsMapLayer *layer )
             const QString message
               = QObject::tr( "Layer %1 references point cloud files that can only be displayed by their extents." ).arg( layer->name() )
                 + u"\n"_s
-                + QObject::tr( "QGIS can display the actual points of a virtual point cloud only if the referenced point cloud files are in COPC or EPT format." )
+                + QObject::tr( "Hake Geospatial can display the actual points of a virtual point cloud only if the referenced point cloud files are in COPC or EPT format." )
                 + u"\n\n"_s
                 + QObject::tr( "You can convert the files to COPC format by running the Build virtual point cloud (VPC) algorithm and enabling the Convert individual files to COPC format checkbox." );
 
@@ -1859,7 +1859,7 @@ void QgsAppLayerHandling::loadStyleFromFile( const QList<QgsMapLayer *> &layers 
       QgsSettings settings;
       const QString lastUsedDir = settings.value( u"style/lastStyleDir"_s, QDir::homePath() ).toString();
 
-      filePath = QFileDialog::getOpenFileName( nullptr, QObject::tr( "Load Layer Properties from Style File" ), lastUsedDir, QObject::tr( "QGIS Layer Style File" ) + u" (*.qml)"_s );
+      filePath = QFileDialog::getOpenFileName( nullptr, QObject::tr( "Load Layer Properties from Style File" ), lastUsedDir, QObject::tr( "Hake Geospatial Layer Style File" ) + u" (*.qml)"_s );
       if ( filePath.isEmpty() )
         return;
 

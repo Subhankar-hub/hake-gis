@@ -341,7 +341,7 @@ void QgsAuthGuiUtils::eraseAuthenticationDatabase( QgsMessageBar *msgbar, QWidge
   }
 
   msgbar->clearWidgets();
-  msgbar->pushMessage( QObject::tr( "RESTART QGIS" ), msg, level );
+  msgbar->pushMessage( QObject::tr( "RESTART Hake Geospatial" ), msg, level );
 }
 
 void QgsAuthGuiUtils::fileFound( bool found, QWidget *widget )

@@ -172,7 +172,7 @@
          </item>
          <item>
           <property name="text">
-           <string>QGIS Server</string>
+           <string>Hake Geospatial Server</string>
           </property>
           <property name="icon">
            <iconset resource="../../images/images.qrc">

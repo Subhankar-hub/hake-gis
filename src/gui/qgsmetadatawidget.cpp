@@ -861,7 +861,7 @@ bool QgsMetadataWidget::checkMetadata()
   }
   else
   {
-    errors = tr( "Ok, it seems valid according to the QGIS Schema." );
+    errors = tr( "Ok, it seems valid according to the Hake Geospatial Schema." );
   }
 
   QString myStyle = QgsApplication::reportStyleSheet();

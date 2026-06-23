@@ -274,7 +274,7 @@ void QgsStatusBarCoordinatesWidget::contributors()
   const QString fileName = QgsApplication::pkgDataPath() + u"/resources/data/contributors.json"_s;
   const QFileInfo fileInfo = QFileInfo( fileName );
   const QgsVectorLayer::LayerOptions options { QgsProject::instance()->transformContext() };
-  QgsVectorLayer *layer = new QgsVectorLayer( fileInfo.absoluteFilePath(), tr( "QGIS Contributors" ), u"ogr"_s, options );
+  QgsVectorLayer *layer = new QgsVectorLayer( fileInfo.absoluteFilePath(), tr( "Hake Geospatial Contributors" ), u"ogr"_s, options );
   // Register this layer with the layers registry
   QgsProject::instance()->addMapLayer( layer );
   layer->setAutoRefreshInterval( 500 );
@@ -305,7 +305,7 @@ void QgsStatusBarCoordinatesWidget::hackfests()
   const QString fileName = QgsApplication::pkgDataPath() + u"/resources/data/qgis-hackfests.json"_s;
   const QFileInfo fileInfo = QFileInfo( fileName );
   const QgsVectorLayer::LayerOptions options { QgsProject::instance()->transformContext() };
-  QgsVectorLayer *layer = new QgsVectorLayer( fileInfo.absoluteFilePath(), tr( "QGIS Hackfests" ), u"ogr"_s, options );
+  QgsVectorLayer *layer = new QgsVectorLayer( fileInfo.absoluteFilePath(), tr( "Hake Geospatial Hackfests" ), u"ogr"_s, options );
   // Register this layer with the layers registry
   QgsProject::instance()->addMapLayer( layer );
 }

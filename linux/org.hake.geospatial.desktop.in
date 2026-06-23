@@ -1,10 +1,10 @@
 [Desktop Entry]
 Type=Application
-Name=QGIS Desktop
+Name=Hake Geospatial
 GenericName=Geographic Information System
 Icon=qgis
-TryExec=qgis
-Exec=qgis %F
+TryExec=hake-gis
+Exec=hake-gis %F
 Terminal=false
 StartupNotify=false
 Categories=Qt;Education;Science;Geography;

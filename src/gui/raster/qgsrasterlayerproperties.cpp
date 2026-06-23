@@ -360,9 +360,9 @@ QgsRasterLayerProperties::QgsRasterLayerProperties( QgsMapLayer *lyr, QgsMapCanv
   // Set text for pyramid info box
   QString pyramidFormat( u"<h2>%1</h2><p>%2 %3 %4</p><b><font color='red'><p>%5</p><p>%6</p>"_s );
   QString pyramidHeader = tr( "Description" );
-  QString pyramidSentence1 = tr( "Large resolution raster layers can slow navigation in QGIS." );
+  QString pyramidSentence1 = tr( "Large resolution raster layers can slow navigation in Hake Geospatial." );
   QString pyramidSentence2 = tr(
-    "By creating lower resolution copies of the data (pyramids) performance can be considerably improved as QGIS selects the most suitable resolution to use depending on the level of zoom."
+    "By creating lower resolution copies of the data (pyramids) performance can be considerably improved as Hake Geospatial selects the most suitable resolution to use depending on the level of zoom."
   );
   QString pyramidSentence3 = tr( "You must have write access in the directory where the original data is stored to build pyramids." );
   QString pyramidSentence4 = tr( "Please note that building internal pyramids may alter the original data file and once created they cannot be removed!" );

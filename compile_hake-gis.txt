@@ -1,0 +1,23 @@
+cd /home/smith/Desktop/project/QGIS/build-master
+rm -rf *
+cmake -G Ninja \
+  -D CMAKE_BUILD_TYPE=Debug \
+  -D WITH_3D=ON \
+  -D WITH_ANALYSIS=ON \
+  -D WITH_AUTH=ON \
+  -D WITH_BINDINGS=ON \
+  -D WITH_COPC=ON \
+  -D WITH_DESKTOP=ON \
+  -D WITH_EPT=ON \
+  -D WITH_GUI=ON \
+  -D WITH_PDAL=OFF \
+  -D WITH_POSTGRESQL=ON \
+  -D WITH_PYTHON=ON \
+  -D WITH_QGIS_PROCESS=ON \
+  -D WITH_SPATIALITE=ON \
+  -D WITH_SERVER=OFF \
+  -D WITH_INTERNAL_SPATIALINDEX=ON \
+  -D Python_EXECUTABLE=/usr/bin/python3 \
+  ..
+
+ninja

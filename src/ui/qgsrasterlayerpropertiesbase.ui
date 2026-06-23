@@ -238,10 +238,10 @@
          </item>
          <item>
           <property name="text">
-           <string>QGIS Server</string>
+           <string>Hake Geospatial Server</string>
           </property>
           <property name="toolTip">
-           <string>Edit QGIS Server settings</string>
+           <string>Edit Hake Geospatial Server settings</string>
           </property>
           <property name="icon">
            <iconset resource="../../images/images.qrc">

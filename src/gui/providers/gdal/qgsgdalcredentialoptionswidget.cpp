@@ -505,7 +505,7 @@ QgsGdalCredentialOptionsWidget::QgsGdalCredentialOptionsWidget( QWidget *parent 
   mLabelInfo->setTextInteractionFlags( Qt::TextBrowserInteraction );
   mLabelInfo->setOpenExternalLinks( true );
 
-  mLabelWarning->setText( tr( "Potentially sensitive credentials are configured! <b>These will be stored in plain text within the QGIS project</b>." ) );
+  mLabelWarning->setText( tr( "Potentially sensitive credentials are configured! <b>These will be stored in plain text within the Hake Geospatial project</b>." ) );
   mLabelWarning->setVisible( false );
 
   mModel = new QgsGdalCredentialOptionsModel( this );

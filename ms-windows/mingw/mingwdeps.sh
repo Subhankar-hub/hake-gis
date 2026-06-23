@@ -26,43 +26,38 @@ dnf install -y --nogpgcheck \
   mingw64-python3-dateutil \
   mingw64-python3-flask \
   mingw64-python3-gdal \
-  mingw64-python3-GeographicLib \
+  mingw64-python3-geographiclib \
   mingw64-python3-homography \
   mingw64-python3-idna \
   mingw64-python3-lxml \
   mingw64-python3-markupsafe \
   mingw64-python3-numpy \
   mingw64-python3-opencv \
-  mingw64-python3-OWSLib \
+  mingw64-python3-owslib \
   mingw64-python3-pillow \
   mingw64-python3-psycopg2 \
   mingw64-python3-PyQt-builder \
   mingw64-python3-pytz \
   mingw64-python3-pyyaml \
-  mingw64-python3-qscintilla-qt5 \
-  mingw64-python3-qt5 \
+  mingw64-python3-qscintilla-qt6 \
+  mingw64-python3-pyqt6 \
   mingw64-python3-requests \
   mingw64-python3-shapely \
   mingw64-python3-urllib3 \
-  mingw64-qca-qt5 \
-  mingw64-qscintilla-qt5 \
-  mingw64-qt5-qmake \
-  mingw64-qt5-qtactiveqt \
-  mingw64-qt5-qtbase \
-  mingw64-qt5-qtimageformats \
-  mingw64-qt5-qtlocation \
-  mingw64-qt5-qtmultimedia \
-  mingw64-qt5-qtscript \
-  mingw64-qt5-qtserialport \
-  mingw64-qt5-qtsvg \
-  mingw64-qt5-qttools \
-  mingw64-qt5-qttools-tools \
-  mingw64-qt5-qttranslations \
-  mingw64-qt5-qtwebkit \
-  mingw64-qt5-qtxmlpatterns \
-  mingw64-qtkeychain-qt5 \
-  mingw64-quazip-qt5 \
-  mingw64-qwt-qt5 \
+  mingw64-qca-qt6 \
+  mingw64-qscintilla-qt6 \
+  mingw64-qt6-qtactiveqt \
+  mingw64-qt6-qtbase \
+  mingw64-qt6-qtimageformats \
+  mingw64-qt6-qtlocation \
+  mingw64-qt6-qtmultimedia \
+  mingw64-qt6-qtserialport \
+  mingw64-qt6-qtsvg \
+  mingw64-qt6-qttools \
+  mingw64-qt6-qttranslations \
+  mingw64-qtkeychain-qt6 \
+  mingw64-quazip-qt6 \
+  mingw64-qwt-qt6 \
   mingw64-sip \
   mingw64-spatialindex \
   mingw64-sqlite \
@@ -78,10 +73,10 @@ dnf install -y --nogpgcheck \
   make \
   proj-devel \
   python-devel \
-  python-qt5 \
-  python3-qscintilla-qt5 \
-  qt5-linguist \
-  qt5-qtbase-devel \
+  python3-pyqt6 \
+  python3-qscintilla-qt6 \
+  qt6-linguist \
+  qt6-qtbase-devel \
   sqlite-devel \
   wget \
   xorg-x11-server-Xvfb \

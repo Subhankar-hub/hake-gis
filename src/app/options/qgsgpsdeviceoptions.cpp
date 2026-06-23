@@ -51,7 +51,7 @@ QgsGpsDeviceOptionsWidget::QgsGpsDeviceOptionsWidget( QWidget *parent )
                                   .arg(
                                     tr(
                                       "In the download and upload commands there can be special words that will be replaced by "
-                                      "QGIS when the commands are used. These words are:"
+                                      "Hake Geospatial when the commands are used. These words are:"
                                     ),
                                     tr( "the path to GPSBabel" ),
                                     tr( "the GPX filename when uploading or the port when downloading" ),

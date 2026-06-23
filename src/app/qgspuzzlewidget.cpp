@@ -99,7 +99,7 @@ void QgsPuzzleWidget::mousePressEvent( QMouseEvent *event )
     updateTilePositions();
     if ( testSolved( mPositions ) )
     {
-      QMessageBox::information( nullptr, tr( "QGIS" ), tr( "Well done!\n\nNow let's get back to work, shall we?" ) );
+      QMessageBox::information( nullptr, tr( "Hake Geospatial" ), tr( "Well done!\n\nNow let's get back to work, shall we?" ) );
       emit done();
     }
   }

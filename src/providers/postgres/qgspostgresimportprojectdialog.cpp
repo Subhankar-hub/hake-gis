@@ -69,7 +69,7 @@ QgsPostgresImportProjectDialog::QgsPostgresImportProjectDialog( const QString co
   QMenu *menu = new QMenu( mButtonAdd );
 
   menu->addAction( tr( "Add Project File…" ), this, [this, fileFilter]() {
-    QString projPath = QFileDialog::getOpenFileName( this, tr( "Select Project File" ), lastUsedDir(), tr( "QGIS files" ) + fileFilter.join( " " ) );
+    QString projPath = QFileDialog::getOpenFileName( this, tr( "Select Project File" ), lastUsedDir(), tr( "Hake Geospatial files" ) + fileFilter.join( " " ) );
     if ( projPath.isEmpty() )
       return;
     QString projName = prepareProjectName( projPath );

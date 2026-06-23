@@ -229,6 +229,6 @@ bool QgsWebEnginePage::render( QPainter *painter, const QRectF &painterRect )
 #else
 bool QgsWebEnginePage::render( QPainter *, const QRectF & )
 {
-  throw QgsNotSupportedException( QObject::tr( "Rendering web pages requires a QGIS build with PDF4Qt library support" ) );
+  throw QgsNotSupportedException( QObject::tr( "Rendering web pages requires a Hake Geospatial build with PDF4Qt library support" ) );
 }
 #endif

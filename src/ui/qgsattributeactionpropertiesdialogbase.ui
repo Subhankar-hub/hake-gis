@@ -17,7 +17,7 @@
    <item row="1" column="0">
     <widget class="QLabel" name="textLabel1">
      <property name="toolTip">
-      <string>Enter the name of an action here. The name should be unique (QGIS will make it unique if necessary).</string>
+      <string>Enter the name of an action here. The name should be unique (Hake Geospatial will make it unique if necessary).</string>
      </property>
      <property name="text">
       <string>Description</string>
@@ -222,7 +222,7 @@ Clicking the button will let you select an application to use as the action</str
    <item row="1" column="1" colspan="3">
     <widget class="QLineEdit" name="mActionName">
      <property name="toolTip">
-      <string>Enter the name of an action here. The name should be unique (QGIS will make it unique if necessary).</string>
+      <string>Enter the name of an action here. The name should be unique (Hake Geospatial will make it unique if necessary).</string>
      </property>
      <property name="placeholderText">
       <string>Mandatory description</string>

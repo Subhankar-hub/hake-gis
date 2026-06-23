@@ -173,7 +173,7 @@ _ssr = StartupScriptRunner()
   }
 
   // import QGIS bindings
-  QString error_msg = QObject::tr( "Couldn't load PyQGIS." ) + '\n' + QObject::tr( "Python support will be disabled." );
+  QString error_msg = QObject::tr( "Couldn't load PyHake Geospatial." ) + '\n' + QObject::tr( "Python support will be disabled." );
   if (
     !runString( u"from qgis.core import *"_s, error_msg )
 #ifdef HAVE_GUI
@@ -185,7 +185,7 @@ _ssr = StartupScriptRunner()
   }
 
   // import QGIS utils
-  error_msg = QObject::tr( "Couldn't load QGIS utils." ) + '\n' + QObject::tr( "Python support will be disabled." );
+  error_msg = QObject::tr( "Couldn't load Hake Geospatial utils." ) + '\n' + QObject::tr( "Python support will be disabled." );
   if ( !runString( u"import qgis.utils"_s, error_msg ) )
   {
     return false;
@@ -342,7 +342,7 @@ void QgsPythonUtilsImpl::initServerPython( QgsServerInterface *interface )
 
   // This is the main difference with initInterface() for desktop plugins
   // import QGIS Server bindings
-  const QString error_msg = QObject::tr( "Couldn't load PyQGIS Server." ) + '\n' + QObject::tr( "Python support will be disabled." );
+  const QString error_msg = QObject::tr( "Couldn't load PyHake Geospatial Server." ) + '\n' + QObject::tr( "Python support will be disabled." );
   if ( !runString( u"from qgis.server import *"_s, error_msg ) )
   {
     return;
@@ -471,7 +471,7 @@ bool QgsPythonUtilsImpl::runString( const QString &command, QString msgOnError, 
                 + "<br>"
                 + version
                 + "<br><br>"
-                + QObject::tr( "QGIS version:" )
+                + QObject::tr( "Hake Geospatial version:" )
                 + "<br>"
                 + u"%1 '%2', %3"_s.arg( Qgis::version(), Qgis::releaseName(), Qgis::devVersion() )
                 + "<br><br>"
@@ -542,7 +542,7 @@ bool QgsPythonUtilsImpl::runFile( const QString &filename, const QString &messag
                 + "<br>"
                 + version
                 + "<br><br>"
-                + QObject::tr( "QGIS version:" )
+                + QObject::tr( "Hake Geospatial version:" )
                 + "<br>"
                 + u"%1 '%2', %3"_s.arg( Qgis::version(), Qgis::releaseName(), Qgis::devVersion() )
                 + "<br><br>"
@@ -622,7 +622,7 @@ bool QgsPythonUtilsImpl::setArgv( const QStringList &arguments, const QString &m
                 + "<br>"
                 + version
                 + "<br><br>"
-                + QObject::tr( "QGIS version:" )
+                + QObject::tr( "Hake Geospatial version:" )
                 + "<br>"
                 + u"%1 '%2', %3"_s.arg( Qgis::version(), Qgis::releaseName(), Qgis::devVersion() )
                 + "<br><br>"

@@ -681,9 +681,9 @@ void QgsExpressionTreeView::loadExpressionsFromJson( const QJsonDocument &expres
     QMessageBox::StandardButtons buttons = QMessageBox::Yes | QMessageBox::No;
     switch ( QMessageBox::question(
       this,
-      tr( "QGIS Version Mismatch" ),
+      tr( "Hake Geospatial Version Mismatch" ),
       tr(
-        "The imported expressions are from newer version of QGIS (%1) "
+        "The imported expressions are from newer version of Hake Geospatial (%1) "
         "and some of the expression might not work the current version (%2). "
         "Are you sure you want to continue?"
       )

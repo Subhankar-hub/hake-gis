@@ -55,12 +55,12 @@ QString QgsCalculateExpressionAlgorithm::groupId() const
 
 QString QgsCalculateExpressionAlgorithm::shortHelpString() const
 {
-  return QObject::tr( "This algorithm calculates the result of a QGIS expression and makes it available for use in other parts of the model." );
+  return QObject::tr( "This algorithm calculates the result of a Hake Geospatial expression and makes it available for use in other parts of the model." );
 }
 
 QString QgsCalculateExpressionAlgorithm::shortDescription() const
 {
-  return QObject::tr( "Calculates the result of a QGIS expression and makes it available for use in other parts of the model." );
+  return QObject::tr( "Calculates the result of a Hake Geospatial expression and makes it available for use in other parts of the model." );
 }
 
 QgsCalculateExpressionAlgorithm *QgsCalculateExpressionAlgorithm::createInstance() const

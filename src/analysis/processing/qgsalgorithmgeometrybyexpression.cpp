@@ -59,10 +59,10 @@ QString QgsGeometryByExpressionAlgorithm::shortHelpString() const
 {
   return QObject::tr(
     "This algorithm updates existing geometries (or creates new geometries) for input "
-    "features by use of a QGIS expression. This allows complex geometry modifications "
-    "which can utilize all the flexibility of the QGIS expression engine to manipulate "
+    "features by use of a Hake Geospatial expression. This allows complex geometry modifications "
+    "which can utilize all the flexibility of the Hake Geospatial expression engine to manipulate "
     "and create geometries for output features.\n\n"
-    "For help with QGIS expression functions, see the inbuilt help for specific functions "
+    "For help with Hake Geospatial expression functions, see the inbuilt help for specific functions "
     "which is available in the expression builder."
   );
 }
@@ -71,7 +71,7 @@ QString QgsGeometryByExpressionAlgorithm::shortDescription() const
 {
   return QObject::tr(
     "Updates existing geometries (or creates new geometries) for input "
-    "features by use of a QGIS expression."
+    "features by use of a Hake Geospatial expression."
   );
 }
 

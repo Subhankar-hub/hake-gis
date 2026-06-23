@@ -61,7 +61,7 @@ void QgsLayerPropertiesDialog::loadMetadataFromFile()
   QgsSettings settings; // where we keep last used filter in persistent state
   const QString lastUsedDir = settings.value( u"style/lastStyleDir"_s, QDir::homePath() ).toString();
 
-  const QString fileName = QFileDialog::getOpenFileName( this, tr( "Load Layer Metadata" ), lastUsedDir, tr( "QGIS Layer Metadata File" ) + " (*.qmd)" );
+  const QString fileName = QFileDialog::getOpenFileName( this, tr( "Load Layer Metadata" ), lastUsedDir, tr( "Hake Geospatial Layer Metadata File" ) + " (*.qmd)" );
   if ( fileName.isNull() )
   {
     return;
@@ -169,7 +169,7 @@ void QgsLayerPropertiesDialog::loadStyleFromFile()
   QgsSettings settings;
   const QString lastUsedDir = settings.value( u"style/lastStyleDir"_s, QDir::homePath() ).toString();
 
-  QString fileName = QFileDialog::getOpenFileName( this, tr( "Load layer properties from style file" ), lastUsedDir, tr( "QGIS Layer Style File" ) + " (*.qml)" );
+  QString fileName = QFileDialog::getOpenFileName( this, tr( "Load layer properties from style file" ), lastUsedDir, tr( "Hake Geospatial Layer Style File" ) + " (*.qml)" );
   if ( fileName.isEmpty() )
     return;
 
@@ -201,7 +201,7 @@ void QgsLayerPropertiesDialog::saveStyleToFile()
   QgsSettings settings;
   const QString lastUsedDir = settings.value( u"style/lastStyleDir"_s, QDir::homePath() ).toString();
 
-  QString outputFileName = QFileDialog::getSaveFileName( this, tr( "Save layer properties as style file" ), lastUsedDir, tr( "QGIS Layer Style File" ) + " (*.qml)" );
+  QString outputFileName = QFileDialog::getSaveFileName( this, tr( "Save layer properties as style file" ), lastUsedDir, tr( "Hake Geospatial Layer Style File" ) + " (*.qml)" );
   // return dialog focus on Mac
   activateWindow();
   raise();

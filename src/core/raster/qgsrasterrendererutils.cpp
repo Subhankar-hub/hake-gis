@@ -107,7 +107,7 @@ bool QgsRasterRendererUtils::saveColorMapFile( const QString &path, const QList<
   if ( outputFile.open( QFile::WriteOnly | QIODevice::Truncate ) )
   {
     QTextStream outputStream( &outputFile );
-    outputStream << "# " << QObject::tr( "QGIS Generated Color Map Export File" ) << '\n';
+    outputStream << "# " << QObject::tr( "Hake Geospatial Generated Color Map Export File" ) << '\n';
     outputStream << "INTERPOLATION:";
     switch ( type )
     {

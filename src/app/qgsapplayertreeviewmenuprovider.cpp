@@ -652,7 +652,7 @@ QMenu *QgsAppLayerTreeViewMenuProvider::createContextMenu()
               if ( vlayer->isSpatial() )
               {
                 // TODO QGIS 5.0 this can be removed as Load Style…/Save Style… exist in Styles submenu
-                QAction *actionSaveStyle = new QAction( tr( "Save as &QGIS Layer Style File…" ), menuExportVector );
+                QAction *actionSaveStyle = new QAction( tr( "Save as &Hake Geospatial Layer Style File…" ), menuExportVector );
                 connect( actionSaveStyle, &QAction::triggered, QgisApp::instance(), [] { QgsAppLayerHandling::saveStyleFile(); } );
                 menuExportVector->addAction( actionSaveStyle );
               }
@@ -675,7 +675,7 @@ QMenu *QgsAppLayerTreeViewMenuProvider::createContextMenu()
               menuExportRaster->addAction( actionSaveAs );
             }
             QAction *actionSaveAsDefinitionLayer = new QAction( tr( "Save as Layer &Definition File…" ), menuExportRaster );
-            QAction *actionSaveStyle = new QAction( tr( "Save as &QGIS Layer Style File…" ), menuExportRaster );
+            QAction *actionSaveStyle = new QAction( tr( "Save as &Hake Geospatial Layer Style File…" ), menuExportRaster );
             connect( actionSaveAsDefinitionLayer, &QAction::triggered, QgisApp::instance(), &QgisApp::saveAsLayerDefinition );
             menuExportRaster->addAction( actionSaveAsDefinitionLayer );
             connect( actionSaveStyle, &QAction::triggered, QgisApp::instance(), [] { QgsAppLayerHandling::saveStyleFile(); } );

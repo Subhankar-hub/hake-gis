@@ -81,7 +81,7 @@
              <string>If checked, expressions inside [% %] tags will be evaluated prior to rendering the HTML</string>
             </property>
             <property name="text">
-             <string>Evaluate QGIS expressions in HTML source</string>
+             <string>Evaluate Hake Geospatial expressions in HTML source</string>
             </property>
            </widget>
           </item>

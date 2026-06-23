@@ -2065,7 +2065,7 @@ bool QgsPostgresRasterProvider::determinePrimaryKey()
 
         if ( mPrimaryKeyType == PktUnknown )
         {
-          QgsMessageLog::logMessage( tr( "The table has no column suitable for use as a key. QGIS requires a primary key, a PostgreSQL oid column or a ctid for tables." ), tr( "PostGIS" ) );
+          QgsMessageLog::logMessage( tr( "The table has no column suitable for use as a key. Hake Geospatial requires a primary key, a PostgreSQL oid column or a ctid for tables." ), tr( "PostGIS" ) );
         }
       }
       else if ( type == Qgis::PostgresRelKind::View || type == Qgis::PostgresRelKind::MaterializedView || type == Qgis::PostgresRelKind::ForeignTable )

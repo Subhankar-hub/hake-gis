@@ -915,7 +915,7 @@
      <normaloff>:/images/themes/default/mActionFileExit.svg</normaloff>:/images/themes/default/mActionFileExit.svg</iconset>
    </property>
    <property name="text">
-    <string>Exit QGIS</string>
+    <string>Exit Hake Geospatial</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Q</string>
@@ -1967,7 +1967,7 @@ Shift+O to turn segments into straight or curve lines.</string>
   </action>
   <action name="mActionHelpPyQgisAPI">
    <property name="text">
-    <string>PyQGIS API Documentation</string>
+    <string>PyHake Geospatial API Documentation</string>
    </property>
   </action>
   <action name="mActionQgisHomePage">
@@ -1976,7 +1976,7 @@ Shift+O to turn segments into straight or curve lines.</string>
      <normaloff>:/images/themes/default/mActionQgisHomePage.png</normaloff>:/images/themes/default/mActionQgisHomePage.png</iconset>
    </property>
    <property name="text">
-    <string>QGIS Home Page</string>
+    <string>Hake Geospatial Home Page</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+H</string>
@@ -1988,10 +1988,10 @@ Shift+O to turn segments into straight or curve lines.</string>
      <normaloff>:/images/themes/default/mIconSuccess.svg</normaloff>:/images/themes/default/mIconSuccess.svg</iconset>
    </property>
    <property name="text">
-    <string>Check QGIS Version</string>
+    <string>Check Hake Geospatial Version</string>
    </property>
    <property name="statusTip">
-    <string>Check if your QGIS version is up to date (requires internet access)</string>
+    <string>Check if your Hake Geospatial version is up to date (requires internet access)</string>
    </property>
   </action>
   <action name="mActionAbout">
@@ -2012,7 +2012,7 @@ Shift+O to turn segments into straight or curve lines.</string>
      <normaloff>:/images/themes/default/mActionHelpSponsors.png</normaloff>:/images/themes/default/mActionHelpSponsors.png</iconset>
    </property>
    <property name="text">
-    <string>QGIS Sustaining Members</string>
+    <string>Hake Geospatial Sustaining Members</string>
    </property>
   </action>
   <action name="mActionMoveLabel">
@@ -3435,7 +3435,7 @@ Shows placeholders for labels which could not be placed, e.g. due to overlaps wi
   </action>
   <action name="mActionDonate">
    <property name="text">
-    <string>Donate to QGIS</string>
+    <string>Donate to Hake Geospatial</string>
    </property>
   </action>
   <action name="mActionGetInvolved">

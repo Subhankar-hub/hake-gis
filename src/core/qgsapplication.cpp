@@ -248,9 +248,9 @@ struct QgsApplication::ApplicationMembers
 QObject *ABISYM( QgsApplication::mFileOpenEventReceiver ) = nullptr;
 bool ABISYM( QgsApplication::mInitialized ) = false;
 bool ABISYM( QgsApplication::mRunningFromBuildDir ) = false;
-const char *QgsApplication::QGIS_ORGANIZATION_NAME = "QGIS";
-const char *QgsApplication::QGIS_ORGANIZATION_DOMAIN = "qgis.org";
-const char *QgsApplication::QGIS_APPLICATION_NAME = "QGIS4";
+const char *QgsApplication::QGIS_ORGANIZATION_NAME = "hake-gis";
+const char *QgsApplication::QGIS_ORGANIZATION_DOMAIN = "haketech.com";
+const char *QgsApplication::QGIS_APPLICATION_NAME = "hake-gis";
 QgsApplication::ApplicationMembers *QgsApplication::sApplicationMembers = nullptr;
 QgsAuthManager *QgsApplication::sAuthManager = nullptr;
 int ABISYM( QgsApplication::sMaxThreads ) = -1;
@@ -1687,7 +1687,7 @@ QString QgsApplication::showSettings()
   QString myState
     = tr(
         "QgsApplication state:\n"
-        " - QGIS_PREFIX_PATH env var:   %1\n"
+        " - Hake Geospatial_PREFIX_PATH env var:   %1\n"
         " - Prefix:                     %2\n"
         " - Plugin Path:                %3\n"
         " - Package Data Path:          %4\n"

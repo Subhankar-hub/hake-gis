@@ -162,17 +162,17 @@ class PdalUnusableUriHandlerInterface : public QgsProviderRegistry::UnusableUriH
     QgsProviderRegistry::UnusableUriDetails details( const QString &uri ) const override
     {
       QgsProviderRegistry::UnusableUriDetails res
-        = QgsProviderRegistry::UnusableUriDetails( uri, QObject::tr( "LAS and LAZ files cannot be opened by this QGIS install." ), QList<Qgis::LayerType>() << Qgis::LayerType::PointCloud );
+        = QgsProviderRegistry::UnusableUriDetails( uri, QObject::tr( "LAS and LAZ files cannot be opened by this Hake Geospatial install." ), QList<Qgis::LayerType>() << Qgis::LayerType::PointCloud );
 
 #ifdef Q_OS_WIN
       res.detailedWarning = QObject::tr(
-        "The installer used to install this version of QGIS does "
+        "The installer used to install this version of Hake Geospatial does "
         "not include the PDAL library required for opening LAS and LAZ point clouds. Please "
         "obtain one of the alternative installers from https://qgis.org which has point "
         "cloud support enabled."
       );
 #else
-      res.detailedWarning = QObject::tr( "This QGIS build does not include the PDAL library dependency required for opening LAS or LAZ point clouds." );
+      res.detailedWarning = QObject::tr( "This Hake Geospatial build does not include the PDAL library dependency required for opening LAS or LAZ point clouds." );
 #endif
       return res;
     }

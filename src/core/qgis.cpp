@@ -720,7 +720,7 @@ int Qgis::sfcgalVersionInt()
 #ifdef WITH_SFCGAL
   return SFCGAL_VERSION_MAJOR_INT * 10000 + SFCGAL_VERSION_MINOR_INT * 100 + SFCGAL_VERSION_PATCH_INT;
 #else
-  throw QgsNotSupportedException( QObject::tr( "This operation requires a QGIS build based SFCGAL." ) );
+  throw QgsNotSupportedException( QObject::tr( "This operation requires a Hake Geospatial build based SFCGAL." ) );
 #endif
 }
 

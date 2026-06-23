@@ -197,7 +197,7 @@ bool QgsPointCloudDataProvider::supportsSubsetString() const
 
 QString QgsPointCloudDataProvider::subsetStringDialect() const
 {
-  return tr( "QGIS expression" );
+  return tr( "Hake Geospatial expression" );
 }
 
 QString QgsPointCloudDataProvider::subsetStringHelpUrl() const

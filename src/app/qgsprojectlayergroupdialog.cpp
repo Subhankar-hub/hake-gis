@@ -61,7 +61,7 @@ QgsProjectLayerGroupDialog::QgsProjectLayerGroupDialog( QWidget *parent, const Q
   const QgsSettings settings;
 
   mProjectFileWidget->setStorageMode( QgsFileWidget::GetFile );
-  mProjectFileWidget->setFilter( tr( "QGIS files" ) + u" (*.qgs *.QGS *.qgz *.QGZ)"_s );
+  mProjectFileWidget->setFilter( tr( "Hake Geospatial files" ) + u" (*.qgs *.QGS *.qgz *.QGZ)"_s );
   mProjectFileWidget->setDialogTitle( tr( "Select Project File" ) );
   mProjectFileWidget->setDefaultRoot( settings.value( u"/qgis/last_embedded_project_path"_s, QDir::homePath() ).toString() );
   if ( !projectFile.isEmpty() )

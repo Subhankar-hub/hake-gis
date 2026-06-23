@@ -115,7 +115,7 @@ QgsStyleFromProjectAlgorithm::~QgsStyleFromProjectAlgorithm() = default;
 void QgsStyleFromProjectAlgorithm::initAlgorithm( const QVariantMap & )
 {
   addParameter(
-    new QgsProcessingParameterFile( u"INPUT"_s, QObject::tr( "Input project (leave blank to use current)" ), Qgis::ProcessingFileParameterBehavior::File, QString(), QVariant(), true, QObject::tr( "QGIS files" ) + u" (*.qgs *.qgz *.QGS)"_s )
+    new QgsProcessingParameterFile( u"INPUT"_s, QObject::tr( "Input project (leave blank to use current)" ), Qgis::ProcessingFileParameterBehavior::File, QString(), QVariant(), true, QObject::tr( "Hake Geospatial files" ) + u" (*.qgs *.qgz *.QGS)"_s )
   );
 
   addParameter( new QgsProcessingParameterFileDestination( u"OUTPUT"_s, QObject::tr( "Output style database" ), QObject::tr( "Style files (*.xml)" ) ) );
@@ -156,14 +156,14 @@ QString QgsStyleFromProjectAlgorithm::groupId() const
 QString QgsStyleFromProjectAlgorithm::shortHelpString() const
 {
   return QObject::tr(
-    "This algorithm extracts all style objects (including symbols, color ramps, text formats and label settings) from a QGIS project.\n\n"
-    "The extracted symbols are saved to a QGIS style database (XML format), which can be managed and imported via the Style Manager dialog."
+    "This algorithm extracts all style objects (including symbols, color ramps, text formats and label settings) from a Hake Geospatial project.\n\n"
+    "The extracted symbols are saved to a Hake Geospatial style database (XML format), which can be managed and imported via the Style Manager dialog."
   );
 }
 
 QString QgsStyleFromProjectAlgorithm::shortDescription() const
 {
-  return QObject::tr( "Creates a style database by extracting all symbols, color ramps, text formats and label settings from a QGIS project." );
+  return QObject::tr( "Creates a style database by extracting all symbols, color ramps, text formats and label settings from a Hake Geospatial project." );
 }
 
 QgsStyleFromProjectAlgorithm *QgsStyleFromProjectAlgorithm::createInstance() const

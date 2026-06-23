@@ -73,7 +73,7 @@ void QgsLeastSquares::helmert( const QVector<QgsPointXY> &sourceCoordinates, con
   ( void ) origin;
   ( void ) pixelSize;
   ( void ) rotation;
-  throw QgsNotSupportedException( QObject::tr( "Calculating a helmert transformation requires a QGIS build based GSL" ) );
+  throw QgsNotSupportedException( QObject::tr( "Calculating a helmert transformation requires a Hake Geospatial build based GSL" ) );
 #else
   const int n = destinationCoordinates.size();
   if ( n < 2 )
@@ -252,7 +252,7 @@ void QgsLeastSquares::projective( const QVector<QgsPointXY> &sourceCoordinates, 
   ( void ) sourceCoordinates;
   ( void ) destinationCoordinates;
   ( void ) H;
-  throw QgsNotSupportedException( QObject::tr( "Calculating a projective transformation requires a QGIS build based GSL" ) );
+  throw QgsNotSupportedException( QObject::tr( "Calculating a projective transformation requires a Hake Geospatial build based GSL" ) );
 #else
   Q_ASSERT( sourceCoordinates.size() == destinationCoordinates.size() );
 

@@ -79,7 +79,7 @@ void QgsPdalBuildVpcAlgorithm::initAlgorithm( const QVariantMap & )
   auto convertParam = std::make_unique<QgsProcessingParameterBoolean>( u"CONVERT_COPC"_s, QObject::tr( "Convert individual files to COPC format" ), false );
   convertParam->setHelp(
     QObject::tr(
-      "When enabled, all the individual files in the virtual point cloud will also be converted to COPC format to allow rendering of their points in QGIS.\nWhen disabled, the format of each "
+      "When enabled, all the individual files in the virtual point cloud will also be converted to COPC format to allow rendering of their points in Hake Geospatial.\nWhen disabled, the format of each "
       "individual file will be preserved. This is faster, however only the extent will be rendered for files using formats other than COPC and EPT."
     )
   );
@@ -195,7 +195,7 @@ QStringList QgsPdalBuildVpcAlgorithm::createArgumentLists( const QVariantMap &pa
 
   if ( containsNonDisplayableFiles )
   {
-    feedback->pushWarning( QObject::tr( "The input layers contain LAZ or LAS files. The resulting VPC layer data will be not displayed in QGIS." ) );
+    feedback->pushWarning( QObject::tr( "The input layers contain LAZ or LAS files. The resulting VPC layer data will be not displayed in Hake Geospatial." ) );
   }
 
   return args;

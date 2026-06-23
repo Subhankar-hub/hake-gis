@@ -96,7 +96,7 @@
           <item>
            <widget class="QTableWidget" name="mLayersTable">
             <property name="toolTip">
-             <string>Embedded layers can be added to have SQL queries with layers that are independent from layers loaded by the current QGIS project.
+             <string>Embedded layers can be added to have SQL queries with layers that are independent from layers loaded by the current Hake Geospatial project.
 In particular, saving a virtual layer with embedded layers to a QLR file can be done to reuse its definition in another project.</string>
             </property>
             <property name="selectionMode">

@@ -1,0 +1,9 @@
+usr/share/qgis/python/qgis/_gui.so
+usr/share/qgis/python/qgis/gui/__init__.py
+usr/share/qgis/python/qgis/_server.so
+usr/share/qgis/python/qgis/server/__init__.py
+usr/share/qgis/python/qgis/_analysis.so
+usr/share/qgis/python/qgis/analysis/__init__.py
+usr/share/qgis/python/qgis/_core.so
+usr/share/qgis/python/qgis/core/__init__.py
+usr/share/qgis/python/qsci_apis/PyQGIS.api

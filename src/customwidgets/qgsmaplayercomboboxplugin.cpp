@@ -77,7 +77,7 @@ QString QgsMapLayerComboBoxPlugin::toolTip() const
 
 QString QgsMapLayerComboBoxPlugin::whatsThis() const
 {
-  return tr( "A combo box to list the layers registered in QGIS. Layers might be filtered according to their type." );
+  return tr( "A combo box to list the layers registered in Hake Geospatial. Layers might be filtered according to their type." );
 }
 
 QString QgsMapLayerComboBoxPlugin::domXml() const

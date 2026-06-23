@@ -65,5 +65,5 @@ QString QgsLayerTreeViewMemoryIndicatorProvider::tooltipText( QgsMapLayer *layer
   if ( layer->providerType() == "memory"_L1 )
     return tr( "<b>Temporary scratch layer only!</b><br>Contents will be discarded after closing this project" );
 
-  return tr( "<b>Temporary layer only!</b><br>Contents will be discarded after closing QGIS." );
+  return tr( "<b>Temporary layer only!</b><br>Contents will be discarded after closing Hake Geospatial." );
 }

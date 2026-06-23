@@ -1453,7 +1453,7 @@ void QgsFieldItemGuiProvider::populateContextMenu( QgsDataItem *item, QMenu *men
             {
               if ( context.messageBar() )
               {
-                context.messageBar()->pushCritical( tr( "Rename Field" ), tr( "This table is open in the current QGIS project and cannot be modified" ) );
+                context.messageBar()->pushCritical( tr( "Rename Field" ), tr( "This table is open in the current Hake Geospatial project and cannot be modified" ) );
               }
               return;
             }
@@ -1551,7 +1551,7 @@ void QgsFieldItemGuiProvider::populateContextMenu( QgsDataItem *item, QMenu *men
             {
               if ( context.messageBar() )
               {
-                context.messageBar()->pushCritical( tr( "Delete Field" ), tr( "This table is open in the current QGIS project and cannot be modified" ) );
+                context.messageBar()->pushCritical( tr( "Delete Field" ), tr( "This table is open in the current Hake Geospatial project and cannot be modified" ) );
               }
               return;
             }
@@ -1560,11 +1560,11 @@ void QgsFieldItemGuiProvider::populateContextMenu( QgsDataItem *item, QMenu *men
             QString message { tr( "Delete '%1' permanently?" ).arg( itemName ) };
             if ( fieldsItem->tableProperty() && fieldsItem->tableProperty()->primaryKeyColumns().contains( itemName ) )
             {
-              message.append( tr( "\nThis field is part of a primary key, its removal may make the table unusable by QGIS!" ) );
+              message.append( tr( "\nThis field is part of a primary key, its removal may make the table unusable by Hake Geospatial!" ) );
             }
             if ( fieldsItem->tableProperty() && fieldsItem->tableProperty()->geometryColumn() == itemName )
             {
-              message.append( tr( "\nThis field is a geometry column, its removal may make the table unusable by QGIS!" ) );
+              message.append( tr( "\nThis field is a geometry column, its removal may make the table unusable by Hake Geospatial!" ) );
             }
             QMessageBox msgbox { QMessageBox::Icon::Question, tr( "Delete Field" ), message, QMessageBox::Ok | QMessageBox::Cancel };
             QCheckBox *cb = new QCheckBox( tr( "Delete all related objects (CASCADE)?" ) );
@@ -1900,7 +1900,7 @@ void QgsDatabaseItemGuiProvider::populateContextMenu( QgsDataItem *item, QMenu *
           {
             if ( context.messageBar() )
             {
-              context.messageBar()->pushCritical( tr( "Rename Table" ), tr( "This table is open in the current QGIS project and cannot be modified" ) );
+              context.messageBar()->pushCritical( tr( "Rename Table" ), tr( "This table is open in the current Hake Geospatial project and cannot be modified" ) );
             }
             return;
           }

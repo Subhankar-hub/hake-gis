@@ -310,7 +310,7 @@ void QgsRasterTransparencyWidget::pbnExportTransparentPixelValues_clicked()
     if ( myOutputFile.open( QFile::WriteOnly | QIODevice::Truncate ) )
     {
       QTextStream myOutputStream( &myOutputFile );
-      myOutputStream << "# " << tr( "QGIS Generated Transparent Pixel Value Export File" ) << '\n';
+      myOutputStream << "# " << tr( "Hake Geospatial Generated Transparent Pixel Value Export File" ) << '\n';
       switch ( mCurrentMode )
       {
         case Mode::RgbBands:

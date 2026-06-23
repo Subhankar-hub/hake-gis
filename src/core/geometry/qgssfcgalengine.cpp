@@ -323,7 +323,7 @@ QString QgsSfcgalEngine::geometryType( const sfcgal::geometry *geom, QString *er
 #if SFCGAL_VERSION_NUM < SFCGAL_MAKE_VERSION( 2, 1, 0 )
   ( void ) geom;
   ( void ) errorMsg;
-  throw QgsNotSupportedException( QObject::tr( "Calculating %1 requires a QGIS build based on SFCGAL 2.1 or later" ).arg( "geometryType" ) );
+  throw QgsNotSupportedException( QObject::tr( "Calculating %1 requires a Hake Geospatial build based on SFCGAL 2.1 or later" ).arg( "geometryType" ) );
 #else
   sfcgal::errorHandler()->clearText( errorMsg );
 
@@ -425,7 +425,7 @@ int QgsSfcgalEngine::dimension( const sfcgal::geometry *geom, QString *errorMsg 
 #if SFCGAL_VERSION_NUM < SFCGAL_MAKE_VERSION( 2, 1, 0 )
   ( void ) geom;
   ( void ) errorMsg;
-  throw QgsNotSupportedException( QObject::tr( "Calculating %1 requires a QGIS build based on SFCGAL 2.1 or later" ).arg( "dimension" ) );
+  throw QgsNotSupportedException( QObject::tr( "Calculating %1 requires a Hake Geospatial build based on SFCGAL 2.1 or later" ).arg( "dimension" ) );
 #else
   int out = geom_to_primtype<int>( sfcgal_geometry_dimension, nullptr, geom, errorMsg );
   CHECK_SUCCESS( errorMsg, std::numeric_limits<int>::quiet_NaN() );
@@ -499,7 +499,7 @@ bool QgsSfcgalEngine::addZValue( sfcgal::geometry *geom, double zValue, QString 
   ( void ) geom;
   ( void ) zValue;
   ( void ) errorMsg;
-  throw QgsNotSupportedException( QObject::tr( "Using %1 requires a QGIS build based on SFCGAL 2.1 or later" ).arg( "addZValue" ) );
+  throw QgsNotSupportedException( QObject::tr( "Using %1 requires a Hake Geospatial build based on SFCGAL 2.1 or later" ).arg( "addZValue" ) );
 #else
   sfcgal::errorHandler()->clearText( errorMsg );
   CHECK_NOT_NULL( geom, false );
@@ -514,7 +514,7 @@ bool QgsSfcgalEngine::addMValue( sfcgal::geometry *geom, double mValue, QString 
   ( void ) geom;
   ( void ) mValue;
   ( void ) errorMsg;
-  throw QgsNotSupportedException( QObject::tr( "Using %1 requires a QGIS build based on SFCGAL 2.1 or later" ).arg( "addMValue" ) );
+  throw QgsNotSupportedException( QObject::tr( "Using %1 requires a Hake Geospatial build based on SFCGAL 2.1 or later" ).arg( "addMValue" ) );
 #else
   sfcgal::errorHandler()->clearText( errorMsg );
   CHECK_NOT_NULL( geom, false );
@@ -528,7 +528,7 @@ bool QgsSfcgalEngine::dropZValue( sfcgal::geometry *geom, QString *errorMsg )
 #if SFCGAL_VERSION_NUM < SFCGAL_MAKE_VERSION( 2, 1, 0 )
   ( void ) geom;
   ( void ) errorMsg;
-  throw QgsNotSupportedException( QObject::tr( "Using %1 requires a QGIS build based on SFCGAL 2.1 or later" ).arg( "dropZValue" ) );
+  throw QgsNotSupportedException( QObject::tr( "Using %1 requires a Hake Geospatial build based on SFCGAL 2.1 or later" ).arg( "dropZValue" ) );
 #else
   sfcgal::errorHandler()->clearText( errorMsg );
   CHECK_NOT_NULL( geom, false );
@@ -542,7 +542,7 @@ bool QgsSfcgalEngine::dropMValue( sfcgal::geometry *geom, QString *errorMsg )
 #if SFCGAL_VERSION_NUM < SFCGAL_MAKE_VERSION( 2, 1, 0 )
   ( void ) geom;
   ( void ) errorMsg;
-  throw QgsNotSupportedException( QObject::tr( "Using %1 requires a QGIS build based on SFCGAL 2.1 or later" ).arg( "dropMValue" ) );
+  throw QgsNotSupportedException( QObject::tr( "Using %1 requires a Hake Geospatial build based on SFCGAL 2.1 or later" ).arg( "dropMValue" ) );
 #else
   sfcgal::errorHandler()->clearText( errorMsg );
   CHECK_NOT_NULL( geom, false );
@@ -556,7 +556,7 @@ void QgsSfcgalEngine::swapXy( sfcgal::geometry *geom, QString *errorMsg )
 #if SFCGAL_VERSION_NUM < SFCGAL_MAKE_VERSION( 2, 1, 0 )
   ( void ) geom;
   ( void ) errorMsg;
-  throw QgsNotSupportedException( QObject::tr( "Using %1 requires a QGIS build based on SFCGAL 2.1 or later" ).arg( "swapXy" ) );
+  throw QgsNotSupportedException( QObject::tr( "Using %1 requires a Hake Geospatial build based on SFCGAL 2.1 or later" ).arg( "swapXy" ) );
 #else
   sfcgal::errorHandler()->clearText( errorMsg );
   CHECK_NOT_NULL( geom, void() );
@@ -572,7 +572,7 @@ bool QgsSfcgalEngine::isEqual( const sfcgal::geometry *geomA, const sfcgal::geom
   ( void ) geomB;
   ( void ) tolerance;
   ( void ) errorMsg;
-  throw QgsNotSupportedException( QObject::tr( "Using %1 requires a QGIS build based on SFCGAL 2.1 or later" ).arg( "isEqual" ) );
+  throw QgsNotSupportedException( QObject::tr( "Using %1 requires a Hake Geospatial build based on SFCGAL 2.1 or later" ).arg( "isEqual" ) );
 #else
   sfcgal::errorHandler()->clearText( errorMsg );
   CHECK_NOT_NULL( geomA, false );
@@ -625,7 +625,7 @@ bool QgsSfcgalEngine::isSimple( const sfcgal::geometry *geom, QString *errorMsg 
 #if SFCGAL_VERSION_NUM < SFCGAL_MAKE_VERSION( 2, 1, 0 )
   ( void ) geom;
   ( void ) errorMsg;
-  throw QgsNotSupportedException( QObject::tr( "Using %1 requires a QGIS build based on SFCGAL 2.1 or later" ).arg( "isSimple" ) );
+  throw QgsNotSupportedException( QObject::tr( "Using %1 requires a Hake Geospatial build based on SFCGAL 2.1 or later" ).arg( "isSimple" ) );
 #else
   int res = geom_to_primtype<int>( sfcgal_geometry_is_simple, nullptr, geom, errorMsg );
   CHECK_SUCCESS( errorMsg, false );
@@ -697,7 +697,7 @@ sfcgal::shared_geom QgsSfcgalEngine::boundary( const sfcgal::geometry *geom, QSt
 #if SFCGAL_VERSION_NUM < SFCGAL_MAKE_VERSION( 2, 1, 0 )
   ( void ) geom;
   ( void ) errorMsg;
-  throw QgsNotSupportedException( QObject::tr( "Calculating %1 requires a QGIS build based on SFCGAL 2.1 or later" ).arg( "boundary" ) );
+  throw QgsNotSupportedException( QObject::tr( "Calculating %1 requires a Hake Geospatial build based on SFCGAL 2.1 or later" ).arg( "boundary" ) );
 #else
   sfcgal::errorHandler()->clearText( errorMsg );
   CHECK_NOT_NULL( geom, nullptr );
@@ -714,7 +714,7 @@ QgsPoint QgsSfcgalEngine::centroid( const sfcgal::geometry *geom, QString *error
 #if SFCGAL_VERSION_NUM < SFCGAL_MAKE_VERSION( 2, 1, 0 )
   ( void ) geom;
   ( void ) errorMsg;
-  throw QgsNotSupportedException( QObject::tr( "Calculating %1 requires a QGIS build based on SFCGAL 2.1 or later" ).arg( "centroid" ) );
+  throw QgsNotSupportedException( QObject::tr( "Calculating %1 requires a Hake Geospatial build based on SFCGAL 2.1 or later" ).arg( "centroid" ) );
 #else
   sfcgal::errorHandler()->clearText( errorMsg );
   CHECK_NOT_NULL( geom, QgsPoint() );
@@ -743,7 +743,7 @@ sfcgal::shared_geom QgsSfcgalEngine::translate( const sfcgal::geometry *geom, co
   ( void ) geom;
   ( void ) translation;
   ( void ) errorMsg;
-  throw QgsNotSupportedException( QObject::tr( "Calculating %1 requires a QGIS build based on SFCGAL 2.1 or later" ).arg( "translate" ) );
+  throw QgsNotSupportedException( QObject::tr( "Calculating %1 requires a Hake Geospatial build based on SFCGAL 2.1 or later" ).arg( "translate" ) );
 #else
   sfcgal::errorHandler()->clearText( errorMsg );
   CHECK_NOT_NULL( geom, nullptr );
@@ -836,7 +836,7 @@ double QgsSfcgalEngine::length( const sfcgal::geometry *geom, QString *errorMsg 
 #if SFCGAL_VERSION_NUM < SFCGAL_MAKE_VERSION( 2, 1, 0 )
   ( void ) geom;
   ( void ) errorMsg;
-  throw QgsNotSupportedException( QObject::tr( "Calculating %1 requires a QGIS build based on SFCGAL 2.1 or later" ).arg( "length" ) );
+  throw QgsNotSupportedException( QObject::tr( "Calculating %1 requires a Hake Geospatial build based on SFCGAL 2.1 or later" ).arg( "length" ) );
 #else
   double out = geom_to_primtype<double>( sfcgal_geometry_length, sfcgal_geometry_length_3d, geom, errorMsg );
   CHECK_SUCCESS( errorMsg, std::numeric_limits<double>::quiet_NaN() );
@@ -910,7 +910,7 @@ sfcgal::shared_geom QgsSfcgalEngine::envelope( const sfcgal::geometry *geom, QSt
 #if SFCGAL_VERSION_NUM < SFCGAL_MAKE_VERSION( 2, 1, 0 )
   ( void ) geom;
   ( void ) errorMsg;
-  throw QgsNotSupportedException( QObject::tr( "Calculating %1 requires a QGIS build based on SFCGAL 2.1 or later" ).arg( "envelope" ) );
+  throw QgsNotSupportedException( QObject::tr( "Calculating %1 requires a Hake Geospatial build based on SFCGAL 2.1 or later" ).arg( "envelope" ) );
 #else
   sfcgal::shared_geom out = geom_to_geom( sfcgal_geometry_envelope, sfcgal_geometry_envelope_3d, geom, errorMsg );
   CHECK_SUCCESS( errorMsg, nullptr );
@@ -998,7 +998,7 @@ sfcgal::shared_geom QgsSfcgalEngine::simplify( const sfcgal::geometry *geom, dou
   ( void ) tolerance;
   ( void ) preserveTopology;
   ( void ) errorMsg;
-  throw QgsNotSupportedException( QObject::tr( "Calculating %1 requires a QGIS build based on SFCGAL 2.1 or later" ).arg( "boundary" ) );
+  throw QgsNotSupportedException( QObject::tr( "Calculating %1 requires a Hake Geospatial build based on SFCGAL 2.1 or later" ).arg( "boundary" ) );
 #else
   sfcgal::errorHandler()->clearText( errorMsg );
   CHECK_NOT_NULL( geom, nullptr );

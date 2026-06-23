@@ -278,7 +278,7 @@ void QgsPluginRegistry::loadPythonPlugin( const QString &packageName )
 #ifdef WITH_BINDINGS
   if ( !mPythonUtils || !mPythonUtils->isEnabled() )
   {
-    QgsMessageLog::logMessage( QObject::tr( "Python is not enabled in QGIS." ), QObject::tr( "Plugins" ) );
+    QgsMessageLog::logMessage( QObject::tr( "Python is not enabled in Hake Geospatial." ), QObject::tr( "Plugins" ) );
     return;
   }
 
@@ -290,7 +290,7 @@ void QgsPluginRegistry::loadPythonPlugin( const QString &packageName )
     // if plugin is not compatible, disable it
     if ( !isPythonPluginCompatible( packageName ) )
     {
-      QgsMessageLog::logMessage( QObject::tr( "Plugin \"%1\" is not compatible with this version of QGIS.\nIt will be disabled." ).arg( packageName ), QObject::tr( "Plugins" ) );
+      QgsMessageLog::logMessage( QObject::tr( "Plugin \"%1\" is not compatible with this version of Hake Geospatial.\nIt will be disabled." ).arg( packageName ), QObject::tr( "Plugins" ) );
       settings.setValue( "/PythonPlugins/" + packageName, false );
       return;
     }
@@ -402,7 +402,7 @@ void QgsPluginRegistry::loadCppPlugin( const QString &fullPathName )
             QObject::tr( "Loading Plugins" ),
             QObject::tr(
               "There was an error loading a plugin. "
-              "The following diagnostic information may help the QGIS developers resolve the issue:\n%1."
+              "The following diagnostic information may help the Hake Geospatial developers resolve the issue:\n%1."
             )
               .arg( myError )
           );
@@ -429,7 +429,7 @@ void QgsPluginRegistry::unloadPythonPlugin( const QString &packageName )
 #ifdef WITH_BINDINGS
   if ( !mPythonUtils || !mPythonUtils->isEnabled() )
   {
-    QgsMessageLog::logMessage( QObject::tr( "Python is not enabled in QGIS." ), QObject::tr( "Plugins" ) );
+    QgsMessageLog::logMessage( QObject::tr( "Python is not enabled in Hake Geospatial." ), QObject::tr( "Plugins" ) );
     return;
   }
 
@@ -526,7 +526,7 @@ void QgsPluginRegistry::restoreSessionPlugins( const QString &pluginDirString )
 
         QgsMessageBarItem *watchdogMsg = new QgsMessageBarItem(
           QObject::tr( "Plugin %1" ).arg( baseName ),
-          QObject::tr( "This plugin is disabled because it previously crashed QGIS." ),
+          QObject::tr( "This plugin is disabled because it previously crashed Hake Geospatial." ),
           btnEnablePlugin,
           Qgis::MessageLevel::Warning,
           0,
@@ -626,7 +626,7 @@ void QgsPluginRegistry::restoreSessionPlugins( const QString &pluginDirString )
 
         QgsMessageBarItem *watchdogMsg = new QgsMessageBarItem(
           QObject::tr( "Plugin %1" ).arg( packageName ),
-          QObject::tr( "This plugin is disabled because it previously crashed QGIS." ),
+          QObject::tr( "This plugin is disabled because it previously crashed Hake Geospatial." ),
           btnEnablePlugin,
           Qgis::MessageLevel::Warning,
           0,

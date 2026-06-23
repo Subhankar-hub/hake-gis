@@ -171,7 +171,7 @@ QgsCodeEditorOptionsWidget::QgsCodeEditorOptionsWidget( QWidget *parent )
   pageBatch->setLayout( vl );
 
   mListLanguage->addItem( tr( "Python" ) );
-  mListLanguage->addItem( tr( "QGIS Expression" ) );
+  mListLanguage->addItem( tr( "Hake Geospatial Expression" ) );
   mListLanguage->addItem( tr( "SQL" ) );
   mListLanguage->addItem( tr( "HTML" ) );
   mListLanguage->addItem( tr( "CSS" ) );

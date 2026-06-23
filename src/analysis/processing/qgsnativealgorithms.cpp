@@ -351,7 +351,7 @@ QString QgsNativeAlgorithms::helpId() const
 
 QString QgsNativeAlgorithms::name() const
 {
-  return tr( "QGIS (native c++)" );
+  return tr( "Hake Geospatial (native c++)" );
 }
 
 bool QgsNativeAlgorithms::supportsNonFileBasedOutput() const
@@ -366,7 +366,7 @@ Qgis::ProcessingProviderFlags QgsNativeAlgorithms::flags() const
 
 void QgsNativeAlgorithms::loadAlgorithms()
 {
-  const QgsScopedRuntimeProfile profile( QObject::tr( "QGIS native provider" ) );
+  const QgsScopedRuntimeProfile profile( QObject::tr( "Hake Geospatial native provider" ) );
   addAlgorithm( new QgsAddHistoryMetadataAlgorithm() );
   addAlgorithm( new QgsAddIncrementalFieldAlgorithm() );
   addAlgorithm( new QgsAddTableFieldAlgorithm() );

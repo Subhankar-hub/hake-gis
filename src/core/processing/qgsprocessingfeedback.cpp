@@ -148,10 +148,10 @@ void QgsProcessingFeedback::pushConsoleInfo( const QString &info )
 
 void QgsProcessingFeedback::pushVersionInfo( const QgsProcessingProvider *provider )
 {
-  pushDebugInfo( tr( "QGIS version: %1" ).arg( Qgis::version() ) );
+  pushDebugInfo( tr( "Hake Geospatial version: %1" ).arg( Qgis::version() ) );
   if ( QString( Qgis::devVersion() ) != "exported"_L1 )
   {
-    pushDebugInfo( tr( "QGIS code revision: %1" ).arg( Qgis::devVersion() ) );
+    pushDebugInfo( tr( "Hake Geospatial code revision: %1" ).arg( Qgis::devVersion() ) );
   }
   pushDebugInfo( tr( "Qt version: %1" ).arg( qVersion() ) );
   pushDebugInfo( tr( "Python version: %1" ).arg( PYTHON_VERSION ) );

@@ -271,7 +271,7 @@ class CORE_EXPORT QgsProcessingParameterTypeBoolean : public QgsProcessingParame
              << QObject::tr( "1 for true/yes" )
              << QObject::tr( "0 for false/no" )
              << QObject::tr( "field:FIELD_NAME to use a data defined value taken from the FIELD_NAME field" )
-             << QObject::tr( "expression:SOME EXPRESSION to use a data defined value calculated using a custom QGIS expression" );
+             << QObject::tr( "expression:SOME EXPRESSION to use a data defined value calculated using a custom Hake Geospatial expression" );
     }
 
     QStringList acceptedParameterTypes() const override
@@ -337,7 +337,7 @@ class CORE_EXPORT QgsProcessingParameterTypeExpression : public QgsProcessingPar
 
     QStringList acceptedPythonTypes() const override { return QStringList() << u"str"_s << u"QgsProperty"_s; }
 
-    QStringList acceptedStringValues() const override { return QStringList() << QObject::tr( "A valid QGIS expression string, e.g \"road_name\" = 'MAIN RD'" ); }
+    QStringList acceptedStringValues() const override { return QStringList() << QObject::tr( "A valid Hake Geospatial expression string, e.g \"road_name\" = 'MAIN RD'" ); }
 
     QStringList acceptedParameterTypes() const override
     {
@@ -972,7 +972,7 @@ class CORE_EXPORT QgsProcessingParameterTypeString : public QgsProcessingParamet
       return QStringList()
              << QObject::tr( "String value" )
              << QObject::tr( "field:FIELD_NAME to use a data defined value taken from the FIELD_NAME field" )
-             << QObject::tr( "expression:SOME EXPRESSION to use a data defined value calculated using a custom QGIS expression" );
+             << QObject::tr( "expression:SOME EXPRESSION to use a data defined value calculated using a custom Hake Geospatial expression" );
     }
 
     QStringList acceptedParameterTypes() const override
@@ -1029,7 +1029,7 @@ class CORE_EXPORT QgsProcessingParameterTypeAuthConfig : public QgsProcessingPar
 
     QStringList acceptedPythonTypes() const override { return QStringList() << u"str"_s; }
 
-    QStringList acceptedStringValues() const override { return QStringList() << QObject::tr( "An existing QGIS authentication ID string" ); }
+    QStringList acceptedStringValues() const override { return QStringList() << QObject::tr( "An existing Hake Geospatial authentication ID string" ); }
 
     QStringList acceptedParameterTypes() const override
     {
@@ -1184,7 +1184,7 @@ class CORE_EXPORT QgsProcessingParameterTypeNumber : public QgsProcessingParamet
       return QStringList()
              << QObject::tr( "A numeric value" )
              << QObject::tr( "field:FIELD_NAME to use a data defined value taken from the FIELD_NAME field" )
-             << QObject::tr( "expression:SOME EXPRESSION to use a data defined value calculated using a custom QGIS expression" );
+             << QObject::tr( "expression:SOME EXPRESSION to use a data defined value calculated using a custom Hake Geospatial expression" );
     }
 
     QStringList acceptedParameterTypes() const override
@@ -1234,7 +1234,7 @@ class CORE_EXPORT QgsProcessingParameterTypeDistance : public QgsProcessingParam
       return QStringList()
              << QObject::tr( "A numeric value" )
              << QObject::tr( "field:FIELD_NAME to use a data defined value taken from the FIELD_NAME field" )
-             << QObject::tr( "expression:SOME EXPRESSION to use a data defined value calculated using a custom QGIS expression" );
+             << QObject::tr( "expression:SOME EXPRESSION to use a data defined value calculated using a custom Hake Geospatial expression" );
     }
 
     QColor modelColor() const override { return QColor( 34, 157, 214 ); /* blue */ };
@@ -1269,7 +1269,7 @@ class CORE_EXPORT QgsProcessingParameterTypeArea : public QgsProcessingParameter
       return QStringList()
              << QObject::tr( "A numeric value" )
              << QObject::tr( "field:FIELD_NAME to use a data defined value taken from the FIELD_NAME field" )
-             << QObject::tr( "expression:SOME EXPRESSION to use a data defined value calculated using a custom QGIS expression" );
+             << QObject::tr( "expression:SOME EXPRESSION to use a data defined value calculated using a custom Hake Geospatial expression" );
     }
 };
 
@@ -1302,7 +1302,7 @@ class CORE_EXPORT QgsProcessingParameterTypeVolume : public QgsProcessingParamet
       return QStringList()
              << QObject::tr( "A numeric value" )
              << QObject::tr( "field:FIELD_NAME to use a data defined value taken from the FIELD_NAME field" )
-             << QObject::tr( "expression:SOME EXPRESSION to use a data defined value calculated using a custom QGIS expression" );
+             << QObject::tr( "expression:SOME EXPRESSION to use a data defined value calculated using a custom Hake Geospatial expression" );
     }
 };
 
@@ -1335,7 +1335,7 @@ class CORE_EXPORT QgsProcessingParameterTypeDuration : public QgsProcessingParam
       return QStringList()
              << QObject::tr( "A numeric value (unit type set by algorithms)" )
              << QObject::tr( "field:FIELD_NAME to use a data defined value taken from the FIELD_NAME field" )
-             << QObject::tr( "expression:SOME EXPRESSION to use a data defined value calculated using a custom QGIS expression" );
+             << QObject::tr( "expression:SOME EXPRESSION to use a data defined value calculated using a custom Hake Geospatial expression" );
     }
 
     QColor modelColor() const override { return QColor( 34, 157, 214 ); /* blue */ };
@@ -1533,7 +1533,7 @@ class CORE_EXPORT QgsProcessingParameterTypeColor : public QgsProcessingParamete
       return QStringList()
              << QObject::tr( "String representation of color, e.g #ff0000 or rgba(200,100,50,0.8)" )
              << QObject::tr( "field:FIELD_NAME to use a data defined value taken from the FIELD_NAME field" )
-             << QObject::tr( "expression:SOME EXPRESSION to use a data defined value calculated using a custom QGIS expression" );
+             << QObject::tr( "expression:SOME EXPRESSION to use a data defined value calculated using a custom Hake Geospatial expression" );
     }
 
     QStringList acceptedParameterTypes() const override { return QStringList() << QgsProcessingParameterColor::typeName() << QgsProcessingParameterString::typeName(); }
@@ -1631,7 +1631,7 @@ class CORE_EXPORT QgsProcessingParameterTypeDateTime : public QgsProcessingParam
       return QStringList()
              << QObject::tr( "A datetime value in ISO format" )
              << QObject::tr( "field:FIELD_NAME to use a data defined value taken from the FIELD_NAME field" )
-             << QObject::tr( "expression:SOME EXPRESSION to use a data defined value calculated using a custom QGIS expression" );
+             << QObject::tr( "expression:SOME EXPRESSION to use a data defined value calculated using a custom Hake Geospatial expression" );
     }
 
     QStringList acceptedParameterTypes() const override { return QStringList() << QgsProcessingParameterDateTime::typeName() << QgsProcessingParameterString::typeName(); }

@@ -140,7 +140,7 @@ class TcpServerWorker : public QObject
       {
         const int port { mTcpServer.serverPort() };
 
-        std::cout << tr( "QGIS Development Server listening on http://%1:%2" ).arg( ipAddress ).arg( port ).toStdString() << std::endl;
+        std::cout << tr( "Hake Geospatial Development Server listening on http://%1:%2" ).arg( ipAddress ).arg( port ).toStdString() << std::endl;
 #ifndef Q_OS_WIN
         std::cout << tr( "CTRL+C to exit" ).toStdString() << std::endl;
 #endif
@@ -537,10 +537,10 @@ int main( int argc, char *argv[] )
   }
 
   QCommandLineParser parser;
-  parser.setApplicationDescription( QObject::tr( "QGIS Development Server %1" ).arg( VERSION ) );
+  parser.setApplicationDescription( QObject::tr( "Hake Geospatial Development Server %1" ).arg( VERSION ) );
   parser.addHelpOption();
 
-  const QCommandLineOption versionOption( QStringList() << "v" << "version", QObject::tr( "Version of QGIS and libraries" ) );
+  const QCommandLineOption versionOption( QStringList() << "v" << "version", QObject::tr( "Version of Hake Geospatial and libraries" ) );
   parser.addOption( versionOption );
 
   parser.addPositionalArgument(
@@ -548,7 +548,7 @@ int main( int argc, char *argv[] )
     QObject::tr(
       "Address and port (default: \"localhost:8000\")\n"
       "address and port can also be specified with the environment\n"
-      "variables QGIS_SERVER_ADDRESS and QGIS_SERVER_PORT."
+      "variables Hake Geospatial_SERVER_ADDRESS and Hake Geospatial_SERVER_PORT."
     ),
     u"[address:port]"_s
   );
@@ -568,9 +568,9 @@ int main( int argc, char *argv[] )
   const QCommandLineOption projectOption(
     "p",
     QObject::tr(
-      "Path to a QGIS project file (*.qgs or *.qgz),\n"
+      "Path to a Hake Geospatial project file (*.qgs or *.qgz),\n"
       "if specified it will override the query string MAP argument\n"
-      "and the QGIS_PROJECT_FILE environment variable."
+      "and the Hake Geospatial_PROJECT_FILE environment variable."
     ),
     "projectPath",
     ""

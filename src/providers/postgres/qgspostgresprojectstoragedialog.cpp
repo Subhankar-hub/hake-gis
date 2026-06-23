@@ -283,7 +283,7 @@ void QgsPostgresProjectStorageDialog::setupQgisProjectVersioning()
 
       if ( !QgsPostgresUtils::enableQgisProjectVersioning( conn, mCboSchema->currentText() ) )
       {
-        QMessageBox::critical( this, tr( "Error" ), tr( "Could not setup QGIS project versioning." ) );
+        QMessageBox::critical( this, tr( "Error" ), tr( "Could not setup Hake Geospatial project versioning." ) );
         return;
       }
 
@@ -300,7 +300,7 @@ QMessageBox::StandardButton QgsPostgresProjectStorageDialog::questionAllowProjec
 {
   return QMessageBox::question(
     parent,
-    tr( "Enable versioning of QGIS projects" ),
-    tr( "Do you want to enable versioning of QGIS projects in the schema “%1”?\nThis will create a new table in the schema and store older versions of QGIS projects there." ).arg( schemaName )
+    tr( "Enable versioning of Hake Geospatial projects" ),
+    tr( "Do you want to enable versioning of Hake Geospatial projects in the schema “%1”?\nThis will create a new table in the schema and store older versions of Hake Geospatial projects there." ).arg( schemaName )
   );
 }

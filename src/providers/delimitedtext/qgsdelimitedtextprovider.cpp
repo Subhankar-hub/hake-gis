@@ -1197,7 +1197,7 @@ void QgsDelimitedTextProvider::reportErrors( const QStringList &messages, bool s
     }
     if ( !mInvalidLines.isEmpty() )
     {
-      QgsMessageLog::logMessage( tr( "The following lines were not loaded into QGIS due to errors:" ), tag );
+      QgsMessageLog::logMessage( tr( "The following lines were not loaded into Hake Geospatial due to errors:" ), tag );
       for ( int i = 0; i < mInvalidLines.size(); ++i )
         QgsMessageLog::logMessage( mInvalidLines.at( i ), tag );
       if ( mNExtraInvalidLines > 0 )
@@ -1217,7 +1217,7 @@ void QgsDelimitedTextProvider::reportErrors( const QStringList &messages, bool s
       }
       if ( !mInvalidLines.isEmpty() )
       {
-        output->appendMessage( tr( "The following lines were not loaded into QGIS due to errors:" ) );
+        output->appendMessage( tr( "The following lines were not loaded into Hake Geospatial due to errors:" ) );
         for ( int i = 0; i < mInvalidLines.size(); ++i )
           output->appendMessage( mInvalidLines.at( i ) );
         if ( mNExtraInvalidLines > 0 )
@@ -1336,7 +1336,7 @@ bool QgsDelimitedTextProvider::supportsSubsetString() const
 
 QString QgsDelimitedTextProvider::subsetStringDialect() const
 {
-  return tr( "QGIS expression" );
+  return tr( "Hake Geospatial expression" );
 }
 
 QString QgsDelimitedTextProvider::subsetStringHelpUrl() const

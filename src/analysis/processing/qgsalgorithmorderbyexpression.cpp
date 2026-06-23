@@ -66,7 +66,7 @@ QString QgsOrderByExpressionAlgorithm::shortHelpString() const
   return QObject::tr(
     "This algorithm sorts a vector layer according to an expression. Be careful, it might not work as expected with some providers, "
     "the order might not be kept every time.\n\n"
-    "For help with QGIS expression functions, see the inbuilt help for specific functions "
+    "For help with Hake Geospatial expression functions, see the inbuilt help for specific functions "
     "which is available in the expression builder."
   );
 }

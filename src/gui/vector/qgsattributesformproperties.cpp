@@ -254,7 +254,7 @@ void QgsAttributesFormProperties::initInitPython()
   {
     mInitCode.append( tr(
       "# -*- coding: utf-8 -*-\n\"\"\"\n"
-      "QGIS forms can have a Python function that is called when the form is\n"
+      "Hake Geospatial forms can have a Python function that is called when the form is\n"
       "opened.\n"
       "\n"
       "Use this function to add extra logic to your forms.\n"

@@ -132,8 +132,8 @@ void QgsAuthMethodRegistry::init()
 
   if ( mLibraryDirectory.count() == 0 )
   {
-    QString msg = QObject::tr( "No QGIS auth method plugins found in:\n%1\n" ).arg( mLibraryDirectory.path() );
-    msg += QObject::tr( "No authentication methods can be used. Check your QGIS installation" );
+    QString msg = QObject::tr( "No Hake Geospatial auth method plugins found in:\n%1\n" ).arg( mLibraryDirectory.path() );
+    msg += QObject::tr( "No authentication methods can be used. Check your Hake Geospatial installation" );
 
     QgsMessageOutput *output = QgsMessageOutput::createMessageOutput();
     output->setTitle( QObject::tr( "No Authentication Methods" ) );

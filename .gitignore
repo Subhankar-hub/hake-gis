@@ -115,3 +115,21 @@ tests/testdata/test_qgis_config_path/profiles/default/*
 tests/testdata/widget_config.qlr
 tests/testdata/zip/testtar.tgz.properties
 venv
+build-master/*
+build-master/
+
+# Debian Packaging Artifacts
+debian/build/
+debian/tmp/
+debian/qgis/
+debian/.debhelper/
+debian/libqgis*/
+debian/python3-qgis*/
+debian/qgis-*/
+debian/files
+debian/debhelper-build-stamp
+debian/qgis.sh
+debian/*.substvars
+debian/*.debhelper.log
+qgis-build-deps_*
+qgis.bin.1

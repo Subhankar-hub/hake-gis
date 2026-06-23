@@ -284,7 +284,7 @@ QgsLineSymbol *QgsMapInfoSymbolConverter::convertLineSymbol( int identifier, Qgs
     case 112:
     case 113:
       // these four are zig-zaggy patterns which can't be reproduced in QGIS!
-      context.pushWarning( QObject::tr( "The line style is not supported in QGIS" ) );
+      context.pushWarning( QObject::tr( "The line style is not supported in Hake Geospatial" ) );
       return nullptr;
 
     case 114:
@@ -1352,7 +1352,7 @@ QgsFillSymbol *QgsMapInfoSymbolConverter::convertFillSymbol( int identifier, Qgs
       break;
 
     default:
-      context.pushWarning( QObject::tr( "The brush style is not supported in QGIS" ) );
+      context.pushWarning( QObject::tr( "The brush style is not supported in Hake Geospatial" ) );
       return nullptr;
   }
 
@@ -1514,7 +1514,7 @@ QgsMarkerSymbol *QgsMapInfoSymbolConverter::convertMarkerSymbol( int identifier,
       break;
 
     default:
-      context.pushWarning( QObject::tr( "The symbol is not supported in QGIS" ) );
+      context.pushWarning( QObject::tr( "The symbol is not supported in Hake Geospatial" ) );
       return nullptr;
   }
 

@@ -210,10 +210,10 @@ std::unique_ptr<QgsAbstractGeometry> QgsGeos::makeValid( Qgis::MakeValidMethod m
 
 #if GEOS_VERSION_MAJOR == 3 && GEOS_VERSION_MINOR < 10
   if ( method != Qgis::MakeValidMethod::Linework )
-    throw QgsNotSupportedException( QObject::tr( "The structured method to make geometries valid requires a QGIS build based on GEOS 3.10 or later" ) );
+    throw QgsNotSupportedException( QObject::tr( "The structured method to make geometries valid requires a Hake Geospatial build based on GEOS 3.10 or later" ) );
 
   if ( keepCollapsed )
-    throw QgsNotSupportedException( QObject::tr( "The keep collapsed option for making geometries valid requires a QGIS build based on GEOS 3.10 or later" ) );
+    throw QgsNotSupportedException( QObject::tr( "The keep collapsed option for making geometries valid requires a Hake Geospatial build based on GEOS 3.10 or later" ) );
   geos::unique_ptr geos;
   try
   {
@@ -2274,7 +2274,7 @@ std::unique_ptr< QgsAbstractGeometry > QgsGeos::concaveHull( double targetPercen
   ( void ) allowHoles;
   ( void ) targetPercent;
   ( void ) errorMsg;
-  throw QgsNotSupportedException( QObject::tr( "Calculating concaveHull requires a QGIS build based on GEOS 3.11 or later" ) );
+  throw QgsNotSupportedException( QObject::tr( "Calculating concaveHull requires a Hake Geospatial build based on GEOS 3.11 or later" ) );
 #else
   if ( !mGeos )
   {
@@ -2322,7 +2322,7 @@ Qgis::CoverageValidityResult QgsGeos::validateCoverage( double gapWidth, std::un
   ( void ) gapWidth;
   ( void ) invalidEdges;
   ( void ) errorMsg;
-  throw QgsNotSupportedException( QObject::tr( "Validating coverages requires a QGIS build based on GEOS 3.12 or later" ) );
+  throw QgsNotSupportedException( QObject::tr( "Validating coverages requires a Hake Geospatial build based on GEOS 3.12 or later" ) );
 #else
   if ( !mGeos )
   {
@@ -2368,7 +2368,7 @@ std::unique_ptr<QgsAbstractGeometry> QgsGeos::simplifyCoverageVW( double toleran
   ( void ) tolerance;
   ( void ) preserveBoundary;
   ( void ) errorMsg;
-  throw QgsNotSupportedException( QObject::tr( "Simplifying coverages requires a QGIS build based on GEOS 3.12 or later" ) );
+  throw QgsNotSupportedException( QObject::tr( "Simplifying coverages requires a Hake Geospatial build based on GEOS 3.12 or later" ) );
 #else
   if ( !mGeos )
   {
@@ -3513,7 +3513,7 @@ std::unique_ptr<QgsAbstractGeometry> QgsGeos::constrainedDelaunayTriangulation( 
 {
 #if GEOS_VERSION_MAJOR == 3 && GEOS_VERSION_MINOR < 11
   ( void ) errorMsg;
-  throw QgsNotSupportedException( QObject::tr( "Calculating constrainedDelaunayTriangulation requires a QGIS build based on GEOS 3.11 or later" ) );
+  throw QgsNotSupportedException( QObject::tr( "Calculating constrainedDelaunayTriangulation requires a Hake Geospatial build based on GEOS 3.11 or later" ) );
 #else
   if ( !mGeos )
   {

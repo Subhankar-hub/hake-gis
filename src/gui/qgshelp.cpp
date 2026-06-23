@@ -51,7 +51,7 @@ QUrl QgsHelp::helpUrl( const QString &key )
   const QStringList paths = settings.value( u"help/helpSearchPath"_s ).toStringList();
   if ( paths.isEmpty() )
   {
-    QgsMessageLog::logMessage( QObject::tr( "Help location is not configured!" ), QObject::tr( "QGIS Help" ) );
+    QgsMessageLog::logMessage( QObject::tr( "Help location is not configured!" ), QObject::tr( "Hake Geospatial Help" ) );
     return helpNotFound;
   }
 
@@ -84,7 +84,7 @@ QUrl QgsHelp::helpUrl( const QString &key )
 
     helpPath = u"%1/%2"_s.arg( fullPath, key );
 
-    QgsMessageLog::logMessage( QObject::tr( "Trying to open help using key '%1'. Full URI is '%2'…" ).arg( key ).arg( helpPath ), QObject::tr( "QGIS Help" ), Qgis::MessageLevel::Info );
+    QgsMessageLog::logMessage( QObject::tr( "Trying to open help using key '%1'. Full URI is '%2'…" ).arg( key ).arg( helpPath ), QObject::tr( "Hake Geospatial Help" ), Qgis::MessageLevel::Info );
 
     if ( helpPath.startsWith( "http"_L1 ) )
     {

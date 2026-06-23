@@ -1284,10 +1284,10 @@
             <item row="0" column="2">
              <widget class="QCheckBox" name="cbxWatchFile">
               <property name="toolTip">
-               <string>Watch for changes to the file by other applications while QGIS is running</string>
+               <string>Watch for changes to the file by other applications while Hake Geospatial is running</string>
               </property>
               <property name="statusTip">
-               <string>Watch for changes to the file by other applications while QGIS is running</string>
+               <string>Watch for changes to the file by other applications while Hake Geospatial is running</string>
               </property>
               <property name="text">
                <string>Watch file</string>

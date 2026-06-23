@@ -985,7 +985,7 @@ GDALDatasetH QgsOgrProviderUtils::GDALOpenWrapper( const char *pszPath, bool bUp
   {
 #ifdef Q_OS_UNIX
     QgsMessageLog::logMessage(
-      QObject::tr( "Too many files opened (%1). Cannot open %2. You may raise the limit with the 'ulimit -n number_of_files' command before starting QGIS." )
+      QObject::tr( "Too many files opened (%1). Cannot open %2. You may raise the limit with the 'ulimit -n number_of_files' command before starting Hake Geospatial." )
         .arg( QgsFileUtils::openedFileCount() )
         .arg( QString( pszPath ) ),
       QObject::tr( "OGR" )

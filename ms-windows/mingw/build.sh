@@ -95,16 +95,17 @@ mkdir -p "$BUILDDIR"
     -DQGIS_PLUGIN_SUBDIR=lib/qgis/plugins \
     -DQGIS_INCLUDE_SUBDIR=include/qgis \
     -DQGIS_SERVER_MODULE_SUBDIR=lib/qgis/server \
-    -DQGIS_QML_SUBDIR=lib/qt5/qml \
+    -DQGIS_QML_SUBDIR=lib/qt6/qml \
     -DBINDINGS_GLOBAL_INSTALL=ON \
     -DSIP_GLOBAL_INSTALL=ON \
-    -DWITH_3D=OFF \
+    -DWITH_3D=ON \
     -DWITH_DRACO=OFF \
     -DWITH_PDAL=OFF \
     -DWITH_QUICK=ON \
     -DWITH_SERVER=ON \
     -DWITH_SERVER_LANDINGPAGE_WEBAPP=ON \
     -DTXT2TAGS_EXECUTABLE= \
+    -DWITH_INTERNAL_SPATIALINDEX=ON \
     ..
 )
 echo "::endgroup::"
@@ -115,8 +116,8 @@ echo "::endgroup::"
 # (
 # cd $BUILDDIR/native_crssync
 # echo "Building native crssync..."
-# moc-qt5 $SRCDIR/src/core/qgsapplication.h > moc_qgsapplication.cpp
-# g++ $optflags -fPIC -o crssync $SRCDIR/src/crssync/main.cpp $SRCDIR/src/crssync/qgscrssync.cpp moc_qgsapplication.cpp $SRCDIR/src/core/qgsapplication.cpp -DCORE_EXPORT= -DCOMPILING_CRSSYNC -I$SRCDIR/src/core/ -I$SRCDIR/src/core/geometry -I$BUILDDIR $(pkg-config --cflags --libs Qt5Widgets gdal sqlite3 proj)
+# moc-qt6 $SRCDIR/src/core/qgsapplication.h > moc_qgsapplication.cpp
+# g++ $optflags -fPIC -o crssync $SRCDIR/src/crssync/main.cpp $SRCDIR/src/crssync/qgscrssync.cpp moc_qgsapplication.cpp $SRCDIR/src/core/qgsapplication.cpp -DCORE_EXPORT= -DCOMPILING_CRSSYNC -I$SRCDIR/src/core/ -I$SRCDIR/src/core/geometry -I$BUILDDIR $(pkg-config --cflags --libs Qt6Widgets gdal sqlite3 proj)
 # )
 # crssync needs X at runtime
 # Xvfb :99 &
@@ -232,38 +233,38 @@ linkDep $(ls "$MINGWROOT/bin/libcrypto-"*.dll | sed "s|$MINGWROOT/||")
 linkDep lib/mod_spatialite.dll bin
 
 # Additional dependencies
-linkDep lib/qt5/plugins/imageformats/qgif.dll  bin/imageformats
-linkDep lib/qt5/plugins/imageformats/qicns.dll bin/imageformats
-linkDep lib/qt5/plugins/imageformats/qico.dll  bin/imageformats
-linkDep lib/qt5/plugins/imageformats/qjp2.dll  bin/imageformats
-linkDep lib/qt5/plugins/imageformats/qjpeg.dll bin/imageformats
-linkDep lib/qt5/plugins/imageformats/qtga.dll  bin/imageformats
-linkDep lib/qt5/plugins/imageformats/qtiff.dll bin/imageformats
-linkDep lib/qt5/plugins/imageformats/qwbmp.dll bin/imageformats
-linkDep lib/qt5/plugins/imageformats/qwebp.dll bin/imageformats
-linkDep lib/qt5/plugins/imageformats/qsvg.dll  bin/imageformats
-linkDep lib/qt5/plugins/platforms/qwindows.dll bin/platforms
-linkDep lib/qt5/plugins/printsupport/windowsprintersupport.dll bin/printsupport
-linkDep lib/qt5/plugins/styles/qwindowsvistastyle.dll bin/styles
-linkDep lib/qt5/plugins/audio/qtaudio_windows.dll bin/audio
-linkDep lib/qt5/plugins/mediaservice/dsengine.dll bin/mediaservice
-linkDep lib/qt5/plugins/mediaservice/qtmedia_audioengine.dll bin/mediaservice
-linkDep lib/qt5/plugins/sqldrivers/qsqlite.dll bin/sqldrivers
-linkDep lib/qt5/plugins/sqldrivers/qsqlodbc.dll bin/sqldrivers
-linkDep lib/qt5/plugins/sqldrivers/qsqlpsql.dll bin/sqldrivers
+linkDep lib/qt6/plugins/imageformats/qgif.dll  bin/imageformats
+linkDep lib/qt6/plugins/imageformats/qicns.dll bin/imageformats
+linkDep lib/qt6/plugins/imageformats/qico.dll  bin/imageformats
+linkDep lib/qt6/plugins/imageformats/qjp2.dll  bin/imageformats
+linkDep lib/qt6/plugins/imageformats/qjpeg.dll bin/imageformats
+linkDep lib/qt6/plugins/imageformats/qtga.dll  bin/imageformats
+linkDep lib/qt6/plugins/imageformats/qtiff.dll bin/imageformats
+linkDep lib/qt6/plugins/imageformats/qwbmp.dll bin/imageformats
+linkDep lib/qt6/plugins/imageformats/qwebp.dll bin/imageformats
+linkDep lib/qt6/plugins/imageformats/qsvg.dll  bin/imageformats
+linkDep lib/qt6/plugins/platforms/qwindows.dll bin/platforms
+linkDep lib/qt6/plugins/printsupport/windowsprintersupport.dll bin/printsupport
+linkDep lib/qt6/plugins/styles/qwindowsvistastyle.dll bin/styles
+linkDep lib/qt6/plugins/audio/qtaudio_windows.dll bin/audio
+linkDep lib/qt6/plugins/mediaservice/dsengine.dll bin/mediaservice
+linkDep lib/qt6/plugins/mediaservice/qtmedia_audioengine.dll bin/mediaservice
+linkDep lib/qt6/plugins/sqldrivers/qsqlite.dll bin/sqldrivers
+linkDep lib/qt6/plugins/sqldrivers/qsqlodbc.dll bin/sqldrivers
+linkDep lib/qt6/plugins/sqldrivers/qsqlpsql.dll bin/sqldrivers
 
-linkDep lib/qt5/plugins/crypto/libqca-gcrypt.dll bin/crypto
-linkDep lib/qt5/plugins/crypto/libqca-logger.dll bin/crypto
-linkDep lib/qt5/plugins/crypto/libqca-softstore.dll bin/crypto
-linkDep lib/qt5/plugins/crypto/libqca-gnupg.dll bin/crypto
-linkDep lib/qt5/plugins/crypto/libqca-ossl.dll bin/crypto
+linkDep lib/qt6/plugins/crypto/libqca-gcrypt.dll bin/crypto
+linkDep lib/qt6/plugins/crypto/libqca-logger.dll bin/crypto
+linkDep lib/qt6/plugins/crypto/libqca-softstore.dll bin/crypto
+linkDep lib/qt6/plugins/crypto/libqca-gnupg.dll bin/crypto
+linkDep lib/qt6/plugins/crypto/libqca-ossl.dll bin/crypto
 
 linkDep lib/ossl-modules/legacy.dll lib/ossl-modules
 echo "::endgroup::"
 
-mkdir -p "$installprefix/share/qt5/translations/"
-#cp -a "$MINGWROOT/share/qt5/translations/qt_"*.qm  "$installprefix/share/qt5/translations"
-#cp -a "$MINGWROOT/share/qt5/translations/qtbase_"*.qm  "$installprefix/share/qt5/translations"
+mkdir -p "$installprefix/share/qt6/translations/"
+#cp -a "$MINGWROOT/share/qt6/translations/qt_"*.qm  "$installprefix/share/qt6/translations"
+#cp -a "$MINGWROOT/share/qt6/translations/qtbase_"*.qm  "$installprefix/share/qt6/translations"
 
 # Data files
 mkdir -p "$installprefix/share/"

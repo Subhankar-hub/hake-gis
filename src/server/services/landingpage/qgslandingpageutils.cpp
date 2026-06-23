@@ -278,8 +278,8 @@ json QgsLandingPageUtils::projectInfo( const QString &projectUri, const QgsServe
 
       QgsMessageLog::logMessage(
         QStringLiteral(
-          "The project '%1' was saved with a version of QGIS which does not contain initial extent information. "
-          "For better performances consider re-saving the project with the latest version of QGIS."
+          "The project '%1' was saved with a version of Hake Geospatial which does not contain initial extent information. "
+          "For better performances consider re-saving the project with the latest version of Hake Geospatial."
         )
           .arg( projectUri ),
         u"Landing Page"_s,

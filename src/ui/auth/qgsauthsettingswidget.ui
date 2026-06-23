@@ -101,7 +101,7 @@
           </sizepolicy>
          </property>
          <property name="text">
-          <string>Configurations store encrypted credentials in the QGIS authentication storage.</string>
+          <string>Configurations store encrypted credentials in the Hake Geospatial authentication storage.</string>
          </property>
          <property name="textFormat">
           <enum>Qt::PlainText</enum>

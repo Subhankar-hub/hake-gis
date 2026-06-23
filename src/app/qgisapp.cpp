@@ -629,7 +629,7 @@ static void setTitleBarText_( QWidget &qgisApp )
   if ( QgsProject::instance()->isDirty() )
     caption.prepend( '*' );
 
-  caption += QgisApp::tr( "QGIS" );
+  caption += QgisApp::tr( "Hake Geospatial" );
 
   if ( Qgis::version().endsWith( "Master"_L1 ) )
   {
@@ -1028,7 +1028,7 @@ QgisApp::QgisApp(
 {
   if ( sInstance )
   {
-    QMessageBox::critical( this, tr( "Multiple Instances of QgisApp" ), tr( "Multiple instances of QGIS application object detected.\nPlease contact the developers.\n" ) );
+    QMessageBox::critical( this, tr( "Multiple Instances of QgisApp" ), tr( "Multiple instances of Hake Geospatial application object detected.\nPlease contact the developers.\n" ) );
     abort();
   }
 
@@ -1589,10 +1589,10 @@ QgisApp::QgisApp(
   connect( QgsGui::mapLayerActionRegistry(), &QgsMapLayerActionRegistry::changed, this, &QgisApp::refreshActionFeatureAction );
 
   // set application's caption
-  QString caption = tr( "QGIS - %1 ('%2')" ).arg( Qgis::version(), Qgis::releaseName() );
+  QString caption = tr( "Hake Geospatial - %1 ('%2')" ).arg( Qgis::version(), Qgis::releaseName() );
   setWindowTitle( caption );
 
-  // QgsMessageLog::logMessage( tr( "QGIS starting…" ), QString(), Qgis::MessageLevel::Info );
+  // QgsMessageLog::logMessage( tr( "Hake Geospatial starting…" ), QString(), Qgis::MessageLevel::Info );
 
   connect( QgsProject::instance(), &QgsProject::isDirtyChanged, this, [this] { setTitleBarText_( *this ); } );
 
@@ -1771,11 +1771,11 @@ QgisApp::QgisApp(
   QgsStyle::defaultStyle();
   endProfile();
 
-  mSplash->showMessage( tr( "QGIS Ready!" ), Qt::AlignHCenter | Qt::AlignBottom, splashTextColor );
+  mSplash->showMessage( tr( "Hake Geospatial Ready!" ), Qt::AlignHCenter | Qt::AlignBottom, splashTextColor );
 
   QgsMessageLog::logMessage( QgsApplication::showSettings(), QString(), Qgis::MessageLevel::Info );
 
-  //QgsMessageLog::logMessage( tr( "QGIS Ready!" ), QString(), Qgis::MessageLevel::Info );
+  //QgsMessageLog::logMessage( tr( "Hake Geospatial Ready!" ), QString(), Qgis::MessageLevel::Info );
 
   mMapTipsVisible = false;
   // This turns on the map tip if they where active in the last session
@@ -2027,7 +2027,7 @@ QgisApp::QgisApp(
         // NOTE: black coloring MUST be specified here or the message shows white-on-white on wayland sessions 🙃
         const QString warning = u"<p style=\"color: black\">%1</p><p style=\"color: black\"><b>%2</b></p>"_s.arg(
           tr(
-            "Running QGIS in a Wayland session will result "
+            "Running Hake Geospatial in a Wayland session will result "
             "in a degraded experience due to limitations in the "
             "underlying Qt library and current versions of the Wayland protocol."
           ),
@@ -5538,7 +5538,7 @@ void QgisApp::restoreWindowState()
 void QgisApp::sponsors()
 {
   QgsSettings settings;
-  QString qgisSponsorsUrl = settings.value( u"qgis/qgisSponsorsUrl"_s, tr( "https://qgis.org/funding/membership/members/" ) ).toString();
+  QString qgisSponsorsUrl = settings.value( u"qgis/qgisSponsorsUrl"_s, tr( "https://haketech.com" ) ).toString();
   openURL( qgisSponsorsUrl, false );
 }
 
@@ -5562,11 +5562,11 @@ QString QgisApp::getVersionString()
   const QString compLabel = tr( "Compiled" );
   const QString runLabel = tr( "Running" );
 
-  versionString += u"<tr><td>%1</td><td>%2</td>"_s.arg( tr( "QGIS version" ), Qgis::version() );
+  versionString += u"<tr><td>%1</td><td>%2</td>"_s.arg( tr( "Hake Geospatial version" ), Qgis::version() );
   versionString += "</tr><tr>"_L1;
   if ( QString( Qgis::devVersion() ) == "exported"_L1 )
   {
-    versionString += u"<td>%1</td>"_s.arg( tr( "QGIS code branch" ) );
+    versionString += u"<td>%1</td>"_s.arg( tr( "Hake Geospatial code branch" ) );
     if ( Qgis::version().endsWith( "Master"_L1 ) )
     {
       versionString += "<td><a href=\"https://github.com/qgis/QGIS/tree/master\">master</a></td>"_L1;
@@ -5578,7 +5578,7 @@ QString QgisApp::getVersionString()
   }
   else
   {
-    versionString += u"<td>%1</td><td><a href=\"https://github.com/qgis/QGIS/commit/%2\">%2</a></td>"_s.arg( tr( "QGIS code revision" ), Qgis::devVersion() );
+    versionString += u"<td>%1</td><td><a href=\"https://github.com/qgis/QGIS/commit/%2\">%2</a></td>"_s.arg( tr( "Hake Geospatial code revision" ), Qgis::devVersion() );
   }
   versionString += "</tr><tr>"_L1;
 
@@ -5739,7 +5739,7 @@ QString QgisApp::getVersionString()
   versionString += "</tr><tr>"_L1;
 
 #ifdef QGISDEBUG
-  versionString += u"<td colspan=\"2\"><i>%1</i></td>"_s.arg( tr( "This copy of QGIS writes debugging output." ) );
+  versionString += u"<td colspan=\"2\"><i>%1</i></td>"_s.arg( tr( "This copy of Hake Geospatial writes debugging output." ) );
   versionString += "</tr><tr>"_L1;
 #endif
 
@@ -6484,7 +6484,7 @@ void QgisApp::fileOpen()
 
     QStringList fileFilters;
     QStringList extensions;
-    fileFilters << tr( "QGIS Project Formats" ) + u" (*.qgz *.QGZ *.qgs *.QGS)"_s;
+    fileFilters << tr( "Hake Geospatial Project Formats" ) + u" (*.qgz *.QGZ *.qgs *.QGS)"_s;
     extensions << u"qgs"_s << u"qgz"_s;
     for ( QgsCustomProjectOpenHandler *handler : std::as_const( mCustomProjectOpenHandlers ) )
     {
@@ -6726,13 +6726,13 @@ bool QgisApp::fileSave()
     QString lastUsedDir = settings.value( u"UI/lastProjectDir"_s, QDir::homePath() ).toString();
 
     Qgis::ProjectFileFormat defaultProjectFileFormat = settings.enumValue( u"/qgis/defaultProjectFileFormat"_s, Qgis::ProjectFileFormat::Qgz );
-    const QString qgisProjectExt = tr( "QGIS Project Formats" ) + ( defaultProjectFileFormat == Qgis::ProjectFileFormat::Qgz ? " (*.qgz *.QGZ *.qgs *.QGS)" : " (*.qgs *.QGS *.qgz *.QGZ)" );
-    const QString qgzProjectExt = tr( "QGIS Bundled Project Format" ) + " (*.qgz *.QGZ)";
-    const QString qgsProjectExt = tr( "QGIS XML Project Format" ) + " (*.qgs *.QGS)";
+    const QString qgisProjectExt = tr( "Hake Geospatial Project Formats" ) + ( defaultProjectFileFormat == Qgis::ProjectFileFormat::Qgz ? " (*.qgz *.QGZ *.qgs *.QGS)" : " (*.qgs *.QGS *.qgz *.QGZ)" );
+    const QString qgzProjectExt = tr( "Hake Geospatial Bundled Project Format" ) + " (*.qgz *.QGZ)";
+    const QString qgsProjectExt = tr( "Hake Geospatial XML Project Format" ) + " (*.qgs *.QGS)";
 
     QString filter;
     QString path
-      = QFileDialog::getSaveFileName( this, tr( "Choose a QGIS project file" ), lastUsedDir + '/' + QgsProject::instance()->title(), qgisProjectExt + u";;"_s + qgzProjectExt + u";;"_s + qgsProjectExt, &filter );
+      = QFileDialog::getSaveFileName( this, tr( "Choose a Hake Geospatial project file" ), lastUsedDir + '/' + QgsProject::instance()->title(), qgisProjectExt + u";;"_s + qgzProjectExt + u";;"_s + qgsProjectExt, &filter );
     if ( path.isEmpty() )
       return false;
 
@@ -6834,9 +6834,9 @@ void QgisApp::fileSaveAs()
   }
 
   Qgis::ProjectFileFormat defaultProjectFileFormat = settings.enumValue( u"/qgis/defaultProjectFileFormat"_s, Qgis::ProjectFileFormat::Qgz );
-  const QString qgisProjectExt = tr( "QGIS Project Formats" ) + ( defaultProjectFileFormat == Qgis::ProjectFileFormat::Qgz ? " (*.qgz *.QGZ *.qgs *.QGS)" : " (*.qgs *.QGS *.qgz *.QGZ)" );
-  const QString qgzProjectExt = tr( "QGIS Bundled Project Format" ) + " (*.qgz *.QGZ)";
-  const QString qgsProjectExt = tr( "QGIS XML Project Format" ) + " (*.qgs *.QGS)";
+  const QString qgisProjectExt = tr( "Hake Geospatial Project Formats" ) + ( defaultProjectFileFormat == Qgis::ProjectFileFormat::Qgz ? " (*.qgz *.QGZ *.qgs *.QGS)" : " (*.qgs *.QGS *.qgz *.QGZ)" );
+  const QString qgzProjectExt = tr( "Hake Geospatial Bundled Project Format" ) + " (*.qgz *.QGZ)";
+  const QString qgsProjectExt = tr( "Hake Geospatial XML Project Format" ) + " (*.qgs *.QGS)";
 
   QString filter;
   QString path = QFileDialog::getSaveFileName( this, tr( "Save Project As" ), defaultPath, qgisProjectExt + u";;"_s + qgzProjectExt + u";;"_s + qgsProjectExt, &filter );
@@ -12560,12 +12560,12 @@ void QgisApp::loadPythonSupport()
         "from qgis.core import QgsApplication as _QgsApplication\n"
         "\n"
         "def _qgis_app_init_qgis():\n"
-        "  raise RuntimeError('QgsApplication.initQgis() must never be called from within the QGIS application. This method is exclusively for standalone scripts.')\n"
+        "  raise RuntimeError('QgsApplication.initQgis() must never be called from within the Hake Geospatial application. This method is exclusively for standalone scripts.')\n"
         "\n"
         "_QgsApplication.initQgis = _qgis_app_init_qgis\n"
         "\n"
         "def _qgis_app_exit_qgis():\n"
-        "  raise RuntimeError('QgsApplication.exitQgis() must never be called from within the QGIS application. This method is exclusively for standalone scripts.')\n"
+        "  raise RuntimeError('QgsApplication.exitQgis() must never be called from within the Hake Geospatial application. This method is exclusively for standalone scripts.')\n"
         "\n"
         "_QgsApplication.exitQgis = _qgis_app_exit_qgis\n"
       ),
@@ -12609,15 +12609,15 @@ void QgisApp::versionReplyFinished()
 
     if ( versionInfo->newVersionAvailable() )
     {
-      info = tr( "There is a new version of QGIS available" );
+      info = tr( "There is a new version of Hake Geospatial available" );
     }
     else if ( versionInfo->isDevelopmentVersion() )
     {
-      info = tr( "You are running a development version of QGIS" );
+      info = tr( "You are running a development version of Hake Geospatial" );
     }
     else
     {
-      info = tr( "You are running the current version of QGIS" );
+      info = tr( "You are running the current version of Hake Geospatial" );
     }
 
     info = u"<b>%1</b>"_s.arg( info );
@@ -12625,13 +12625,13 @@ void QgisApp::versionReplyFinished()
     if ( versionInfo->newVersionAvailable() )
       info += "<br>" + QgsStringUtils::insertLinks( versionInfo->downloadInfo() );
 
-    QMessageBox mb( QMessageBox::Information, tr( "QGIS Version Information" ), info );
+    QMessageBox mb( QMessageBox::Information, tr( "Hake Geospatial Version Information" ), info );
     mb.setInformativeText( versionInfo->html() );
     mb.exec();
   }
   else
   {
-    QMessageBox mb( QMessageBox::Warning, tr( "QGIS Version Information" ), tr( "Unable to get current version information from server" ) );
+    QMessageBox mb( QMessageBox::Warning, tr( "Hake Geospatial Version Information" ), tr( "Unable to get current version information from server" ) );
     mb.setDetailedText( versionInfo->errorString() );
     mb.exec();
   }
@@ -13043,35 +13043,35 @@ void QgisApp::pyQgisApiDocumentation()
 void QgisApp::reportaBug()
 {
   QgsSettings settings;
-  QString reportaBugUrl = settings.value( u"qgis/reportaBugUrl"_s, tr( "https://qgis.org/resources/support/bug-reporting/" ) ).toString();
+  QString reportaBugUrl = settings.value( u"qgis/reportaBugUrl"_s, tr( "https://haketech.com" ) ).toString();
   openURL( reportaBugUrl, false );
 }
 
 void QgisApp::getInvolved()
 {
   QgsSettings settings;
-  QString getInvolvedUrl = settings.value( u"qgis/getInvolved"_s, tr( "https://qgis.org/community/involve/" ) ).toString();
+  QString getInvolvedUrl = settings.value( u"qgis/getInvolved"_s, tr( "https://haketech.com" ) ).toString();
   openURL( getInvolvedUrl, false );
 }
 
 void QgisApp::donate()
 {
   QgsSettings settings;
-  QString donateUrl = settings.value( u"qgis/donate"_s, tr( "https://qgis.org/funding/donate/" ) ).toString();
+  QString donateUrl = settings.value( u"qgis/donate"_s, tr( "https://haketech.com" ) ).toString();
   openURL( donateUrl, false );
 }
 
 void QgisApp::supportProviders()
 {
   QgsSettings settings;
-  QString supportProvidersUrl = settings.value( u"qgis/supportProvidersUrl"_s, tr( "https://qgis.org/resources/support/commercial-support/" ) ).toString();
+  QString supportProvidersUrl = settings.value( u"qgis/supportProvidersUrl"_s, tr( "https://haketech.com" ) ).toString();
   openURL( supportProvidersUrl, false );
 }
 
 void QgisApp::helpQgisHomePage()
 {
   QgsSettings settings;
-  QString helpQgisHomePageUrl = settings.value( u"qgis/helpQgisHomePageUrl"_s, u"https://qgis.org"_s ).toString();
+  QString helpQgisHomePageUrl = settings.value( u"qgis/helpQgisHomePageUrl"_s, u"https://haketech.com"_s ).toString();
   openURL( helpQgisHomePageUrl, false );
 }
 
@@ -16302,7 +16302,7 @@ void QgisApp::keyReleaseEvent( QKeyEvent *event )
   if ( event->key() == Qt::Key_Close )
   {
     // do something useful here
-    int ret = QMessageBox::question( this, tr( "Exit QGIS" ), tr( "Do you really want to quit QGIS?" ), QMessageBox::Yes | QMessageBox::No );
+    int ret = QMessageBox::question( this, tr( "Exit Hake Geospatial" ), tr( "Do you really want to quit Hake Geospatial?" ), QMessageBox::Yes | QMessageBox::No );
     switch ( ret )
     {
       case QMessageBox::Yes:
@@ -16525,9 +16525,9 @@ void QgisApp::projectVersionMismatchOccurred( const QString &projectVersion )
     if ( settingsWarnOldProjectVersion->value() )
     {
       QString smalltext = tr(
-                            "This project file was saved by QGIS version %1."
-                            " When saving this project file, QGIS will update it to version %2, "
-                            "possibly rendering it unusable with older versions of QGIS."
+                            "This project file was saved by Hake Geospatial version %1."
+                            " When saving this project file, Hake Geospatial will update it to version %2, "
+                            "possibly rendering it unusable with older versions of Hake Geospatial."
       )
                             .arg( projectVersion, Qgis::version() );
 
@@ -16538,7 +16538,7 @@ void QgisApp::projectVersionMismatchOccurred( const QString &projectVersion )
   }
   else
   {
-    visibleMessageBar()->pushWarning( QString(), tr( "This project file was created by a newer version of QGIS (%1) and could not be completely loaded." ).arg( projectVersion ) );
+    visibleMessageBar()->pushWarning( QString(), tr( "This project file was created by a newer version of Hake Geospatial (%1) and could not be completely loaded." ).arg( projectVersion ) );
   }
 }
 
@@ -17210,7 +17210,7 @@ void QgisApp::authMessageLog( const QString &message, const QString &authtag, Qg
   // push message to the message bar if the main window is active
   if ( qApp->activeWindow() != this )
   {
-    showSystemNotification( tr( "QGIS Authentication" ), message );
+    showSystemNotification( tr( "Hake Geospatial Authentication" ), message );
   }
   else
   {

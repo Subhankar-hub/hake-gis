@@ -908,9 +908,9 @@ void QgsPostgresDataItemGuiProvider::exportProjectToFile( QgsPGProjectItem *proj
   const QString defaultPath = settings.value( u"UI/lastProjectDir"_s, QDir::homePath() ).toString();
 
   const Qgis::ProjectFileFormat defaultProjectFileFormat = settings.enumValue( u"/qgis/defaultProjectFileFormat"_s, Qgis::ProjectFileFormat::Qgz );
-  const QString qgisProjectExt = tr( "QGIS Project Formats" ) + ( defaultProjectFileFormat == Qgis::ProjectFileFormat::Qgz ? " (*.qgz *.QGZ *.qgs *.QGS)" : " (*.qgs *.QGS *.qgz *.QGZ)" );
-  const QString qgzProjectExt = tr( "QGIS Bundled Project Format" ) + " (*.qgz *.QGZ)";
-  const QString qgsProjectExt = tr( "QGIS XML Project Format" ) + " (*.qgs *.QGS)";
+  const QString qgisProjectExt = tr( "Hake Geospatial Project Formats" ) + ( defaultProjectFileFormat == Qgis::ProjectFileFormat::Qgz ? " (*.qgz *.QGZ *.qgs *.QGS)" : " (*.qgs *.QGS *.qgz *.QGZ)" );
+  const QString qgzProjectExt = tr( "Hake Geospatial Bundled Project Format" ) + " (*.qgz *.QGZ)";
+  const QString qgsProjectExt = tr( "Hake Geospatial XML Project Format" ) + " (*.qgs *.QGS)";
 
   QString filter;
   const QString path = QFileDialog::getSaveFileName( nullptr, tr( "Save Project As" ), defaultPath, qgisProjectExt + u";;"_s + qgzProjectExt + u";;"_s + qgsProjectExt, &filter );
@@ -1323,7 +1323,7 @@ bool QgsPostgresDataItemGuiProvider::enableProjectsVersioning( const QString con
 
   if ( QgsPostgresUtils::qgisProjectVersioningEnabled( conn, schemaName ) )
   {
-    notify( tr( "QGIS Project Versioning" ), tr( "Versioning of QGIS projects already active in schema “%1”." ).arg( schemaName ), context, Qgis::MessageLevel::Info );
+    notify( tr( "Hake Geospatial Project Versioning" ), tr( "Versioning of Hake Geospatial projects already active in schema “%1”." ).arg( schemaName ), context, Qgis::MessageLevel::Info );
     conn->unref();
     return false;
   }
@@ -1334,12 +1334,12 @@ bool QgsPostgresDataItemGuiProvider::enableProjectsVersioning( const QString con
   {
     if ( !QgsPostgresUtils::enableQgisProjectVersioning( conn, schemaName ) )
     {
-      notify( tr( "QGIS Project Versioning" ), tr( "Cannot setup versioning of QGIS projects in schema “%1”." ).arg( schemaName ), context, Qgis::MessageLevel::Critical );
+      notify( tr( "Hake Geospatial Project Versioning" ), tr( "Cannot setup versioning of Hake Geospatial projects in schema “%1”." ).arg( schemaName ), context, Qgis::MessageLevel::Critical );
       conn->unref();
       return false;
     }
 
-    notify( tr( "QGIS Project Versioning" ), tr( "Versioning of QGIS projects setup in schema “%1”." ).arg( schemaName ), context, Qgis::MessageLevel::Success );
+    notify( tr( "Hake Geospatial Project Versioning" ), tr( "Versioning of Hake Geospatial projects setup in schema “%1”." ).arg( schemaName ), context, Qgis::MessageLevel::Success );
     conn->unref();
     return true;
   }

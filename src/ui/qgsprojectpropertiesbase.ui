@@ -220,7 +220,7 @@
          </item>
          <item>
           <property name="text">
-           <string>QGIS Server</string>
+           <string>Hake Geospatial Server</string>
           </property>
           <property name="toolTip">
            <string>WMS/WFS/WCS Server Configuration</string>
@@ -1879,7 +1879,7 @@
               <item row="0" column="0">
                <widget class="QCheckBox" name="mTrustProjectCheckBox">
                 <property name="toolTip">
-                 <string>Speed up project loading by skipping data checks in PostgreSQL layers. Useful in QGIS server context or project with huge database views or materialized views.</string>
+                 <string>Speed up project loading by skipping data checks in PostgreSQL layers. Useful in Hake Geospatial server context or project with huge database views or materialized views.</string>
                 </property>
                 <property name="text">
                  <string>Trust project when data source has no metadata</string>
