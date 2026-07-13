@@ -155,7 +155,7 @@ class QgsPluginInstallerInstallingDialog(
             if reply.error() == QNetworkReply.NetworkError.OperationCanceledError:
                 self.mResult += "<br/><br/>" + QCoreApplication.translate(
                     "QgsPluginInstaller",
-                    "If you haven't canceled the download manually, it might be caused by a timeout. In this case consider increasing the connection timeout value in QGIS options.",
+                    "If you haven't canceled the download manually, it might be caused by a timeout. In this case consider increasing the connection timeout value in Hake Geospatial options.",
                 )
             self.reject()
             reply.deleteLater()

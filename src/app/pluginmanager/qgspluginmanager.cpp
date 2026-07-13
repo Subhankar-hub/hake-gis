@@ -986,7 +986,7 @@ void QgsPluginManager::showPluginDetails( QStandardItem *item )
   if ( !metadata->value( u"version_available_stable"_s ).isEmpty() )
   {
     QString downloadUrl = metadata->value( u"download_url_stable"_s );
-    if ( downloadUrl.contains( u"plugins.qgis.org"_s ) )
+    if ( downloadUrl.contains( u"localhost"_s ) )
     {
       // For the main repo, open the plugin version page instead of the download link. For other repositories the download link is the only known endpoint.
       downloadUrl = downloadUrl.replace( "download/"_L1, QString() );
@@ -1009,7 +1009,7 @@ void QgsPluginManager::showPluginDetails( QStandardItem *item )
   if ( !metadata->value( u"version_available_experimental"_s ).isEmpty() )
   {
     QString downloadUrl = metadata->value( u"download_url_experimental"_s );
-    if ( downloadUrl.contains( u"plugins.qgis.org"_s ) )
+    if ( downloadUrl.contains( u"localhost"_s ) )
     {
       // For the main repo, open the plugin version page instead of the download link. For other repositories the download link is the only known endpoint.
       downloadUrl = downloadUrl.replace( "download/"_L1, QString() );

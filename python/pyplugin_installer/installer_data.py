@@ -121,8 +121,8 @@ translatableAttributes = ["name", "description", "about", "tags"]
 reposGroup = "app/plugin_repositories"
 
 officialRepo = (
-    QCoreApplication.translate("QgsPluginInstaller", "QGIS Official Plugin Repository"),
-    "https://plugins.qgis.org/plugins/plugins.xml",
+    QCoreApplication.translate("QgsPluginInstaller", "Hake Geospatial Plugin Repository"),
+    "http://localhost/plugins/plugins.xml",
 )
 
 
@@ -257,7 +257,7 @@ class Repositories(QObject):
     def urlParams(self) -> str:
         """return GET parameters to be added to every request"""
         # Strip down the point release segment from the version string
-        return "?qgis={}".format(re.sub(r"\.\d*$", "", pyQgisVersion()))
+        return "?hake-gis={}".format(re.sub(r"\.\d*$", "", pyQgisVersion()))
 
     def setRepositoryData(self, reposName: str, key: str, value):
         """write data to the mRepositories dict"""
@@ -436,7 +436,7 @@ class Repositories(QObject):
                     "\n\n"
                     + QCoreApplication.translate(
                         "QgsPluginInstaller",
-                        "If you haven't canceled the download manually, it was most likely caused by a timeout. In this case consider increasing the connection timeout value in QGIS options window.",
+                        "If you haven't canceled the download manually, it was most likely caused by a timeout. In this case consider increasing the connection timeout value in Hake Geospatial options window.",
                     )
                 )
         elif reply.attribute(QNetworkRequest.Attribute.HttpStatusCodeAttribute) == 301:
@@ -680,7 +680,7 @@ class Repositories(QObject):
                 ):
                     self.mRepositories[reposName]["error"] = QCoreApplication.translate(
                         "QgsPluginInstaller",
-                        "Server response is 200 OK, but doesn't contain plugin metadata. This is most likely caused by a proxy or a wrong repository URL. You can configure proxy settings in QGIS options.",
+                        "Server response is 200 OK, but doesn't contain plugin metadata. This is most likely caused by a proxy or a wrong repository URL. You can configure proxy settings in Hake Geospatial options.",
                     )
                 else:
                     self.mRepositories[reposName]["error"] = QCoreApplication.translate(
@@ -841,7 +841,7 @@ class Plugins(QObject):
                 error = "incompatible"
                 errorDetails = QCoreApplication.translate(
                     "QgsPluginInstaller",
-                    "Plugin designed for QGIS {minVersion} - {maxVersion}",
+                    "Plugin designed for Hake Geospatial {minVersion} - {maxVersion}",
                 ).format(minVersion=qgisMinimumVersion, maxVersion=qgisMaximumVersion)
         elif not os.path.exists(metadataFile):
             error = "broken"

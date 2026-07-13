@@ -133,5 +133,4 @@ debian/*.substvars
 debian/*.debhelper.log
 qgis-build-deps_*
 qgis.bin.1
-
 plugin-server/plugins/*.zip

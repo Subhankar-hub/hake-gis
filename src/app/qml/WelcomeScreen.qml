@@ -470,7 +470,7 @@ Item {
                   id: welcomeDescription
                   anchors.fill: parent
                   anchors.margins: 16
-                  text: qsTr("HAKE Technologies offers business intelligence solutions that deliver actionable data insights into subscriber, device, and network performance, all powered by geo-located data and advanced analytics.")
+                  text: qsTr("Unlock the power of geo-located data with Hake Geospatial’s Desktop Business Intelligence solutions. Gain actionable insights into subscriber, device, and network performance through advanced analytics designed to support smarter business decisions..")
                   font.pointSize: Application.font.pointSize * 0.8
                   color: "black"
                   wrapMode: Text.WordWrap

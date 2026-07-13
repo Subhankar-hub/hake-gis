@@ -1,0 +1,38 @@
+image: docker:24.0.5
+
+variables:
+  DOCKER_TLS_CERTDIR: ""
+  DISTRO: ubuntu
+  DISTRO_VERSION: "25.10"
+  QT_VERSION: "6"
+
+services:
+  - docker:24.0.5-dind
+
+stages:
+  - build
+  - test
+
+before_script:
+  - docker info
+
+build_linux:
+  stage: build
+  script:
+    - echo "Building Hake Geospatial (QGIS base) for Linux..."
+    - docker build -t qgis3-build-deps-binary-image -f .docker/qgis3-${DISTRO}-qt${QT_VERSION}-build-deps.dockerfile --build-arg DISTRO_VERSION=${DISTRO_VERSION} .
+    - docker run --rm -v $(pwd):/root/QGIS --env WITH_QUICK=ON --env WITH_3D=ON --env WITH_SFCGAL=ON qgis3-build-deps-binary-image /root/QGIS/.docker/docker-qgis-build.sh
+    - tar --exclude='*.o' -cvzf build.tgz build
+  artifacts:
+    paths:
+      - build.tgz
+    expire_in: 1 day
+
+test_linux:
+  stage: test
+  script:
+    - echo "Running Linux Tests for Hake Geospatial..."
+    - tar xvzf build.tgz
+    - rm build.tgz
+    - docker build -t qgis3-build-deps-binary-image -f .docker/qgis3-${DISTRO}-qt${QT_VERSION}-build-deps.dockerfile --build-arg DISTRO_VERSION=${DISTRO_VERSION} .
+    - docker run --rm -v $(pwd):/root/QGIS --env GITHUB_SHA=$CI_COMMIT_SHA qgis3-build-deps-binary-image /root/QGIS/.docker/docker-qgis-test.sh ALL_BUT_PROVIDERS

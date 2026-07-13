@@ -48,7 +48,7 @@ options(
         tmp=path(path("%s/MetaSearch-dist" % USERDIR)),
         version=VERSION,
     ),
-    upload=Bunch(host="plugins.qgis.org", port=80, endpoint="plugins/RPC2/"),
+    upload=Bunch(host="localhost", port=80, endpoint="plugins/RPC2/"),
 )
 
 

@@ -334,7 +334,15 @@ echo "::endgroup::"
 
 export QTWEBENGINE_DISABLE_SANDBOX=1
 
+echo "Starting Hake Geospatial plugin server for tests..."
+python3 ${SRCDIR}/plugin-server/server.py &
+PLUGIN_SERVER_PID=$!
+sleep 2
+
 python3 ${SRCDIR}/.ci/ctest2ci.py xvfb-run ctest -V $CTEST_OPTIONS -E "${EXCLUDE_TESTS}" -S ${SRCDIR}/.ci/config_test.ctest --output-on-failure
+
+echo "Stopping plugin server..."
+kill $PLUGIN_SERVER_PID
 
 echo "::group::Print disk space after running tests"
 df -h

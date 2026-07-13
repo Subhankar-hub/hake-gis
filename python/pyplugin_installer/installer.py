@@ -119,7 +119,7 @@ class QgsPluginInstaller(QObject):
             plugin = plugins.localCache[key]
             msg = QMessageBox()
             msg.setIcon(QMessageBox.Icon.Warning)
-            msg.setWindowTitle(self.tr("QGIS Python Plugin Installer"))
+            msg.setWindowTitle(self.tr("Hake Geospatial Python Plugin Installer"))
             msg.addButton(
                 self.tr("Uninstall (recommended)"), QMessageBox.ButtonRole.AcceptRole
             )
@@ -131,7 +131,7 @@ class QgsPluginInstaller(QObject):
                     self.tr("Obsolete plugin:"),
                     plugin["name"],
                     self.tr(
-                        "QGIS has detected an obsolete plugin that masks its more recent version shipped with this copy of QGIS. This is likely due to files associated with a previous installation of QGIS. Do you want to remove the old plugin right now and unmask the more recent version?"
+                        "Hake Geospatial has detected an obsolete plugin that masks its more recent version shipped with this copy of Hake Geospatial. This is likely due to files associated with a previous installation of Hake Geospatial. Do you want to remove the old plugin right now and unmask the more recent version?"
                     ),
                 )
             )
@@ -189,7 +189,7 @@ class QgsPluginInstaller(QObject):
                 if not keepQuiet:
                     QMessageBox.warning(
                         iface.mainWindow(),
-                        self.tr("QGIS Python Plugin Installer"),
+                        self.tr("Hake Geospatial Python Plugin Installer"),
                         self.tr("Error reading repository:")
                         + " "
                         + key
@@ -384,7 +384,7 @@ class QgsPluginInstaller(QObject):
             if (
                 QMessageBox.warning(
                     iface.mainWindow(),
-                    self.tr("QGIS Python Plugin Installer"),
+                    self.tr("Hake Geospatial Python Plugin Installer"),
                     self.tr(
                         "Are you sure you want to downgrade the plugin to the latest available version? The installed one is newer!"
                     ),
@@ -461,7 +461,7 @@ class QgsPluginInstaller(QObject):
                 QApplication.restoreOverrideCursor()
                 if plugin["error"] == "incompatible":
                     message = self.tr(
-                        "The plugin is not compatible with this version of QGIS. It's designed for QGIS versions:"
+                        "The plugin is not compatible with this version of Hake Geospatial. It's designed for Hake Geospatial versions:"
                     )
                     message += " <b>" + plugin["error_details"] + "</b>"
                 elif plugin["error"] == "dependent":
@@ -531,7 +531,7 @@ class QgsPluginInstaller(QObject):
             if (
                 QMessageBox.warning(
                     iface.mainWindow(),
-                    self.tr("QGIS Python Plugin Installer"),
+                    self.tr("Hake Geospatial Python Plugin Installer"),
                     warning,
                     QMessageBox.StandardButton.Yes,
                     QMessageBox.StandardButton.No,
@@ -634,7 +634,7 @@ class QgsPluginInstaller(QObject):
             dlg.checkBoxEnabled.setEnabled(False)
             dlg.labelInfo.setText(
                 self.tr(
-                    "This repository is blocked due to incompatibility with your QGIS version"
+                    "This repository is blocked due to incompatibility with your Hake Geospatial version"
                 )
             )
             dlg.labelInfo.setFrameShape(QFrame.Shape.Box)
@@ -688,7 +688,7 @@ class QgsPluginInstaller(QObject):
         if settings.value(reposName + "/url", "", type=str) == officialRepo[1]:
             iface.pluginManagerInterface().pushMessage(
                 self.tr(
-                    "You can't remove the official QGIS Plugin Repository. You can disable it if needed."
+                    "You can't remove the official Hake Geospatial Plugin Repository. You can disable it if needed."
                 ),
                 Qgis.MessageLevel.Warning,
             )
@@ -701,7 +701,7 @@ class QgsPluginInstaller(QObject):
         if (
             QMessageBox.warning(
                 iface.mainWindow(),
-                self.tr("QGIS Python Plugin Installer"),
+                self.tr("Hake Geospatial Python Plugin Installer"),
                 warning,
                 QMessageBox.StandardButton.Yes,
                 QMessageBox.StandardButton.No,
@@ -727,7 +727,7 @@ class QgsPluginInstaller(QObject):
 
         if not plugin_id or not vote:
             return False
-        url = "https://plugins.qgis.org/plugins/RPC2/"
+        url = "http://localhost/plugins/RPC2/"
         params = {
             "id": "djangorpc",
             "method": "plugin.vote",
@@ -777,11 +777,11 @@ class QgsPluginInstaller(QObject):
             msg_box = QMessageBox()
             msg_box.setIcon(QMessageBox.Icon.Warning)
             msg_box.setWindowTitle(
-                self.tr("QGIS Python Install from ZIP Plugin Installer")
+                self.tr("Hake Geospatial Python Install from ZIP Plugin Installer")
             )
             msg_box.setText(
                 self.tr(
-                    "The Zip file is not a valid QGIS python plugin. No root folder was found inside."
+                    "The Zip file is not a valid Hake Geospatial python plugin. No root folder was found inside."
                 )
             )
             msg_box.setStandardButtons(QMessageBox.StandardButton.Ok)

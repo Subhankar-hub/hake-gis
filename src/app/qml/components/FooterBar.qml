@@ -16,7 +16,7 @@ Rectangle {
     spacing: 8
 
     Text {
-      text: qsTr("Hake Geospatial is a community project that relies on sustaining memberships and donations to fund many of our improvements and activities.")
+      text: qsTr("Hake Geospatial is a premium commercial solution fueled by enterprise licensing to deliver continuous improvements to our partners.")
       Layout.fillWidth: true
       font.pointSize: Application.font.pointSize * 0.8
       font.bold: true
