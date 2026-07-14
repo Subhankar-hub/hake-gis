@@ -1,8 +1,14 @@
 #############################################################
 # CMake settings
-cmake_minimum_required(VERSION 3.22.0...4.3)
+cmake_minimum_required(VERSION 3.22.0)
 set(CMAKE_COLOR_MAKEFILE ON)
 set(CMAKE_AUTORCC ON)
+
+# not supported in QGIS 4_0
+set(WITH_PYTHON OFF)
+set(WITH_3D OFF)
+set(WITH_QTWEBENGINE OFF)
+
 # set path to additional CMake modules
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 # POLICIES
@@ -10,15 +16,19 @@ if("${CMAKE_VERSION}" VERSION_GREATER_EQUAL "3.27")
   # include(Dart) still used, as is the "Experimental" target
   cmake_policy(SET CMP0145 OLD)
 endif()
+if("${CMAKE_VERSION}" VERSION_GREATER_EQUAL "3.31")
+  cmake_policy(SET CMP0177 NEW)
+endif()
 
 # don't relink it only the shared object changes
 set(CMAKE_LINK_DEPENDS_NO_SHARED ON)
 
-option (WITH_PYTHON "Determines whether Python support should be built (disabling it will in particular disable processing)" ON)
+option (WITH_PYTHON "Determines whether Python support should be built (disabling it will in particular disable processing)" OFF)
 
-set (WITH_3D TRUE CACHE BOOL "Determines whether QGIS 3D library should be built")
+set (WITH_3D FALSE CACHE BOOL "Determines whether QGIS 3D library should be built")
 set (WITH_AUTH TRUE CACHE BOOL "Determines whether AUTH support should be included")
-set (WITH_BINDINGS ${WITH_PYTHON} CACHE BOOL "Determines whether Python bindings should be built")
+#set (WITH_BINDINGS ${WITH_PYTHON} CACHE BOOL "Determines whether Python bindings should be built")
+set (WITH_BINDINGS TRUE CACHE BOOL "Determines whether Python bindings should be built")
 set (WITH_DESKTOP TRUE CACHE BOOL "Determines whether QGIS desktop should be built")
 set (WITH_EXIV2 TRUE CACHE BOOL "Determines whether exiv2 functionality should be added")
 set (WITH_GUI TRUE CACHE BOOL "Determines whether QGIS GUI library should be built")
@@ -27,7 +37,6 @@ set (WITH_PDAL TRUE CACHE BOOL "Determines whether PDAL support should be built"
 set (WITH_QGIS_PROCESS TRUE CACHE BOOL "Determines whether the standalone \"qgis_process\" tool should be built")
 set (WITH_QTPOSITIONING TRUE CACHE BOOL "Determines whether QtPositioning support should be included")
 set (WITH_VCPKG FALSE CACHE BOOL "Use the vcpkg submodule for dependency management.")
-set (WITH_TRACY FALSE CACHE BOOL "Determines whether Tracy profiler support should be included")
 
 set (SDK_PATH "" CACHE STRING "Build with VCPKG SDK")
 set (QGISPOSTFIX "" CACHE STRING "Optional postfix to apply to public shared objects and executables")
@@ -65,10 +74,10 @@ endif()
 #############################################################
 # Project and version
 set(CPACK_PACKAGE_VERSION_MAJOR "4")
-set(CPACK_PACKAGE_VERSION_MINOR "3")
-set(CPACK_PACKAGE_VERSION_PATCH "0")
+set(CPACK_PACKAGE_VERSION_MINOR "0")
+set(CPACK_PACKAGE_VERSION_PATCH "2")
 set(COMPLETE_VERSION ${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH})
-set(RELEASE_NAME "Master")
+set(RELEASE_NAME "Norrköping")
 project(qgis VERSION ${COMPLETE_VERSION})
 
 set(QGIS_APP_NAME "hake-gis" CACHE STRING "The main app name and bundle name")
@@ -79,7 +88,6 @@ message(STATUS "QGIS version: ${COMPLETE_VERSION} ${RELEASE_NAME} (${QGIS_VERSIO
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
 set (ENABLE_LOCAL_BUILD_SHORTCUTS FALSE CACHE BOOL "Disables some build steps which are only relevant for releases to speed up compilation time for development")
 
@@ -357,8 +365,7 @@ if(WITH_CORE)
     if(ODBC_FOUND)
       set(HAVE_HANA TRUE)
       add_subdirectory(external/odbccpp)
-      find_package(odbccpp CONFIG)
-      set_target_properties(odbccpp PROPERTIES AUTOMOC OFF AUTOUIC OFF AUTORCC OFF)
+      set_target_properties(odbccpp_static PROPERTIES AUTOMOC OFF AUTOUIC OFF AUTORCC OFF)
     else()
       message(STATUS "Couldn't find ODBC library")
     endif()
@@ -418,7 +425,7 @@ if(WITH_CORE)
   #############################################################
   # search for dependencies
 
-  if(NOT WIN32 AND NOT ANDROID AND NOT EMSCRIPTEN)
+  if(NOT WIN32 AND NOT ANDROID)
     include(CheckFunctionExists)
     CHECK_FUNCTION_EXISTS(openpty OPENPTY_IN_LIBC)
     if(NOT OPENPTY_IN_LIBC)
@@ -571,19 +578,14 @@ if(WITH_CORE)
   if (WITH_DRACO)
     find_package(Draco REQUIRED)
     message(STATUS "Found Draco: ${DRACO_LIBRARY} (${DRACO_VERSION})")
-    set(HAVE_DRACO TRUE)  # used in qgsconfig.h
-  endif()
-
-  if (WITH_TRACY)
-    find_package(Tracy REQUIRED)
-    set(HAVE_TRACY TRUE)
+    set(HAVE_DRACO TRUE)  # used in qgisconfig.h
   endif()
 
   #############################################################
   # search for Qt
 
   set(QT_VERSION_MAJOR 6)
-  set(QT_MIN_VERSION 6.4.0)
+  set(QT_MIN_VERSION 6.6.0)
   set(QT_VERSION_BASE "Qt6")
   set(QT_VERSION_BASE_LOWER "qt6")
 
@@ -598,10 +600,9 @@ if(WITH_CORE)
   endif()
 
   # Use QtGamepad optionally for input control
-  set (WITH_QTGAMEPAD FALSE CACHE BOOL "Determines whether QtGamepad support should be enabled")
+  set (WITH_QTGAMEPAD FALSE CACHE BOOL "Determines whether QtGamepad should be tried for GPS positioning")
   if (WITH_QTGAMEPAD)
-      # QtGamepadLegacy from https://github.com/pumphaus/qtgamepadlegacy must be used for Qt6 builds
-      find_package(${QT_VERSION_BASE} COMPONENTS GamepadLegacy REQUIRED)
+      find_package(${QT_VERSION_BASE} COMPONENTS Gamepad REQUIRED)
       # following variable is used in qgsconfig.h
       set (HAVE_QTGAMEPAD TRUE)
   endif()
@@ -639,7 +640,7 @@ if(WITH_CORE)
     set(HAVE_3D TRUE)  # used in qgsconfig.h
   endif()
 
-  set (WITH_QTWEBENGINE TRUE CACHE BOOL "Enable QtWebEngine support")
+  set (WITH_QTWEBENGINE FALSE CACHE BOOL "Enable QtWebEngine support")
   if (WITH_QTWEBENGINE)
     find_package(${QT_VERSION_BASE} COMPONENTS WebEngineCore REQUIRED)
     message(STATUS "QtWebEngine support enabled")
@@ -725,7 +726,7 @@ endif()
 #############################################################
 # testing
 # whether unit tests should be build
-set (ENABLE_TESTS TRUE CACHE BOOL "Build unit tests?")
+set (ENABLE_TESTS FALSE CACHE BOOL "Build unit tests?")
 if (ENABLE_TESTS)
   set(QT_USE_QTTEST TRUE)
   enable_testing()

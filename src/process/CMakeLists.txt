@@ -20,7 +20,9 @@ win32_version_info("QGIS Process Command Tool" "qgis_process" QGIS_PROCESS_SRCS)
 
 add_executable (qgis_process ${QGIS_PROCESS_SRCS})
 if (QGISPOSTFIX)
-  set_target_properties(qgis_process PROPERTIES RUNTIME_OUTPUT_NAME qgis_process${QGISPOSTFIX})
+  set_target_properties(qgis_process PROPERTIES RUNTIME_OUTPUT_NAME hake-gis-process${QGISPOSTFIX})
+else()
+  set_target_properties(qgis_process PROPERTIES RUNTIME_OUTPUT_NAME hake-gis-process)
 endif()
 
 target_include_directories(qgis_process PUBLIC

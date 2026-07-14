@@ -334,8 +334,8 @@ override_dh_auto_install:
 	# qgis binaries info
 	install -m 755 -d $(CURDIR)/debian/qgis/usr/bin
 
-	install -m 755 $(CURDIR)/debian/tmp/usr/bin/hake-gis $(CURDIR)/debian/qgis/usr/bin/qgis.bin
-	install -m 755 $(CURDIR)/debian/tmp/usr/bin/qgis_process $(CURDIR)/debian/qgis/usr/bin/qgis_process.bin
+	install -m 755 $(CURDIR)/debian/tmp/usr/bin/hake-gis $(CURDIR)/debian/qgis/usr/bin/hake-gis.bin
+	install -m 755 $(CURDIR)/debian/tmp/usr/bin/hake-gis-process $(CURDIR)/debian/qgis/usr/bin/hake-gis-process.bin
 	install -m 755 -d $(CURDIR)/debian/tmp/usr/lib/$(DEB_BUILD_MULTIARCH)/qt6/qml/QgsQuick
 	install -m 755 \
 		$(CURDIR)/debian/tmp/usr/share/qgis/qml/QgsQuick/libqgis_quick_plugin.so \
@@ -343,7 +343,7 @@ override_dh_auto_install:
 
 	$(RM) \
 		$(CURDIR)/debian/tmp/usr/bin/hake-gis \
-		$(CURDIR)/debian/tmp/usr/bin/qgis_process \
+		$(CURDIR)/debian/tmp/usr/bin/hake-gis-process \
 		$(CURDIR)/debian/tmp/usr/share/qgis/qml/QgsQuick/libqgis_quick_plugin.so
 
 	# qgis binary wrappers
@@ -353,8 +353,8 @@ override_dh_auto_install:
 		-e "s#\{QGISPOSTFIX\}##g" \
 		$(CURDIR)/debian/qgis.sh.in >$(CURDIR)/debian/qgis.sh
 
-	install -m 755 $(CURDIR)/debian/qgis.sh $(CURDIR)/debian/qgis/usr/bin/qgis
-	install -m 755 $(CURDIR)/debian/qgis.sh $(CURDIR)/debian/qgis/usr/bin/qgis_process
+	install -m 755 $(CURDIR)/debian/qgis.sh $(CURDIR)/debian/qgis/usr/bin/hake-gis
+	install -m 755 $(CURDIR)/debian/qgis.sh $(CURDIR)/debian/qgis/usr/bin/hake-gis-process
 
 	mkdir -p $(CURDIR)/debian/libqgis-dev
 	cd $(CURDIR)/debian/tmp && find . -name "*.sip" | tar --remove-files -cf - -T - | tar -C $(CURDIR)/debian/libqgis-dev -xf - --xform 's,\./usr/lib/python./dist-packages/qgis,usr/share/sip/qgis,'

@@ -2,7 +2,7 @@
 Type=Application
 Name=Hake Geospatial
 GenericName=Geographic Information System
-Icon=qgis
+Icon=hake-gis
 TryExec=hake-gis
 Exec=hake-gis %F
 Terminal=false
