@@ -116,3 +116,4 @@ tests/testdata/widget_config.qlr
 tests/testdata/zip/testtar.tgz.properties
 venv
 build/*
+push_chunks.sh
