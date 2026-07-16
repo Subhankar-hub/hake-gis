@@ -22,7 +22,7 @@
 
 void showError( std::string message, std::string title )
 {
-  std::string newmessage = "Oops, looks like an error loading QGIS \n\n Details: \n\n" + message;
+  std::string newmessage = "Oops, looks like an error loading Hake GIS \n\n Details: \n\n" + message;
   MessageBox( NULL, newmessage.c_str(), title.c_str(), MB_ICONERROR | MB_OK );
   std::cerr << message << std::endl;
 }
@@ -74,7 +74,7 @@ int CALLBACK WinMain( HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPST
       catch ( std::ifstream::failure &e )
       {
         std::string message = "Could not read environment variable list " + basename + ".vars" + " [" + e.what() + "]";
-        showError( message, "Error loading QGIS" );
+        showError( message, "Error loading Hake GIS" );
         return EXIT_FAILURE;
       }
 
@@ -92,7 +92,7 @@ int CALLBACK WinMain( HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPST
       catch ( std::ifstream::failure &e )
       {
         std::string message = "Could not write environment file " + basename + ".env" + " [" + e.what() + "]";
-        showError( message, "Error loading QGIS" );
+        showError( message, "Error loading Hake GIS" );
         return EXIT_FAILURE;
       }
     }
@@ -111,7 +111,7 @@ int CALLBACK WinMain( HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPST
       if ( _putenv( var.c_str() ) < 0 )
       {
         std::string message = "Could not set environment variable:" + var;
-        showError( message, "Error loading QGIS" );
+        showError( message, "Error loading Hake GIS" );
         return EXIT_FAILURE;
       }
     }
@@ -119,7 +119,7 @@ int CALLBACK WinMain( HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPST
   catch ( std::ifstream::failure &e )
   {
     std::string message = "Could not read environment file " + basename + ".env" + " [" + e.what() + "]";
-    showError( message, "Error loading QGIS" );
+    showError( message, "Error loading Hake GIS" );
     return EXIT_FAILURE;
   }
 
@@ -176,7 +176,7 @@ int CALLBACK WinMain( HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPST
     FormatMessage( FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, error, MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ), ( LPTSTR ) &errorText, 0, NULL );
 
     std::string message = "Could not load qgis_app.dll \n Windows Error: " + std::string( errorText ) + "\n Help: \n\n Check " + basename + ".env for correct environment paths";
-    showError( message, "Error loading QGIS" );
+    showError( message, "Error loading Hake GIS" );
 
     LocalFree( errorText );
     errorText = NULL;
@@ -193,7 +193,7 @@ int CALLBACK WinMain( HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPST
 
   if ( !realmain )
   {
-    showError( "Could not locate main function in qgis_app.dll", "Error loading QGIS" );
+    showError( "Could not locate main function in qgis_app.dll", "Error loading Hake GIS" );
     return EXIT_FAILURE;
   }
 

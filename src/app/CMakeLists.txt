@@ -489,7 +489,7 @@ endif()
 set_target_properties(qgis PROPERTIES OUTPUT_NAME "${QGIS_APP_NAME}")
 
 if(NOT LIBRARY_TYPE EQUAL STATIC)
-  win32_version_info("QGIS App Library" "qgis_app" QGIS_APP_SRCS)
+  win32_version_info("Hake Geospatial App Library" "hake-gis-app" QGIS_APP_SRCS)
 endif()
 
 # Putting IMAGE_RCC_SRCS into qgis_app lib is causing problems when the lib is

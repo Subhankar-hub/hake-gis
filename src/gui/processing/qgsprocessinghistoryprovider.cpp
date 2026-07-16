@@ -146,7 +146,7 @@ class ProcessingHistoryBaseNode : public QgsHistoryEntryGroup
       }
       if ( !mProcessCommand.isEmpty() )
       {
-        QAction *processAction = new QAction( QObject::tr( "Copy as qgis_process Command" ), menu );
+        QAction *processAction = new QAction( QObject::tr( "Copy as hake-gis-process Command" ), menu );
         processAction->setIcon( QgsApplication::getThemeIcon( u"mActionTerminal.svg"_s ) );
         QObject::connect( processAction, &QAction::triggered, menu, [this] { copyText( mProcessCommand ); } );
         menu->addAction( processAction );

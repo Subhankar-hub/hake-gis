@@ -118,7 +118,7 @@ int main( int argc, char *argv[] )
     return 0;
   }
 
-  QgsApplication app( argc, argv, false, QString(), u"qgis_process"_s );
+  QgsApplication app( argc, argv, false, QString(), u"hake-gis-process"_s );
 
   // Build a local QCoreApplication from arguments. This way, arguments are correctly parsed from their native locale
   // It will use QString::fromLocal8Bit( argv ) under Unix and GetCommandLine() under Windows.

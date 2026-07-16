@@ -187,7 +187,7 @@ QgsProcessingAlgorithmWidgetBase::QgsProcessingAlgorithmWidgetBase(
         }
       } );
 
-      mCopyAsQgisProcessCommand = new QAction( tr( "Copy as qgis_process Command" ), mAdvancedMenu );
+      mCopyAsQgisProcessCommand = new QAction( tr( "Copy as hake-gis-process Command" ), mAdvancedMenu );
       mCopyAsQgisProcessCommand->setIcon( QgsApplication::getThemeIcon( u"mActionTerminal.svg"_s ) );
       mAdvancedMenu->addAction( mCopyAsQgisProcessCommand );
 
@@ -202,7 +202,7 @@ QgsProcessingAlgorithmWidgetBase::QgsProcessingAlgorithmWidgetBase(
           const QString command = alg->asQgisProcessCommand( createProcessingParameters(), *context, ok );
           if ( !ok )
           {
-            mMessageBar->pushMessage( tr( "Current settings cannot be specified as arguments to qgis_process (Pipe parameters as JSON to qgis_process instead)" ), Qgis::MessageLevel::Warning );
+            mMessageBar->pushMessage( tr( "Current settings cannot be specified as arguments to hake-gis-process (Pipe parameters as JSON to hake-gis-process instead)" ), Qgis::MessageLevel::Warning );
           }
           else
           {

@@ -328,7 +328,7 @@ QString QgsProcessingAlgorithm::asQgisProcessCommand( const QVariantMap &paramet
 {
   ok = true;
   QStringList parts;
-  parts.append( u"qgis_process"_s );
+  parts.append( u"hake-gis-process"_s );
   parts.append( u"run"_s );
   parts.append( id() );
 

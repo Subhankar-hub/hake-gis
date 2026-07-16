@@ -49,6 +49,6 @@ if (WITH_QUICK)
   add_subdirectory(quickgui)
 endif()
 
-if (WITH_QGIS_PROCESS)
+if (WITH_HAKE_GIS_PROCESS)
   add_subdirectory(process)
 endif()

@@ -34,7 +34,7 @@ set (WITH_EXIV2 TRUE CACHE BOOL "Determines whether exiv2 functionality should b
 set (WITH_GUI TRUE CACHE BOOL "Determines whether QGIS GUI library should be built")
 set (WITH_ORACLE FALSE CACHE BOOL "Determines whether Oracle support should be built")
 set (WITH_PDAL TRUE CACHE BOOL "Determines whether PDAL support should be built")
-set (WITH_QGIS_PROCESS TRUE CACHE BOOL "Determines whether the standalone \"qgis_process\" tool should be built")
+set (WITH_HAKE_GIS_PROCESS TRUE CACHE BOOL "Determines whether the standalone \"hake-gis-process\" tool should be built")
 set (WITH_QTPOSITIONING TRUE CACHE BOOL "Determines whether QtPositioning support should be included")
 set (WITH_VCPKG FALSE CACHE BOOL "Use the vcpkg submodule for dependency management.")
 
@@ -316,7 +316,7 @@ if(WITH_CORE)
     message(FATAL_ERROR "Desktop cannot be built without analysis")
   endif()
 
-  if ( WITH_QGIS_PROCESS AND NOT WITH_ANALYSIS )
+  if ( WITH_HAKE_GIS_PROCESS AND NOT WITH_ANALYSIS )
     message(FATAL_ERROR "Process tool cannot be built without analysis")
   endif()
 

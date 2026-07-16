@@ -477,7 +477,7 @@ int QgsProcessingExec::run( const QStringList &args, Qgis::ProcessingLogLevel lo
         }
         else
         {
-          std::cerr << u"Invalid parameter value %1. Parameter values must be entered after \"--\" e.g.\n  Example:\n    qgis_process run algorithm_name -- PARAM1=VALUE PARAM2=42\"\n"_s.arg( arg )
+          std::cerr << u"Invalid parameter value %1. Parameter values must be entered after \"--\" e.g.\n  Example:\n    hake-gis-process run algorithm_name -- PARAM1=VALUE PARAM2=42\"\n"_s.arg( arg )
                          .toLocal8Bit()
                          .constData();
           return 1;

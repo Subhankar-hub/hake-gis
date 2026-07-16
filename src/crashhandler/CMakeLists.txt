@@ -14,7 +14,7 @@ endif()
 
 set (SRCS main.cpp)
 win32_icon(SRCS)
-win32_version_info("QGIS Crash Handler" "qgiscrashhandler" SRCS)
+win32_version_info("Hake Geospatial Crash Handler" "hake-gis-crashhandler" SRCS)
 add_executable(qgiscrashhandler WIN32
   ${SRCS}
   ${CRASH_UIS_H}
@@ -25,6 +25,7 @@ add_executable(qgiscrashhandler WIN32
   qgscrashreport.cpp
 )
 
+set_target_properties(qgiscrashhandler PROPERTIES OUTPUT_NAME "hake-gis-crashhandler")
 target_compile_features(qgiscrashhandler PRIVATE cxx_std_20)
 
 target_link_libraries(qgiscrashhandler
