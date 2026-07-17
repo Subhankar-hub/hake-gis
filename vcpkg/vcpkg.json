@@ -43,6 +43,7 @@
         "zstd"
       ]
     },
+    "geographiclib",
     "geos",
     "gsl",
     "jhasse-poly2tri",
