@@ -102,7 +102,7 @@ jobs:
                 -D WITH_SPATIALITE=ON \
                 -D WITH_HAKE_GIS_PROCESS=ON \
                 -D WITH_GEOGRAPHICLIB=ON \
-                -D WITH_SFCGAL=ON \
+                -D WITH_SFCGAL=OFF \
                 -D WITH_QTWEBENGINE=OFF \
                 -D ENABLE_TESTS=OFF \
                 -D ENABLE_UNITY_BUILDS=OFF \
