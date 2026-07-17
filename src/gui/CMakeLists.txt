@@ -375,6 +375,9 @@ set(QGIS_GUI_SRCS
   maptools/qgsmaptoolpan.cpp
   maptools/qgsmaptoolshapeabstract.cpp
   maptools/qgsmaptoolshaperegistry.cpp
+  maptools/qgsmaptoolselect.cpp
+  maptools/qgsmaptoolselectionhandler.cpp
+  maptools/qgsmaptoolselectutils.cpp
   maptools/qgsmaptoolzoom.cpp
 
   mesh/qgsmeshlayerproperties.cpp
@@ -1399,6 +1402,9 @@ set(QGIS_GUI_HDRS
   maptools/qgsmaptoolpan.h
   maptools/qgsmaptoolshapeabstract.h
   maptools/qgsmaptoolshaperegistry.h
+  maptools/qgsmaptoolselect.h
+  maptools/qgsmaptoolselectionhandler.h
+  maptools/qgsmaptoolselectutils.h
   maptools/qgsmaptoolzoom.h
 
   mesh/qgsmeshlayerproperties.h
@@ -1446,6 +1452,7 @@ set(QGIS_GUI_HDRS
   processing/qgsprocessingaggregatewidgetwrapper.h
   processing/qgsprocessingalgorithmwidgetbase.h
   processing/qgsprocessingalgorithmconfigurationwidget.h
+  processing/qgsprocessingalignrasterlayerswidgetwrapper.h
   processing/qgsprocessingbatchalgorithmdialogbase.h
   processing/qgsprocessingconfigurationwidgets.h
   processing/qgsprocessingdxflayerswidgetwrapper.h
