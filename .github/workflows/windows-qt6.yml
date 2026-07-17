@@ -79,11 +79,16 @@ jobs:
           tag: 'v2.5.24'
           extract: true
 
+      - name: 📦 Install NSIS
+        shell: powershell
+        run: |
+          choco install nsis -y
+
       - name: 🛍️ Setup ccache
         uses: hendrikmuhs/ccache-action@63069e3931dedbf3b63792097479563182fe70d1 #v1.2
         with:
           max-size: 1G
-          key: build-ccache-win64-qt6-${{ github.event.pull_request.base.ref || github.ref_name }}
+          key: build-ccache-win64-qt6-${{ github.event.pull_request.base.ref || github.ref_name }}
           save: ${{ github.event_name == 'push' }}
 
       - name: 🛍️ Tune ccache configuration
@@ -106,19 +111,23 @@ jobs:
                 -D CMAKE_BUILD_TYPE=Release \
                 -D WITH_VCPKG=ON \
                 -D CREATE_ZIP=ON \
+                -D CREATE_NSIS=ON \
                 -D VCPKG_TARGET_TRIPLET=x64-windows-release \
                 -D VCPKG_HOST_TRIPLET=x64-windows-release \
                 -D WITH_DESKTOP=ON \
                 -D WITH_3D=ON \
                 -D WITH_BINDINGS=ON \
+                -D WITH_PDAL=ON \
+                -D WITH_POSTGRESQL=ON \
+                -D WITH_SPATIALITE=ON \
+                -D WITH_HAKE_GIS_PROCESS=ON \
                 -D WITH_GEOGRAPHICLIB=ON \
                 -D WITH_SFCGAL=ON \
                 -D ENABLE_TESTS=OFF \
                 -D USE_CCACHE=ON \
-                -D ENABLE_UNITY_BUILDS=ON \
+                -D ENABLE_UNITY_BUILDS=OFF \
                 -D FLEX_EXECUTABLE="${SOURCE_DIR}/win_flex.exe" \
                 -D BISON_EXECUTABLE="${SOURCE_DIR}/win_bison.exe" \
-                -D USE_CCACHE=ON \
                 -D WITH_QTWEBENGINE=OFF \
                 -D VCPKG_INSTALL_OPTIONS="--x-buildtrees-root=C:/src" \
                 -D NUGET_USERNAME=${{ github.actor }} \
@@ -152,6 +161,7 @@ jobs:
             sdk/vcpkg-export-*.zip
 
       - name: 📑 Upload dep build logs
+        id: upload-build-logs
         uses: actions/upload-artifact@v7
         if: failure()
         with:
@@ -171,7 +181,15 @@ jobs:
           manifest-install-log: ${{ github.workspace }}/build/vcpkg-manifest-install.log
           commit-sha: ${{ github.event.pull_request.head.sha || github.sha }}
 
-      - name: 📤 Upload bundle
+      - name: 📤 Upload EXE installer
+        uses: actions/upload-artifact@v7
+        id: artifact-win64-installer
+        with:
+          name: hake-gis-windows-installer
+          path: |
+            build/*.exe
+
+      - name: 📤 Upload ZIP bundle
         uses: actions/upload-artifact@v7
         id: artifact-win64-qt6
         with:
@@ -180,7 +198,6 @@ jobs:
           path: |
             build/*-win64.zip
 
-
       - name: Schedule download comment
         uses: ./.github/actions/post_sticky_comment
         if: github.event_name == 'pull_request'
@@ -188,8 +205,7 @@ jobs:
           marker: mingw64-qt6
           body: |
             ### 🪟 Windows Qt6 builds
-            Download [Windows Qt6 builds of this PR for testing](${{ steps.artifact-win64-qt6.outputs.artifact-url }}).
-            To execute locally, unzip the downloaded zip file and run `bin\hake-gis-bin.exe` (or `bin\hake-gis.exe`) in the extracted directory.
-            You might be prompted by Windows Defender click "Run anyway"
+            Download [Windows Qt6 EXE installer of this PR for testing](${{ steps.artifact-win64-installer.outputs.artifact-url }}).
+            Or download [Windows Qt6 ZIP builds of this PR for testing](${{ steps.artifact-win64-qt6.outputs.artifact-url }}).
             *(Built from commit ${{ github.event.pull_request.head.sha }})*
           pr: ${{ github.event.number }}

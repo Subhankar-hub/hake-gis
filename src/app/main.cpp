@@ -1627,7 +1627,7 @@ int main( int argc, char *argv[] )
   }
 
   int w = 600 * pixmap.devicePixelRatioF();
-  int h = 300 * pixmap.devicePixelRatioF();
+  int h = 600 * pixmap.devicePixelRatioF();
 
   QSplashScreen *mypSplash = new QSplashScreen( pixmap.scaled( w, h, Qt::KeepAspectRatio, Qt::SmoothTransformation ) );
 

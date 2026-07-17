@@ -10,6 +10,7 @@ if(WIN32 AND NOT UNIX)
   set (CREATE_NSIS FALSE CACHE BOOL "Create an installer using NSIS")
 endif()
 set (CREATE_ZIP FALSE CACHE BOOL "Create a ZIP package")
+set (CREATE_DEB FALSE CACHE BOOL "Create a DEB package")
 
 # Do not warn about runtime libs when building using VS Express
 if(NOT DEFINED CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_NO_WARNINGS)
@@ -20,27 +21,33 @@ if(QGIS_INSTALL_SYS_LIBS)
   include(InstallRequiredSystemLibraries)
 endif()
 
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "QGIS")
-set(CPACK_PACKAGE_VENDOR "Open Source Geospatial Foundation")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Hake-GIS")
+set(CPACK_PACKAGE_VENDOR "Hake Technologies")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/COPYING")
-set(CPACK_PACKAGE_INSTALL_DIRECTORY "QGIS ${COMPLETE_VERSION}")
-set(CPACK_PACKAGE_EXECUTABLES "qgis" "QGIS")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "Hake-GIS ${COMPLETE_VERSION}")
+set(CPACK_PACKAGE_EXECUTABLES "hake-gis" "Hake-GIS")
 set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/README.md")
 
 if(CREATE_NSIS)
   # There is a bug in NSI that does not handle full unix paths properly. Make
   # sure there is at least one set of four (4) backslashes.
   set(CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}/win_build\\\\sidebar.bmp")
-  set(CPACK_NSIS_INSTALLED_ICON_NAME "\\\\qgis.exe")
-  set(CPACK_NSIS_DISPLAY_NAME "${CPACK_PACKAGE_INSTALL_DIRECTORY} QGIS")
-  set(CPACK_NSIS_HELP_LINK "http:\\\\\\\\qgis.org")
-  set(CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\qgis.org")
-  set(CPACK_NSIS_CONTACT "info@qgis.org")
+  set(CPACK_NSIS_INSTALLED_ICON_NAME "\\\\hake-gis.exe")
+  set(CPACK_NSIS_DISPLAY_NAME "${CPACK_PACKAGE_INSTALL_DIRECTORY} Hake-GIS")
+  set(CPACK_NSIS_HELP_LINK "https:\\\\\\\\github.com\\\\\\\\Subhankar-hub\\\\\\\\hake-gis")
+  set(CPACK_NSIS_URL_INFO_ABOUT "https:\\\\\\\\github.com\\\\\\\\Subhankar-hub\\\\\\\\hake-gis")
+  set(CPACK_NSIS_CONTACT "support@haketechnologies.com")
   set(CPACK_NSIS_MODIFY_PATH ON)
 endif()
 
 if(CREATE_ZIP)
   list(APPEND CPACK_GENERATOR "ZIP")
+endif()
+
+if(CREATE_DEB)
+  list(APPEND CPACK_GENERATOR "DEB")
+  set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Hake Technologies")
+  set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 endif()
 
 
