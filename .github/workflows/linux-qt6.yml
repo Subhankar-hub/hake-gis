@@ -96,8 +96,8 @@ jobs:
                 -D USE_CCACHE=ON \
                 -D WITH_DESKTOP=ON \
                 -D WITH_3D=ON \
-                -D WITH_BINDINGS=ON \
-                -D WITH_PDAL=OFF \
+                -D WITH_BINDINGS=OFF \
+                -D WITH_PDAL=ON \
                 -D WITH_POSTGRESQL=ON \
                 -D WITH_SPATIALITE=ON \
                 -D WITH_HAKE_GIS_PROCESS=ON \
