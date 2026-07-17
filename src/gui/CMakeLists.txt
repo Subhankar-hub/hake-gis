@@ -571,6 +571,7 @@ set(QGIS_GUI_SRCS
 
   qgisinterface.cpp
   qgs3dsymbolwidget.cpp
+  3d/qgsmaterialwidget.cpp
   qgsabstractmaptoolhandler.cpp
   qgsaddattrdialog.cpp
   qgsaddtaborgroup.cpp
@@ -840,6 +841,7 @@ set(QGIS_GUI_HDRS
   qgisinterface.h
 
   qgs3dsymbolwidget.h
+  3d/qgsmaterialwidget.h
   qgsabstractdatasourcewidget.h
   qgsabstractmaptoolhandler.h
   qgsaddattrdialog.h
@@ -1923,6 +1925,7 @@ target_include_directories(qgis_gui SYSTEM PUBLIC
 
 target_include_directories(qgis_gui PUBLIC
   ${CMAKE_SOURCE_DIR}/src/gui
+  ${CMAKE_SOURCE_DIR}/src/gui/3d
   ${CMAKE_SOURCE_DIR}/src/gui/actions
   ${CMAKE_SOURCE_DIR}/src/gui/annotations
   ${CMAKE_SOURCE_DIR}/src/gui/attributeformconfig
