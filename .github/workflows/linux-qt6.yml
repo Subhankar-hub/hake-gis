@@ -57,7 +57,6 @@ jobs:
             libpq-dev \
             libproj-dev \
             libprotobuf-dev \
-            libpdal-dev \
             libqca-qt6-dev \
             libqt6opengl6-dev \
             libqscintilla2-qt6-dev \
@@ -98,7 +97,7 @@ jobs:
                 -D WITH_DESKTOP=ON \
                 -D WITH_3D=ON \
                 -D WITH_BINDINGS=ON \
-                -D WITH_PDAL=ON \
+                -D WITH_PDAL=OFF \
                 -D WITH_POSTGRESQL=ON \
                 -D WITH_SPATIALITE=ON \
                 -D WITH_HAKE_GIS_PROCESS=ON \
