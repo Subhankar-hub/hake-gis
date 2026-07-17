@@ -369,6 +369,7 @@ set(QGIS_GUI_SRCS
   maptools/qgsmaptooleditblanksegments.cpp
   maptools/qgsmaptoolemitpoint.cpp
   maptools/qgsmaptoolextent.cpp
+  maptools/qgsmaptoolextraitem.cpp
   maptools/qgsmaptoolidentify.cpp
   maptools/qgsmaptoolidentifyfeature.cpp
   maptools/qgsmaptoolpan.cpp
@@ -419,6 +420,7 @@ set(QGIS_GUI_SRCS
 
   processing/qgsprocessingaggregatewidgets.cpp
   processing/qgsprocessingaggregatewidgetwrapper.cpp
+  processing/qgsprocessingalgorithmwidgetbase.cpp
   processing/qgsprocessingalgorithmconfigurationwidget.cpp
   processing/qgsprocessingalignrasterlayerswidgetwrapper.cpp
   processing/qgsprocessingbatchalgorithmdialogbase.cpp
@@ -1391,6 +1393,7 @@ set(QGIS_GUI_HDRS
   maptools/qgsmaptooleditblanksegments.h
   maptools/qgsmaptoolemitpoint.h
   maptools/qgsmaptoolextent.h
+  maptools/qgsmaptoolextraitem.h
   maptools/qgsmaptoolidentify.h
   maptools/qgsmaptoolidentifyfeature.h
   maptools/qgsmaptoolpan.h
@@ -1441,6 +1444,7 @@ set(QGIS_GUI_HDRS
 
   processing/qgsprocessingaggregatewidgets.h
   processing/qgsprocessingaggregatewidgetwrapper.h
+  processing/qgsprocessingalgorithmwidgetbase.h
   processing/qgsprocessingalgorithmconfigurationwidget.h
   processing/qgsprocessingbatchalgorithmdialogbase.h
   processing/qgsprocessingconfigurationwidgets.h
