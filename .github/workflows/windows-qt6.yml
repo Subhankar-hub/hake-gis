@@ -144,11 +144,24 @@ jobs:
           path: |
             C:/src/**/*.log
 
+      - name: 🧮 Report vcpkg build failures
+        if: failure() && github.event_name == 'pull_request'
+        uses: ./.github/actions/vcpkg_build_failures_report
+        with:
+          buildtrees-dir: C:/src
+          triplet: x64-windows
+          pr: ${{ github.event.number }}
+          artifact-url: ${{ steps.upload-build-logs.outputs.artifact-url }}
+          build-status: ${{ job.status }}
+          manifest-install-log: ${{ github.workspace }}/build/vcpkg-manifest-install.log
+          commit-sha: ${{ github.event.pull_request.head.sha || github.sha }}
+
       - name: 📤 Upload bundle
         uses: actions/upload-artifact@v7
         id: artifact-win64-qt6
         with:
           name: hake-gis-windows-qt6
+          archive: false
           path: |
             build/*-win64.zip
 
@@ -161,5 +174,7 @@ jobs:
           body: |
             ### 🪟 Windows Qt6 builds
             Download [Windows Qt6 builds of this PR for testing](${{ steps.artifact-win64-qt6.outputs.artifact-url }}).
+            To execute locally, unzip the downloaded zip file and run `bin\hake-gis-bin.exe` (or `bin\hake-gis.exe`) in the extracted directory.
+            You might be prompted by Windows Defender click "Run anyway"
             *(Built from commit ${{ github.event.pull_request.head.sha }})*
           pr: ${{ github.event.number }}
