@@ -28,6 +28,18 @@ jobs:
         with:
           fetch-depth: 2
 
+      - name: 🗑️ Free up disk space
+        shell: powershell
+        run: |
+          Remove-Item -Recurse -Force "C:\Program Files\Android" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\ProgramData\Docker" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\Program Files\Docker" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\Program Files\dotnet" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\hostedtoolcache\windows\Ruby" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\hostedtoolcache\windows\Python" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\hostedtoolcache\windows\Go" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\hostedtoolcache\windows\Java_Temurin-Hotspot_jdk" -ErrorAction SilentlyContinue
+
       - name: 🔨 Uninstall system cmake
         shell: bash
         run: |
