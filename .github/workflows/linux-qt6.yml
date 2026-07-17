@@ -70,7 +70,22 @@ jobs:
             qt6-base-dev \
             qt6-tools-dev \
             qt6-tools-dev-tools \
+            qt6-3d-dev \
+            qt6-positioning-dev \
+            qt6-serialport-dev \
             qtkeychain-qt6-dev \
+            python3-all-dev \
+            python3-pyqt6 \
+            python3-pyqt6.qsci \
+            python3-pyqt6.qtpositioning \
+            python3-pyqt6.qtserialport \
+            python3-pyqt6.qtsvg \
+            python3-pyqt6.sip \
+            python3-pyqtbuild \
+            sip-tools \
+            pyqt6-dev \
+            pyqt6-dev-tools \
+            pyqt6.qsci-dev \
             qt6-positioning-dev \
             qt6-multimedia-dev \
             qt6-serialport-dev \
@@ -96,7 +111,7 @@ jobs:
                 -D USE_CCACHE=ON \
                 -D WITH_DESKTOP=ON \
                 -D WITH_3D=ON \
-                -D WITH_BINDINGS=OFF \
+                -D WITH_BINDINGS=ON \
                 -D WITH_PDAL=ON \
                 -D WITH_POSTGRESQL=ON \
                 -D WITH_SPATIALITE=ON \
