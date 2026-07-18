@@ -15,7 +15,7 @@ concurrency:
 
 permissions:
   packages: write
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -186,9 +186,17 @@ jobs:
         uses: actions/upload-artifact@v7
         id: artifact-win64-installer
         with:
-          name: hake-gis-windows-installer
+          name: hake-gis-4.0.2-win64
           path: |
             build/*.exe
+
+      - name: 🚀 Upload Release Asset
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            build/*.exe
+            build/*-win64.zip
 
       - name: 📤 Upload ZIP bundle
         uses: actions/upload-artifact@v7

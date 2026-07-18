@@ -15,7 +15,7 @@ concurrency:
 
 permissions:
   packages: write
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -139,6 +139,15 @@ jobs:
         with:
           name: hake-gis-linux-qt6
           path: |
+            build/*.deb
+            build/*.tar.gz
+            build/*.zip
+
+      - name: 🚀 Upload Release Asset
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
             build/*.deb
             build/*.tar.gz
             build/*.zip
