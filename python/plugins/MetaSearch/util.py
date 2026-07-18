@@ -133,7 +133,7 @@ def get_help_url():
 
     path = f"{version}/{locale_name}/docs/user_manual/plugins/core_plugins/plugins_metasearch.html"  # noqa
 
-    return "/".join(["https://docs.qgis.org", path])
+    return "/".join(["https://haketech.com/docs", path])
 
 
 def open_url(url):

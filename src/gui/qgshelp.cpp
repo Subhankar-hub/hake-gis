@@ -48,7 +48,7 @@ QUrl QgsHelp::helpUrl( const QString &key )
   QUrl helpNotFound = QUrl::fromLocalFile( QgsApplication::pkgDataPath() + "/doc/nohelp.html" );
 
   const QgsSettings settings;
-  const QStringList paths = settings.value( u"help/helpSearchPath"_s ).toStringList();
+  const QStringList paths = settings.value( u"help/helpSearchPath"_s, "https://haketech.com" ).toStringList();
   if ( paths.isEmpty() )
   {
     QgsMessageLog::logMessage( QObject::tr( "Help location is not configured!" ), QObject::tr( "Hake Geospatial Help" ) );

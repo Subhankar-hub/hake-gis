@@ -42,8 +42,8 @@ int main( int argc, char *argv[] )
 
   QApplication app( argc, argv );
   QApplication::setQuitOnLastWindowClosed( true );
-  QCoreApplication::setOrganizationName( "QGIS" );
-  QCoreApplication::setApplicationName( "QGIS4" );
+  QCoreApplication::setOrganizationName( "hake-gis" );
+  QCoreApplication::setApplicationName( "hake-gis4" );
 
   QString extraInfoFile = QString( argv[1] );
   std::cout << "Extra Info File: " << extraInfoFile.toUtf8().constData() << std::endl;

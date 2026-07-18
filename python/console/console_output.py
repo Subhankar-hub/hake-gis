@@ -152,7 +152,7 @@ From the console, you can type the following special commands:
     - System commands: Any command starting with an exclamation mark (!) will be executed by the system shell. Examples:
         !gdalinfo --formats: List all available GDAL drivers
         !ogr2ogr --help: Show help for the ogr2ogr command
-        !ping www.qgis.org: Ping the QGIS website
+        !ping haketech.com: Ping the Hake Geospatial website
         !pip install black: install black python formatter using pip (if available)
     - ?: Show this help
 """,

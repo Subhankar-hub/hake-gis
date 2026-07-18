@@ -255,7 +255,7 @@ class PythonInterpreter(QgsCodeInterpreter, code.InteractiveInterpreter):
             self.shell.showApi(Qgis.DocumentationApi.CppQgis)
         elif cmd == "_cookbook":
             webbrowser.open(
-                "https://docs.qgis.org/{}/en/docs/pyqgis_developer_cookbook/".format(
+                "https://haketech.com/docs/{}/en/docs/pyqgis_developer_cookbook/".format(
                     "testing" if version == "master" else version
                 )
             )

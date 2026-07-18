@@ -731,7 +731,7 @@ class PythonConsoleWidget(QWidget):
         m = re.search(r"^([0-9]+)\.([0-9]+)\.", Qgis.QGIS_VERSION)
         if m:
             QDesktopServices.openUrl(
-                QUrl(f"https://qgis.org/pyqgis/{m.group(1)}.{m.group(2)}/")
+                QUrl(f"https://haketech.com/docs/pyqgis/{m.group(1)}.{m.group(2)}/")
             )
 
     def openHelpCookbook(self):
@@ -739,7 +739,7 @@ class PythonConsoleWidget(QWidget):
         if m:
             QDesktopServices.openUrl(
                 QUrl(
-                    f"https://docs.qgis.org/{m.group(1)}.{m.group(2)}/en/docs/pyqgis_developer_cookbook/index.html"
+                    f"https://haketech.com/docs/{m.group(1)}.{m.group(2)}/en/docs/pyqgis_developer_cookbook/index.html"
                 )
             )
 

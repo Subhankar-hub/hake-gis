@@ -196,7 +196,7 @@ if(${SIP_VERSION_STR} VERSION_LESS 6.8.0)
 name = \"QGIS\"
 version = \"${COMPLETE_VERSION}\"
 summary = \"Python bindings for QGIS\"
-home-page = \"https://qgis.org\"
+home-page = \"https://haketech.com\"
 author = \"The QGIS Community\"
 license = \"GPL v2\"
 requires-dist = \"${pyqtdist}\"
@@ -212,7 +212,7 @@ ${siplicense}
 dependencies = [\"${pyqtdist}\"]
 
 [project.urls]
-Homepage = \"https://qgis.org\"
+Homepage = \"https://haketech.com\"
 ")
 endif()
 

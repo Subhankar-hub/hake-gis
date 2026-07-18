@@ -1110,7 +1110,7 @@ def start_app(cleanup=True):
         )
 
         QCoreApplication.setOrganizationName("QGIS")
-        QCoreApplication.setOrganizationDomain("qgis.org")
+        QCoreApplication.setOrganizationDomain("haketech.com")
         QCoreApplication.setApplicationName("QGIS-TEST")
 
         tmpdir = tempfile.mkdtemp("", "QGIS-PythonTestConfigPath-")
