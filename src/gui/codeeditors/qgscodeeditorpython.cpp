@@ -748,11 +748,11 @@ void QgsCodeEditorPython::showApiDocumentation( const QString &text )
   const QString qgisVersion = QString( Qgis::version() ).split( '.' ).mid( 0, 2 ).join( '.' );
   if ( searchText.isEmpty() )
   {
-    QDesktopServices::openUrl( QUrl( u"https://qgis.org/pyqgis/%1/"_s.arg( qgisVersion ) ) );
+    QDesktopServices::openUrl( QUrl( u"https://haketech.com/docs/pyqgis/%1/"_s.arg( qgisVersion ) ) );
   }
   else
   {
-    QDesktopServices::openUrl( QUrl( u"https://qgis.org/pyqgis/%1/search.html?q=%2"_s.arg( qgisVersion, searchText ) ) );
+    QDesktopServices::openUrl( QUrl( u"https://haketech.com/docs/pyqgis/%1/search.html?q=%2"_s.arg( qgisVersion, searchText ) ) );
   }
 }
 

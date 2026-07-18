@@ -218,9 +218,9 @@ QString QgsWelcomeScreen::newsFeedUrl()
 
 void QgsWelcomeScreen::registerTypes()
 {
-  qmlRegisterType<QgsTemplateProjectsModel>( "org.qgis.app", 1, 0, "TemplateProjectsModel" );
-  qmlRegisterType<QgsRecentProjectItemsModel>( "org.qgis.app", 1, 0, "RecentProjectItemsModel" );
-  qmlRegisterType<QgsNewsFeedModel>( "org.qgis.app", 1, 0, "NewsFeedModel" );
+  qmlRegisterType<QgsTemplateProjectsModel>( "org.hake.app", 1, 0, "TemplateProjectsModel" );
+  qmlRegisterType<QgsRecentProjectItemsModel>( "org.hake.app", 1, 0, "RecentProjectItemsModel" );
+  qmlRegisterType<QgsNewsFeedModel>( "org.hake.app", 1, 0, "NewsFeedModel" );
 }
 
 void QgsWelcomeScreen::setRecentProjects( const QList<QgsRecentProjectItemsModel::RecentProjectData> &recentProjects )

@@ -168,7 +168,7 @@ class PdalUnusableUriHandlerInterface : public QgsProviderRegistry::UnusableUriH
       res.detailedWarning = QObject::tr(
         "The installer used to install this version of Hake Geospatial does "
         "not include the PDAL library required for opening LAS and LAZ point clouds. Please "
-        "obtain one of the alternative installers from https://qgis.org which has point "
+        "obtain one of the alternative installers from https://haketech.com which has point "
         "cloud support enabled."
       );
 #else

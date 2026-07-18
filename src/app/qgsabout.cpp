@@ -131,8 +131,8 @@ void QgsAbout::init()
     const QString donorsHTML = tr(
       "<p>For a list of individuals and institutions who have contributed "
       "money to fund Hake Geospatial development and other project costs see "
-      "<a href=\"https://qgis.org/funding/donate/\">"
-      "https://qgis.org/funding/donate/</a></p>"
+      "<a href=\"https://haketech.com/\">"
+      "https://haketech.com/</a></p>"
     );
 #if 0
     QString website;

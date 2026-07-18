@@ -178,7 +178,7 @@ void QgsDevToolsPanelWidget::showApiDocumentation( Qgis::DocumentationApi api, Q
     if ( api == Qgis::DocumentationApi::PyQgis || api == Qgis::DocumentationApi::PyQgisSearch )
     {
       QgsSettings settings;
-      baseUrl = settings.value( u"qgis/PyQgisApiUrl"_s, QString( "https://qgis.org/pyqgis/%1/" ).arg( version ) ).toString();
+      baseUrl = settings.value( u"qgis/PyQgisApiUrl"_s, QString( "https://haketech.com/docs/pyqgis/%1/" ).arg( version ) ).toString();
     }
     else
     {
@@ -190,7 +190,7 @@ void QgsDevToolsPanelWidget::showApiDocumentation( Qgis::DocumentationApi api, Q
       else
       {
         QgsSettings settings;
-        baseUrl = settings.value( u"qgis/QgisApiUrl"_s, QString( "https://qgis.org/api/%1/" ).arg( version ) ).toString();
+        baseUrl = settings.value( u"qgis/QgisApiUrl"_s, QString( "https://haketech.com/docs/api/%1/" ).arg( version ) ).toString();
       }
     }
   }

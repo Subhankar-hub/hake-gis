@@ -1450,7 +1450,7 @@ int main( int argc, char *argv[] )
   if ( QgsApplication::platformName() == "wayland"_L1 )
   {
     // wayland requires a desktop file to correct set window icons
-    QgsApplication::setDesktopFileName( "org.qgis.qgis" );
+    QgsApplication::setDesktopFileName( "org.hake.geospatial" );
   }
   else
   {

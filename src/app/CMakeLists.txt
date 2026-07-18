@@ -509,7 +509,7 @@ endif()
 # NO_GENERATE_EXTRA_QMLDIRS was added in Qt 6.9.0
 if(Qt6Core_VERSION_MINOR LESS 9)
 qt_add_qml_module(qgis_app
-    URI org.qgis.app
+    URI org.hake.app
     VERSION 1.0
     QML_FILES
         qml/WelcomeScreen.qml
@@ -519,7 +519,7 @@ qt_add_qml_module(qgis_app
         qml/components/UpdateNotificationBar.qml
         qml/components/FooterBar.qml
     OUTPUT_DIRECTORY
-        ${CMAKE_CURRENT_BINARY_DIR}/qml/org/qgis/app
+        ${CMAKE_CURRENT_BINARY_DIR}/qml/org/hake/app
     RESOURCE_PREFIX
         /qt/qml/
     RESOURCES
@@ -530,7 +530,7 @@ qt_add_qml_module(qgis_app
 )
 else()
 qt_add_qml_module(qgis_app
-    URI org.qgis.app
+    URI org.hake.app
     VERSION 1.0
     QML_FILES
         qml/WelcomeScreen.qml
@@ -540,7 +540,7 @@ qt_add_qml_module(qgis_app
         qml/components/UpdateNotificationBar.qml
         qml/components/FooterBar.qml
     OUTPUT_DIRECTORY
-        ${CMAKE_CURRENT_BINARY_DIR}/qml/org/qgis/app
+        ${CMAKE_CURRENT_BINARY_DIR}/qml/org/hake/app
     RESOURCE_PREFIX
         /qt/qml/
     RESOURCES
@@ -581,7 +581,7 @@ target_include_directories(qgis_app PUBLIC
   ${CMAKE_SOURCE_DIR}/src/app/tiledscene
   ${CMAKE_SOURCE_DIR}/src/app/vectortile
   ${CMAKE_SOURCE_DIR}/src/app/qml
-  ${CMAKE_SOURCE_DIR}/src/app/qml/org/qgis/app
+  ${CMAKE_SOURCE_DIR}/src/app/qml/org/hake/app
   ${CMAKE_SOURCE_DIR}/src/plugins
   ${CMAKE_SOURCE_DIR}/src/native
 

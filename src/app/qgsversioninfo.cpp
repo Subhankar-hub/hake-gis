@@ -32,7 +32,7 @@ QgsVersionInfo::QgsVersionInfo( QObject *parent )
 
 void QgsVersionInfo::checkVersion()
 {
-  QNetworkRequest request( QUrl( u"https://version.qgis.org/version.txt"_s ) );
+  QNetworkRequest request( QUrl( u"https://haketech.com/version.txt"_s ) );
   request.setAttribute( QNetworkRequest::CacheLoadControlAttribute, QNetworkRequest::AlwaysNetwork );
   QNetworkReply *reply = QgsNetworkAccessManager::instance()->get( request );
   connect( reply, &QNetworkReply::finished, this, &QgsVersionInfo::versionReplyFinished );

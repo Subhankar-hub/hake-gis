@@ -220,7 +220,7 @@ void QgsStyleManagerDialog::init()
   QPushButton *downloadButton = buttonBox->addButton( tr( "Browse Online Styles" ), QDialogButtonBox::ResetRole );
   downloadButton->setToolTip( tr( "Download new styles from the online Hake Geospatial style repository" ) );
   downloadButton->setIcon( QgsApplication::getThemeIcon( u"/mActionFindReplace.svg"_s ) );
-  connect( downloadButton, &QPushButton::clicked, this, [] { QDesktopServices::openUrl( QUrl( u"https://hub.qgis.org/styles/"_s ) ); } );
+  connect( downloadButton, &QPushButton::clicked, this, [] { QDesktopServices::openUrl( QUrl( u"https://haketech.com/styles/"_s ) ); } );
 
   mMessageBar = new QgsMessageBar();
   mMessageBar->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Fixed );

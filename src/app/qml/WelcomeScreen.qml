@@ -4,7 +4,7 @@ import QtQuick.Controls
 import QtQuick.Effects
 import QtQuick.Controls.Material
 
-import org.qgis.app
+import org.hake.app
 
 import "components"
 
