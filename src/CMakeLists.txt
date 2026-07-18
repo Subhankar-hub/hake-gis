@@ -1,4 +1,4 @@
-option(HAKE_M4A_RENAME_DLL_OUTPUTS "Rename qgis_* shared library output names to hake_* for M4A validation" OFF)
+option(HAKE_M4A_RENAME_DLL_OUTPUTS "Rename qgis_* shared library output names to hake_* for M4A validation" ON)
 
 function(hake_set_output_name target legacy_name m4a_name)
   if (HAKE_M4A_RENAME_DLL_OUTPUTS)
