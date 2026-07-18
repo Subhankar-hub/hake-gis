@@ -1157,7 +1157,7 @@ if (UNIX AND NOT APPLE)
   set (DEFAULT_MANUAL_SUBDIR  man)
   set (QGIS_MANUAL_SUBDIR  ${DEFAULT_MANUAL_SUBDIR}  CACHE STRING "Subdirectory where manual files will be installed")
   mark_as_advanced (QGIS_MANUAL_SUBDIR)
-  set (QGIS_MANUAL_DIR  ${CMAKE_INSTALL_PREFIX}/${QGIS_MANUAL_SUBDIR})
+  set (QGIS_MANUAL_DIR  ${QGIS_MANUAL_SUBDIR})
 endif()
 
 set (DISABLE_DEPRECATED FALSE CACHE BOOL "If set to true, it will disable deprecated functionality to prepare for the next generation of QGIS")
