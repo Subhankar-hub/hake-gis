@@ -117,3 +117,4 @@ tests/testdata/zip/testtar.tgz.properties
 venv
 build/*
 push_chunks.sh
+*.xlsx

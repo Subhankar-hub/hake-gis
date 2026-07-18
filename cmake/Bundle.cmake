@@ -31,8 +31,7 @@ set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/README.md")
 if(CREATE_NSIS)
   # There is a bug in NSI that does not handle full unix paths properly. Make
   # sure there is at least one set of four (4) backslashes.
-  set(CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}/win_build\\\\sidebar.bmp")
-  set(CPACK_NSIS_INSTALLED_ICON_NAME "\\\\hake-gis.exe")
+  set(CPACK_NSIS_INSTALLED_ICON_NAME "bin\\\\\\\\hake-gis.exe")
   set(CPACK_NSIS_DISPLAY_NAME "${CPACK_PACKAGE_INSTALL_DIRECTORY} Hake-GIS")
   set(CPACK_NSIS_HELP_LINK "https:\\\\\\\\github.com\\\\\\\\Subhankar-hub\\\\\\\\hake-gis")
   set(CPACK_NSIS_URL_INFO_ABOUT "https:\\\\\\\\github.com\\\\\\\\Subhankar-hub\\\\\\\\hake-gis")
