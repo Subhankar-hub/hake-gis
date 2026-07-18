@@ -16,7 +16,7 @@
 
 
 PROCESS="lighttpd"
-LABEL="org.qgis.test-${PROCESS}"
+LABEL="org.hake.test-${PROCESS}"
 USAGE="${0} {stop|status} or {start|restart lighttpd-path lighttpd_conf qgis_server_temp_dir}"
 
 if [[ -n $2 ]]; then

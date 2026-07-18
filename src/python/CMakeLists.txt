@@ -27,11 +27,8 @@ GENERATE_EXPORT_HEADER(
    EXPORT_FILE_NAME qgis_python.h
  )
 
-if (QGISPOSTFIX)
-  set_target_properties(qgispython PROPERTIES
-    RUNTIME_OUTPUT_NAME qgispython${QGISPOSTFIX}
-    LIBRARY_OUTPUT_NAME qgispython${QGISPOSTFIX}
-  )
+if (HAKE_M4A_RENAME_DLL_OUTPUTS OR QGISPOSTFIX)
+  hake_set_output_name(qgispython qgispython hakepython)
 endif()
 
 install(TARGETS qgispython

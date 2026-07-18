@@ -36,7 +36,7 @@
 
 using namespace Qt::StringLiterals;
 
-#define FEED_URL "https://feed.qgis.org/"
+#define FEED_URL "https://haketech.com/feed/"
 
 
 QgsWelcomeScreenController::QgsWelcomeScreenController( QgsWelcomeScreen *welcomeScreen )
@@ -195,7 +195,7 @@ void QgsWelcomeScreen::showScene()
 {
   if ( source().isEmpty() )
   {
-    setSource( QUrl( "qrc:/qt/qml/org/qgis/app/qml/WelcomeScreen.qml" ) );
+    setSource( QUrl( "qrc:/qt/qml/org/hake/app/qml/WelcomeScreen.qml" ) );
     mOriginalWidth = width();
     mOriginalHeight = height();
   }

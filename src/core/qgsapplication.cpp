@@ -445,7 +445,7 @@ void QgsApplication::init( QString profileFolder )
         QDir myDir( applicationDirPath() + "/../.."_L1 );
         setPrefixPath( myDir.absolutePath(), true );
 #elif defined( ANDROID )
-        // this is "/data/data/org.qgis.qgis" in android
+        // this is "/data/data/org.hake.hake-gis" in android
         QDir myDir( QDir::homePath() );
         myDir.cdUp();
         QString myPrefix = myDir.absolutePath();
@@ -1096,7 +1096,7 @@ QString QgsApplication::resolvePkgPath()
   else
   {
 #if defined( ANDROID )
-    // this is "/data/data/org.qgis.qgis" in android
+    // this is "/data/data/org.hake.hake-gis" in android
     QDir dir( QDir::homePath() );
     dir.cdUp();
     prefixPath = dir.absolutePath();

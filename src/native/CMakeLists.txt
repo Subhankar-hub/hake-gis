@@ -62,11 +62,8 @@ endif()
 # qgis_native library
 
 add_library(qgis_native ${LIBRARY_TYPE} ${QGIS_NATIVE_SRCS} ${QGIS_NATIVE_HDRS})
-if(QGISPOSTFIX)
-  set_target_properties(qgis_native PROPERTIES
-    RUNTIME_OUTPUT_NAME qgis_native${QGISPOSTFIX}
-    LIBRARY_OUTPUT_NAME qgis_native${QGISPOSTFIX}
-  )
+if(HAKE_M4A_RENAME_DLL_OUTPUTS OR QGISPOSTFIX)
+  hake_set_output_name(qgis_native qgis_native hake_native)
 endif()
 set_property(TARGET qgis_native PROPERTY POSITION_INDEPENDENT_CODE ON)
 

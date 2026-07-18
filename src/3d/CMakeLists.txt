@@ -339,11 +339,8 @@ set (QGIS_3D_RCCS  shaders.qrc  ../../resources/3d/textures/textures.qrc)
 
 
 add_library(qgis_3d SHARED ${QGIS_3D_SRCS} ${QGIS_3D_HDRS} ${QGIS_3D_RCCS} ${QGIS_3D_PRIVATE_HDRS})
-if(QGISPOSTFIX)
-  set_target_properties(qgis_3d PROPERTIES
-    RUNTIME_OUTPUT_NAME qgis_3d${QGISPOSTFIX}
-    LIBRARY_OUTPUT_NAME qgis_3d${QGISPOSTFIX}
-  )
+if(HAKE_M4A_RENAME_DLL_OUTPUTS OR QGISPOSTFIX)
+  hake_set_output_name(qgis_3d qgis_3d hake_3d)
 endif()
 
 if (USE_PRECOMPILED_HEADERS)

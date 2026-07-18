@@ -45,11 +45,8 @@ add_library(qgis_quick ${LIBRARY_TYPE}
     ${QGIS_QUICK_GUI_MOC_HDRS}
     ${QGIS_QUICK_GUI_MOC_SRCS}
     ${QGIS_QUICK_GUI_HDRS})
-if(QGISPOSTFIX)
-  set_target_properties(qgis_quick PROPERTIES
-    RUNTIME_OUTPUT_NAME qgis_quick${QGISPOSTFIX}
-    LIBRARY_OUTPUT_NAME qgis_quick${QGISPOSTFIX}
-  )
+if(HAKE_M4A_RENAME_DLL_OUTPUTS OR QGISPOSTFIX)
+  hake_set_output_name(qgis_quick qgis_quick hake_quick)
 endif()
 
 target_link_libraries(qgis_quick

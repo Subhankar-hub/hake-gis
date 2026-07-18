@@ -51,11 +51,8 @@ add_library(qgis_quick_plugin ${LIBRARY_TYPE}
     ${QGIS_QUICK_PLUGIN_MOC_SRCS}
     ${QGIS_QUICK_PLUGIN_RESOURCES}
 )
-if(QGISPOSTFIX)
-  set_target_properties(qgis_quick_plugin PROPERTIES
-    RUNTIME_OUTPUT_NAME qgis_quick_plugin${QGISPOSTFIX}
-    LIBRARY_OUTPUT_NAME qgis_quick_plugin${QGISPOSTFIX}
-  )
+if(HAKE_M4A_RENAME_DLL_OUTPUTS OR QGISPOSTFIX)
+  hake_set_output_name(qgis_quick_plugin qgis_quick_plugin hake_quick_plugin)
 endif()
 
 target_link_libraries(qgis_quick_plugin qgis_quick)

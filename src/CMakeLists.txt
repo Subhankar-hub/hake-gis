@@ -1,3 +1,18 @@
+option(HAKE_M4A_RENAME_DLL_OUTPUTS "Rename qgis_* shared library output names to hake_* for M4A validation" OFF)
+
+function(hake_set_output_name target legacy_name m4a_name)
+  if (HAKE_M4A_RENAME_DLL_OUTPUTS)
+    set(_output_name "${m4a_name}${QGISPOSTFIX}")
+  else()
+    set(_output_name "${legacy_name}${QGISPOSTFIX}")
+  endif()
+
+  set_target_properties(${target} PROPERTIES
+    RUNTIME_OUTPUT_NAME ${_output_name}
+    LIBRARY_OUTPUT_NAME ${_output_name}
+  )
+endfunction()
+
 add_subdirectory(core)
 
 if (WITH_AUTH)

@@ -16,7 +16,7 @@
 
 
 PROCESS="mapserv"
-LABEL="org.qgis.test-${PROCESS}"
+LABEL="org.hake.test-${PROCESS}"
 USAGE="${0} {stop|status} or {start|restart spawn_bin fcgi_socket fcgi_bin qgis_server_temp_dir}"
 
 if [[ -n $2 ]]; then

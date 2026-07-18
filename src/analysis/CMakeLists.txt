@@ -594,11 +594,8 @@ endif()
 # qgis_analysis library
 
 add_library(qgis_analysis ${LIBRARY_TYPE} ${QGIS_ANALYSIS_SRCS} ${QGIS_ANALYSIS_HDRS})
-if(QGISPOSTFIX)
-  set_target_properties(qgis_analysis PROPERTIES
-    RUNTIME_OUTPUT_NAME qgis_analysis${QGISPOSTFIX}
-    LIBRARY_OUTPUT_NAME qgis_analysis${QGISPOSTFIX}
-  )
+if(HAKE_M4A_RENAME_DLL_OUTPUTS OR QGISPOSTFIX)
+  hake_set_output_name(qgis_analysis qgis_analysis hake_analysis)
 endif()
 
 if (USE_PRECOMPILED_HEADERS)

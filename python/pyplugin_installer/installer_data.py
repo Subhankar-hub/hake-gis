@@ -122,7 +122,7 @@ reposGroup = "app/plugin_repositories"
 
 officialRepo = (
     QCoreApplication.translate("QgsPluginInstaller", "Hake Geospatial Plugin Repository"),
-    "http://localhost/plugins/plugins.xml",
+    "https://plugins.haketech.com/plugins.xml",
 )
 
 

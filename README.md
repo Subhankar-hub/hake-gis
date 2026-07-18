@@ -24,7 +24,6 @@ QGIS is a full-featured, user-friendly, free-and-open-source (FOSS) geographical
 - [Installing and using QGIS](#installing-and-using-qgis)
   - [Documentation](#documentation)
   - [Help and support channels](#help-and-support-channels)
-- [Get involved with the community](#get-involved-with-the-community)
 
 ## Features
 
@@ -193,7 +192,3 @@ There are several channels where you can find help and support for QGIS:
     - Using a Matrix client and joining the [#qgis:osgeo.org](https://matrix.to/#/#qgis:osgeo.org) room.
  - At the [GIS stackexchange](https://gis.stackexchange.com/) or [r/QGIS reddit](https://www.reddit.com/r/QGIS/), which are not maintained by the QGIS team, but where the QGIS and broader GIS community provides lots of advice
 - [Other support channels](https://qgis.org/resources/support/)
-
-## Get involved with the community
-
-[Contribution guidelines for this project](CONTRIBUTING.md)

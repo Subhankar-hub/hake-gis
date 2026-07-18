@@ -89,11 +89,8 @@ if(NOT LIBRARY_TYPE EQUAL STATIC)
 endif()
 
 add_library(qgis_server SHARED ${QGIS_SERVER_SRCS} ${QGIS_SERVER_HDRS})
-if(QGISPOSTFIX)
-  set_target_properties(qgis_server PROPERTIES
-    RUNTIME_OUTPUT_NAME qgis_server${QGISPOSTFIX}
-    LIBRARY_OUTPUT_NAME qgis_server${QGISPOSTFIX}
-  )
+if(HAKE_M4A_RENAME_DLL_OUTPUTS OR QGISPOSTFIX)
+  hake_set_output_name(qgis_server qgis_server hake_server)
 endif()
 
 if (USE_PRECOMPILED_HEADERS)

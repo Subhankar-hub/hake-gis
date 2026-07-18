@@ -495,11 +495,10 @@ endif()
 # Putting IMAGE_RCC_SRCS into qgis_app lib is causing problems when the lib is
 # loaded (by plugin for example) in test unit (qgis_layoutpicturetest).
 add_library(qgis_app ${LIBRARY_TYPE} ${QGIS_APP_SRCS})
+if(HAKE_M4A_RENAME_DLL_OUTPUTS OR QGISPOSTFIX)
+  hake_set_output_name(qgis_app qgis_app hake_app)
+endif()
 if(QGISPOSTFIX)
-  set_target_properties(qgis_app PROPERTIES
-     RUNTIME_OUTPUT_NAME qgis_app${QGISPOSTFIX}
-     LIBRARY_OUTPUT_NAME qgis_app${QGISPOSTFIX}
-  )
   set_target_properties(${QGIS_APP_NAME} PROPERTIES
      RUNTIME_OUTPUT_NAME ${QGIS_APP_NAME}${QGISPOSTFIX}
      LIBRARY_OUTPUT_NAME ${QGIS_APP_NAME}${QGISPOSTFIX}
@@ -525,6 +524,7 @@ qt_add_qml_module(qgis_app
     RESOURCES
         qml/images/basemap.jpg
         qml/images/close.svg
+      qml/images/hake_icon_mark.svg
         qml/images/love.svg
         qml/images/qgis.svg
 )
@@ -546,6 +546,7 @@ qt_add_qml_module(qgis_app
     RESOURCES
         qml/images/basemap.jpg
         qml/images/close.svg
+      qml/images/hake_icon_mark.svg
         qml/images/love.svg
         qml/images/qgis.svg
     NO_GENERATE_EXTRA_QMLDIRS

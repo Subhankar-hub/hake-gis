@@ -2630,11 +2630,8 @@ set(IMAGE_RCCS ../../images/images.qrc)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_library(qgis_core ${LIBRARY_TYPE} ${QGIS_CORE_SRCS} ${QGIS_CORE_HDRS} ${QGIS_CORE_PRIVATE_HDRS} ${IMAGE_RCCS})
-if(QGISPOSTFIX)
-  set_target_properties(qgis_core PROPERTIES
-    RUNTIME_OUTPUT_NAME qgis_core${QGISPOSTFIX}
-    LIBRARY_OUTPUT_NAME qgis_core${QGISPOSTFIX}
-  )
+if(HAKE_M4A_RENAME_DLL_OUTPUTS OR QGISPOSTFIX)
+  hake_set_output_name(qgis_core qgis_core hake_core)
 endif()
 
 if(USE_PRECOMPILED_HEADERS)

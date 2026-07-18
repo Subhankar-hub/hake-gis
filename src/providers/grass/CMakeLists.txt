@@ -62,11 +62,8 @@ macro(ADD_GRASSLIB GRASS_BUILD_VERSION)
       ${GRASS_LIBRARY_UIS_H}
     )
 
-    if (QGISPOSTFIX)
-      set_target_properties(qgisgrass${GRASS_BUILD_VERSION} PROPERTIES
-         RUNTIME_OUTPUT_NAME qgisgrass${GRASS_BUILD_VERSION}${QGISPOSTFIX}
-         LIBRARY_OUTPUT_NAME qgisgrass${GRASS_BUILD_VERSION}${QGISPOSTFIX}
-      )
+    if (HAKE_M4A_RENAME_DLL_OUTPUTS OR QGISPOSTFIX)
+      hake_set_output_name(qgisgrass${GRASS_BUILD_VERSION} qgisgrass${GRASS_BUILD_VERSION} hakegrass${GRASS_BUILD_VERSION})
     endif()
 
     if(GRASS_OFF_T_SIZE)

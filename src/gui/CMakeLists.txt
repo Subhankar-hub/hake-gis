@@ -1918,11 +1918,8 @@ endif()
 add_library(qgis_gui ${LIBRARY_TYPE}
   ${QGIS_GUI_SRCS} ${QGIS_GUI_HDRS} ${QGIS_GUI_PRIVATE_HDRS}
 )
-if(QGISPOSTFIX)
-  set_target_properties(qgis_gui PROPERTIES
-    RUNTIME_OUTPUT_NAME qgis_gui${QGISPOSTFIX}
-    LIBRARY_OUTPUT_NAME qgis_gui${QGISPOSTFIX}
-  )
+if(HAKE_M4A_RENAME_DLL_OUTPUTS OR QGISPOSTFIX)
+  hake_set_output_name(qgis_gui qgis_gui hake_gui)
 endif()
 
 if (USE_PRECOMPILED_HEADERS)

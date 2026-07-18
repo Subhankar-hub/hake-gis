@@ -54,7 +54,7 @@ Item {
           spacing: 10
 
           Image {
-            source: "images/qgis.svg"
+            source: "images/hake-gis.svg"
             height: welcomeScreen.narrowLayout ? 35 : 50
             width: 160
             fillMode: Image.PreserveAspectFit
