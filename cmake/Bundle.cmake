@@ -38,6 +38,7 @@ if(CREATE_NSIS)
   set(CPACK_NSIS_URL_INFO_ABOUT "https:\\\\\\\\github.com\\\\\\\\Subhankar-hub\\\\\\\\hake-gis")
   set(CPACK_NSIS_CONTACT "support@haketechnologies.com")
   set(CPACK_NSIS_MODIFY_PATH ON)
+  list(APPEND CPACK_GENERATOR "NSIS")
 endif()
 
 if(CREATE_ZIP)
