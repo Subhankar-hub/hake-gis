@@ -1,0 +1,162 @@
+---
+name: 🐧 Linux Qt6
+on:
+  push:
+    branches:
+      - master
+      - release-**
+  pull_request:
+  release:
+    types: ['published']
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  packages: write
+  contents: write
+
+jobs:
+  build:
+    name: build (linux)
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: 🗑️ Free up disk space
+        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be
+        with:
+          tool-cache: true
+          large-packages: false
+          docker-images: true
+          swap-storage: true
+
+      - name: 🐣 Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+
+      - name: 📦 Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
+            bison \
+            ccache \
+            cmake \
+            flex \
+            ninja-build \
+            gdal-bin \
+            libdraco-dev \
+            libexiv2-dev \
+            libexpat1-dev \
+            libfcgi-dev \
+            libgdal-dev \
+            libgeographiclib-dev \
+            libgeos-dev \
+            libgsl-dev \
+            libpq-dev \
+            libproj-dev \
+            libprotobuf-dev \
+            libqca-qt6-dev \
+            libqt6opengl6-dev \
+            libqscintilla2-qt6-dev \
+            libqt6svg6-dev \
+            libspatialindex-dev \
+            libspatialite-dev \
+            libsqlite3-dev \
+            libsqlite3-mod-spatialite \
+            libzip-dev \
+            libzstd-dev \
+            protobuf-compiler \
+            qt6-base-dev \
+            qt6-tools-dev \
+            qt6-tools-dev-tools \
+            qt6-3d-dev \
+            qt6-positioning-dev \
+            qt6-serialport-dev \
+            qtkeychain-qt6-dev \
+            python3-all-dev \
+            python3-pyqt6 \
+            python3-pyqt6.qsci \
+            python3-pyqt6.qtpositioning \
+            python3-pyqt6.qtserialport \
+            python3-pyqt6.qtsvg \
+            python3-pyqt6.sip \
+            python3-pyqtbuild \
+            sip-tools \
+            pyqt6-dev \
+            pyqt6-dev-tools \
+            pyqt6.qsci-dev \
+            qt6-positioning-dev \
+            qt6-multimedia-dev \
+            qt6-serialport-dev \
+            qt6-5compat-dev \
+            qt6-base-private-dev \
+            libsfcgal-dev
+
+      - name: 🛍️ Setup ccache
+        uses: hendrikmuhs/ccache-action@63069e3931dedbf3b63792097479563182fe70d1 #v1.2
+        with:
+          max-size: 1G
+          key: build-ccache-linux-qt6-${{ github.event.pull_request.base.ref || github.ref_name }}
+          save: ${{ github.event_name == 'push' }}
+
+      - name: 🌱 Configure
+        run: |
+          cmake -S . \
+                -B build \
+                -G Ninja \
+                -D CMAKE_BUILD_TYPE=Release \
+                -D CMAKE_C_COMPILER=gcc \
+                -D CMAKE_CXX_COMPILER=g++ \
+                -D USE_CCACHE=ON \
+                -D WITH_DESKTOP=ON \
+                -D WITH_3D=ON \
+                -D WITH_BINDINGS=ON \
+                -D WITH_PDAL=OFF \
+                -D WITH_POSTGRESQL=ON \
+                -D WITH_SPATIALITE=ON \
+                -D WITH_HAKE_GIS_PROCESS=ON \
+                -D WITH_GEOGRAPHICLIB=ON \
+                -D WITH_SFCGAL=OFF \
+                -D WITH_QTWEBENGINE=OFF \
+                -D ENABLE_TESTS=OFF \
+                -D ENABLE_UNITY_BUILDS=OFF \
+                -D CREATE_ZIP=ON \
+                -D CREATE_DEB=ON
+
+      - name: 🌋 Build
+        run: |
+          cmake --build build --config Release
+
+      - name: 📦 Package
+        run: |
+          cmake --build build --target bundle --config Release
+
+      - name: 📤 Upload Linux build
+        uses: actions/upload-artifact@v7
+        id: artifact-linux-qt6
+        with:
+          name: hake-gis-linux-qt6
+          path: |
+            build/*.deb
+            build/*.tar.gz
+            build/*.zip
+
+      - name: 🚀 Upload Release Asset
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            build/*.deb
+            build/*.tar.gz
+            build/*.zip
+
+      - name: 📑 Upload build logs on failure
+        uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: build-logs-linux
+          path: |
+            build/CMakeFiles/CMakeOutput.log
+            build/CMakeFiles/CMakeError.log

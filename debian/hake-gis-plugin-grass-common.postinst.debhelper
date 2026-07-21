@@ -1,0 +1,10 @@
+
+# Automatically added by dh_python3
+if command -v py3compile >/dev/null 2>&1; then
+	py3compile -p hake-gis-plugin-grass-common /usr/share/hake-gis/grass/scripts
+fi
+if command -v pypy3compile >/dev/null 2>&1; then
+	pypy3compile -p hake-gis-plugin-grass-common /usr/share/hake-gis/grass/scripts || true
+fi
+
+# End automatically added section

@@ -1,0 +1,9 @@
+#!/bin/sh
+set -e
+
+if [ "$1" = "configure" ] && [ -x /usr/lib/hake-gis/crssync ]; then
+	cp /usr/share/hake-gis/resources/srs-template.db /usr/share/hake-gis/resources/srs.db
+	dpkg-trigger hake-gis-crssync
+fi
+
+#DEBHELPER#

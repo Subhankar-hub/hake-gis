@@ -1,0 +1,220 @@
+---
+name: 🪟 Windows Qt6
+on:
+  push:
+    branches:
+      - master
+      - release-**
+  pull_request:
+  release:
+    types: ['published']
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  packages: write
+  contents: write
+
+jobs:
+  build:
+    name: build (windows)
+    runs-on: windows-2022
+
+    steps:
+      - name: 🐣 Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+
+      - name: 🗑️ Free up disk space
+        shell: powershell
+        run: |
+          Remove-Item -Recurse -Force "C:\Program Files\Android" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\ProgramData\Docker" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\Program Files\Docker" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\Program Files\dotnet" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\hostedtoolcache\windows\Ruby" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\hostedtoolcache\windows\Python" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\hostedtoolcache\windows\Go" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\hostedtoolcache\windows\Java_Temurin-Hotspot_jdk" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\hostedtoolcache\windows\node" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\Program Files\Microsoft SQL Server" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\Program Files (x86)\Microsoft SQL Server" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\ProgramData\Microsoft SQL Server" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\Program Files\MySQL" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\Program Files\PostgreSQL" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\Program Files\LLVM" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\Program Files (x86)\Seq" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\Program Files\MongoDB" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\Program Files\Azure Cosmos DB Emulator" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\Program Files\Microsoft Service Fabric" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\ProgramData\chocolatey\lib\llvm" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\ProgramData\chocolatey\lib\minikube" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\ProgramData\chocolatey\lib\phantomjs" -ErrorAction SilentlyContinue
+          Get-Volume C | Select-Object -ExpandProperty SizeRemaining | ForEach-Object { Write-Host "Free disk space: $([math]::Round($_ / 1GB, 2)) GB" }
+
+      - name: 🔨 Uninstall system cmake
+        shell: bash
+        run: |
+          choco uninstall cmake.install
+
+      - name: 🐩 Install CMake and Ninja
+        uses: lukka/get-cmake@f176ccd3f28bda569c43aae4894f06b2435a3375
+        with:
+          cmakeVersion: 3.31.6
+
+      - name: 🧽 Developer Command Prompt for Microsoft Visual C++
+        uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 #v1
+
+      - name: 🎡 Setup vcpkg
+        uses: ./.github/actions/setup-vcpkg
+
+      - name: 🦬 Setup flex/bison
+        uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 #v1.12
+        with:
+          repository: 'lexxmark/winflexbison'
+          fileName: '*.zip'
+          tag: 'v2.5.24'
+          extract: true
+
+      - name: 📦 Install NSIS
+        shell: powershell
+        run: |
+          choco install nsis -y
+
+      - name: 🛍️ Setup ccache
+        uses: hendrikmuhs/ccache-action@63069e3931dedbf3b63792097479563182fe70d1 #v1.2
+        with:
+          max-size: 1G
+          key: build-ccache-win64-qt6-${{ github.event.pull_request.base.ref || github.ref_name }}
+          save: ${{ github.event_name == 'push' }}
+
+      - name: 🛍️ Tune ccache configuration
+        shell: bash
+        run: |
+          # To make ccache work properly with precompiled headers
+          ccache --set-config sloppiness=pch_defines,time_macros,include_file_mtime,include_file_ctime
+
+      - name: 🌱 Install dependencies and generate project files
+        shell: bash
+        env:
+          X_VCPKG_ASSET_SOURCES: x-azurl,https://assetcache.open-vcpkg.org/assetcache,,read
+        run: |
+          BUILD_DIR=$( cygpath "${{ github.workspace }}/build" )
+          SOURCE_DIR=$( cygpath "${{ github.workspace }}" )
+
+          cmake -S "${SOURCE_DIR}" \
+                -B "${BUILD_DIR}" \
+                -G Ninja \
+                -D CMAKE_BUILD_TYPE=Release \
+                -D WITH_VCPKG=ON \
+                -D CREATE_ZIP=ON \
+                -D CREATE_NSIS=ON \
+                -D VCPKG_TARGET_TRIPLET=x64-windows-release \
+                -D VCPKG_HOST_TRIPLET=x64-windows-release \
+                -D WITH_DESKTOP=ON \
+                -D WITH_3D=ON \
+                -D WITH_BINDINGS=ON \
+                -D WITH_PDAL=ON \
+                -D WITH_POSTGRESQL=ON \
+                -D WITH_SPATIALITE=ON \
+                -D WITH_HAKE_GIS_PROCESS=ON \
+                -D WITH_GEOGRAPHICLIB=ON \
+                -D WITH_SFCGAL=ON \
+                -D ENABLE_TESTS=OFF \
+                -D USE_CCACHE=ON \
+                -D ENABLE_UNITY_BUILDS=OFF \
+                -D CREATE_NSIS=ON \
+                -D FLEX_EXECUTABLE="${SOURCE_DIR}/win_flex.exe" \
+                -D BISON_EXECUTABLE="${SOURCE_DIR}/win_bison.exe" \
+                -D WITH_QTWEBENGINE=OFF \
+                -D VCPKG_INSTALL_OPTIONS="--x-buildtrees-root=C:/src" \
+                -D NUGET_USERNAME=${{ github.actor }} \
+                -D NUGET_SOURCE="https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
+                -D NUGET_TOKEN=${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🌋 Build
+        shell: bash
+        run: |
+          cmake --build "${{ github.workspace }}/build" --config Release
+
+#      - uses: m-kuhn/action-tmate@patch-1
+#        if: failure()
+
+      - name: 📦 Package
+        shell: bash
+        run: |
+          cmake --build "${{ github.workspace }}/build" --target bundle --config Release
+
+      - name: 📦 Create SDK
+#        if: github.event_name == 'workflow_dispatch' || github.event_name == 'release'
+        run: |
+          vcpkg.exe export --zip --output-dir=./sdk --x-install-root=./build/vcpkg_installed --x-manifest-root=vcpkg
+
+      - name: 📤 Upload sdk
+#        if: github.event_name == 'workflow_dispatch' || github.event_name == 'release'
+        uses: actions/upload-artifact@v7
+        with:
+          name: hake-gis-sdk-x64-windows
+          path: |
+            sdk/vcpkg-export-*.zip
+
+      - name: 📑 Upload dep build logs
+        id: upload-build-logs
+        uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: build-logs-x64-windows
+          path: |
+            C:/src/**/*.log
+
+      - name: 🧮 Report vcpkg build failures
+        if: failure() && github.event_name == 'pull_request'
+        uses: ./.github/actions/vcpkg_build_failures_report
+        with:
+          buildtrees-dir: C:/src
+          triplet: x64-windows
+          pr: ${{ github.event.number }}
+          artifact-url: ${{ steps.upload-build-logs.outputs.artifact-url }}
+          build-status: ${{ job.status }}
+          manifest-install-log: ${{ github.workspace }}/build/vcpkg-manifest-install.log
+          commit-sha: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: 📤 Upload EXE installer
+        uses: actions/upload-artifact@v7
+        id: artifact-win64-installer
+        with:
+          name: hake-gis-4.0.2-win64
+          path: |
+            build/*.exe
+
+      - name: 🚀 Upload Release Asset
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            build/*.exe
+            build/*-win64.zip
+
+      - name: 📤 Upload ZIP bundle
+        uses: actions/upload-artifact@v7
+        id: artifact-win64-qt6
+        with:
+          name: hake-gis-windows-qt6
+          archive: false
+          path: |
+            build/*-win64.zip
+
+      - name: Schedule download comment
+        uses: ./.github/actions/post_sticky_comment
+        if: github.event_name == 'pull_request'
+        with:
+          marker: mingw64-qt6
+          body: |
+            ### 🪟 Windows Qt6 builds
+            Download [Windows Qt6 EXE installer of this PR for testing](${{ steps.artifact-win64-installer.outputs.artifact-url }}).
+            Or download [Windows Qt6 ZIP builds of this PR for testing](${{ steps.artifact-win64-qt6.outputs.artifact-url }}).
+            *(Built from commit ${{ github.event.pull_request.head.sha }})*
+          pr: ${{ github.event.number }}

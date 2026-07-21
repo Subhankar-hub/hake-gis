@@ -1,0 +1,11 @@
+
+usr/lib/libhake-gis_analysis.so
+usr/lib/libhake-gis_app.so
+usr/lib/libhake-gis_core.so
+usr/lib/libhake-gis_gui.so
+usr/lib/libhake-gis_native.so
+usr/lib/libhake-gis_server.so
+usr/lib/libhake-gisgrass?.so
+usr/lib/libhake-gispython.so
+usr/include/hake-gis
+usr/share/hake-gis/FindHAKE-GIS.cmake

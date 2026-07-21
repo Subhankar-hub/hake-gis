@@ -1,0 +1,403 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+# custom DEB_BUILD_OPTIONS:
+# oracle - build oracle provider
+# apidoc - build api documentation
+# pdal   - build pdal provider
+
+MAKEFLAGS += --warn-undefined-variables
+
+DEB_TEST_TARGET ?= Experimental
+HAKE-GIS_BUILDDIR ?= debian/build
+export CCACHE_BASEDIR=$(CURDIR)
+
+DIST ?=
+SHA ?=
+DISPLAY ?=
+DEB_BUILD_OPTIONS ?=
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+# This has to be exported to make some magic below work.
+export DH_OPTIONS
+
+# Enable hardening build flags
+export DEB_BUILD_MAINT_OPTIONS=hardening=+all
+
+export DEB_PYTHON_INSTALL_LAYOUT=deb_system
+
+include /usr/share/dpkg/pkg-info.mk
+
+# These are used for cross-compiling and for saving the configure script
+# from having to guess our platform (since we know it already)
+DEB_HOST_GNU_TYPE   ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
+DEB_BUILD_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
+DEB_BUILD_ARCH      ?= $(shell dpkg-architecture -qDEB_BUILD_ARCH)
+DEB_BUILD_MULTIARCH ?= $(shell dpkg-architecture -qDEB_BUILD_MULTIARCH)
+
+export HAKE-GIS_TEST_ACCEPT_GITSTATUS_CHECK_FAILURE=1
+
+HAKE-GIS_VERSION=$(shell echo $(DEB_VERSION_UPSTREAM) | sed -e 's/\+.*//')
+
+ifeq (,$(DIST))
+	DISTRIBUTION := $(DEB_DISTRIBUTION)
+else
+	DISTRIBUTION := $(DIST)
+endif
+
+ifeq (,$(filter $(DISTRIBUTION),trixie plucky questing))
+	DISTRIBUTION := sid
+endif
+
+DEB_BUILD_NAME ?= $(DISTRIBUTION)-$(DEB_BUILD_ARCH)
+
+HAKE-GIS_MAJOR=$(shell sed -ne 's/SET(CPACK_PACKAGE_VERSION_MAJOR "\([0-9]*\)")/\1/ip' CMakeLists.txt)
+HAKE-GIS_MINOR=$(shell sed -ne 's/SET(CPACK_PACKAGE_VERSION_MINOR "\([0-9]*\)")/\1/ip' CMakeLists.txt)
+HAKE-GIS_PATCH=$(shell sed -ne 's/SET(CPACK_PACKAGE_VERSION_PATCH "\([0-9]*\)")/\1/ip' CMakeLists.txt)
+HAKE-GIS_ABI=$(HAKE-GIS_MAJOR).$(HAKE-GIS_MINOR).$(HAKE-GIS_PATCH)
+GRASS=grass$(subst .,,$(shell pkg-config --modversion grass 2>/dev/null|cut -d. -f1,2))
+GRASSVER=$(subst .,,$(shell pkg-config --modversion grass 2>/dev/null|cut -d. -f1))
+GRASSABI=$(subst .,,$(shell pkg-config --modversion grass 2>/dev/null|cut -d. -f1,2,3|sed -e 's/RC/-/'))
+
+# multi distribution support:
+# - remove lines with applicable excludes
+# - remove prefixes with applicable includes
+# - remove prefixes with not applicable excludes
+# - remove remaining comments
+
+CONTROL_EXPRESSIONS = $(DISTRIBUTION) grass$(GRASSVER)
+
+shlibs = -Xhake-gis-plugin-grass -Xlibhake-gis-customwidgets
+
+
+ifneq (,$(filter oracle,$(DEB_BUILD_OPTIONS)))
+CONTROL_EXPRESSIONS += oracle
+shlibs += -Xhake-gis-provider-oracle
+endif
+
+ifneq (,$(filter apidoc,$(DEB_BUILD_OPTIONS)))
+	CONTROL_EXPRESSIONS += apidoc
+endif
+
+ifneq (,$(filter pdal,$(DEB_BUILD_OPTIONS)))
+	CONTROL_EXPRESSIONS += pdal
+
+ifeq ($(shell pkg-config --exists pdal && dpkg --compare-versions $$(pkg-config --modversion pdal) ge 2.5 && echo 1 || echo 0),1)
+CONTROL_EXPRESSIONS += pdal_wrench
+endif
+endif
+
+define gentemplate
+$(2): $(1)
+	rm -f $$@
+	sed -r \
+		-e '/#(.+ |)!($(subst $(subst ,, ),|,$(CONTROL_EXPRESSIONS)))( .+|)#/d' \
+		-e 's/#([^#]+ |)($(subst $(subst ,, ),|,$(CONTROL_EXPRESSIONS)))( [^#]+|)#//g' \
+		-e 's/#([^#]+ |)![^#]+( [^#]*|)#//g' \
+		-e '/^#/d' \
+		-e "s/\{DEB_BUILD_GNU_TYPE\}/$(DEB_BUILD_GNU_TYPE)/g" \
+		-e "s/\{HAKE-GIS_ABI\}/$(HAKE-GIS_ABI)/g" \
+		-e "s/\{GRASS\}/$(GRASS)/g" \
+		-e "s/\{GRASSVER\}/$(GRASSVER)/g" \
+		-e "s/\{GRASSVER_HAKE-GISABI\}/$(GRASSVER)-$(HAKE-GIS_ABI)/g" \
+		$$^ >$$@
+
+templates:: $(2)
+
+templateclean::
+	rm -f $(2)
+endef
+
+$(foreach t,$(shell find debian -maxdepth 1 \( -name "*.in" -o -name "*{HAKE-GIS_ABI}*" -o -name "*{GRASSVER_HAKE-GIS_ABI}*" \) -print),$(eval $(call gentemplate,$(t),$(patsubst %.in,%,$(subst {GRASSVER_HAKE-GIS_ABI},$(GRASSVER)-$(HAKE-GIS_ABI),$(subst {HAKE-GIS_ABI},$(HAKE-GIS_ABI),$(t)))))))
+
+refreshtemplates:
+	$(MAKE) -f debian/rules templateclean
+	$(MAKE) -f debian/rules templates
+
+# Include percentage of started edges
+export NINJA_STATUS=[%f/%t %p] 
+
+ifeq (,$(filter terse,$(DEB_BUILD_OPTIONS)))
+	NINJA_OPTS += -v
+endif
+
+ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+	NUMJOBS = $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+	MAKEFLAGS += -j$(NUMJOBS)
+	NINJA_OPTS += -j$(NUMJOBS)
+endif
+
+ifeq (,$(DISPLAY))
+TESTMAKE=xvfb-run -a -n 1 -s "-screen 0 1280x1024x24 -dpi 96" ninja $(NINJA_OPTS)
+else
+TESTMAKE=ninja $(NINJA_OPTS)
+endif
+
+PYTHON_LIBRARY=$(shell python3-config --ldflags --embed | sed -e 's,-L\(.*\) -L[^ ]* -l\([^ ]*\) .*$$,\1/lib\2.so,')
+
+CMAKE_OPTS := \
+	-G Ninja \
+	-DBUILDNAME=$(DEB_BUILD_NAME) \
+	-DWITH_INTERNAL_NLOHMANN_JSON=OFF \
+	-DCMAKE_VERBOSE_MAKEFILE=1 \
+	-DCMAKE_INSTALL_PREFIX=/usr \
+	-DPEDANTIC=TRUE \
+	-DENABLE_UNITY_BUILDS=ON \
+	-DSERVER_SKIP_ECW=TRUE \
+	-DHAKE-GIS_CGIBIN_SUBDIR=/usr/lib/cgi-bin \
+	-DHAKE-GIS_QML_SUBDIR=share/hake-gis/qml \
+	-DWITH_CUSTOM_WIDGETS=TRUE \
+	-DWITH_SERVER=TRUE \
+	-DWITH_SERVER_PLUGINS=TRUE \
+	-DWITH_SERVER_LANDINGPAGE_WEBAPP=FALSE \
+	-DWITH_INTERNAL_MESHOPTIMIZER=FALSE \
+	-DWITH_INTERNAL_QWT=TRUE \
+	-DWITH_QUICK=TRUE \
+	-DPYTHON_LIBRARY=$(PYTHON_LIBRARY) \
+	-DDOXYGEN_ON_DEMAND=TRUE \
+	-DWITH_QSPATIALITE=TRUE \
+	-DWITH_3D=TRUE \
+	-DGEOS_LIBRARY=/usr/lib/$(DEB_BUILD_MULTIARCH)/libgeos_c.so \
+	-DGDAL_LIBRARY=/usr/lib/$(DEB_BUILD_MULTIARCH)/libgdal.so \
+	-DWITH_HANA=TRUE \
+	-DWITH_EPT=TRUE \
+	-DSUBMIT_URL="https://cdash.orfeo-toolbox.org/submit.php?project=HAKE-GIS" \
+	-DPUSH_TO_CDASH=TRUE \
+	-DQT_PLUGINS_DIR=lib/$(DEB_BUILD_MULTIARCH)/qt6/plugins \
+	-DWITH_SFCGAL=TRUE \
+	-DWITH_GEOGRAPHICLIB=TRUE \
+	-DWITH_BINDINGS=ON
+
+ifneq (,$(filter $(DISTRIBUTION),trixie plucky questing sid))
+	CMAKE_OPTS += -DWITH_INTERNAL_SPATIALINDEX=TRUE
+endif
+
+ifneq ($(SHA),)
+	CMAKE_OPTS += -DSHA=$(SHA)
+endif
+
+ifneq (,$(filter $(GRASSVER),7 8))
+	CMAKE_OPTS += \
+		-DWITH_GRASS$(GRASSVER)=TRUE \
+		-DGRASS_PREFIX$(GRASSVER)=/usr/lib/$(GRASS)
+endif
+
+ifneq (,$(filter apidoc,$(CONTROL_EXPRESSIONS)))
+	CMAKE_OPTS += -DWITH_APIDOC=TRUE -DGENERATE_QHP=TRUE
+else
+	CMAKE_OPTS += -DWITH_APIDOC=OFF -DGENERATE_QHP=OFF
+endif
+
+ifneq (,$(filter pdal,$(CONTROL_EXPRESSIONS)))
+	CMAKE_OPTS += -DWITH_PDAL=TRUE
+else
+	CMAKE_OPTS += -DWITH_PDAL=FALSE
+endif
+
+
+ifneq (,$(filter oracle,$(DEB_BUILD_OPTIONS)))
+ifeq ($(DEB_BUILD_ARCH),amd64)
+	ORACLE_INCLUDEDIR=$(wildcard /usr/include/oracle/*/client64/)
+	ORACLE_LIBDIR=$(wildcard /usr/lib/oracle/*/client64/lib/)
+endif
+ifeq ($(DEB_BUILD_ARCH),i386)
+	ORACLE_INCLUDEDIR=$(wildcard /usr/include/oracle/*/client/)
+	ORACLE_LIBDIR=$(wildcard /usr/lib/oracle/*/client/lib/)
+endif
+	CMAKE_OPTS += \
+		-DWITH_ORACLE=TRUE \
+		-DORACLE_LIBDIR=$(ORACLE_LIBDIR) \
+		-DORACLE_INCLUDEDIR=$(ORACLE_INCLUDEDIR)
+else
+	ORACLE_LIBDIR =
+endif
+
+ifneq (,$(filter debug,$(DEB_BUILD_OPTIONS)))
+	CMAKE_OPTS += -DCMAKE_BUILD_TYPE=Debug
+endif
+
+ifneq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
+	CMAKE_OPTS += -DENABLE_TESTS=FALSE
+else
+	CMAKE_OPTS += -DENABLE_TESTS=TRUE -DDART_TESTING_TIMEOUT=60
+endif
+
+CPPFLAGS := $(shell dpkg-buildflags --get CPPFLAGS)
+CFLAGS   := $(shell dpkg-buildflags --get CFLAGS) $(CPPFLAGS)
+CXXFLAGS := $(shell dpkg-buildflags --get CXXFLAGS) $(CPPFLAGS)
+LDFLAGS  := $(shell dpkg-buildflags --get LDFLAGS)
+
+ifeq (,$(filter nostrip,$(DEB_BUILD_OPTIONS)))
+	INSTALL_PROGRAM += -s
+endif
+
+ifneq (,$(filter noopt,$(DEB_BUILD_OPTIONS)))
+	CFLAGS += -O0
+	CXXFLAGS += -O0
+else
+	CFLAGS += -O2
+	CXXFLAGS += -O2
+endif
+
+ifneq (,$(filter profile,$(DEB_BUILD_OPTIONS)))
+	CFLAGS += -pg
+	CXXFLAGS += -pg
+	LDFLAGS += -pg
+endif
+
+ifeq (,$(filter debug,$(DEB_BUILD_OPTIONS)))
+	CFLAGS += -DNDEBUG
+	CXXFLAGS += -DNDEBUG
+endif
+
+binary binary-arch binary-indep build build-arch build-indep clean install install-arch install-indep: templates
+	dh $@ --with python3 --parallel --builddirectory=$(HAKE-GIS_BUILDDIR)
+
+override_dh_clean: refreshtemplates
+	dh_clean hake-gis.bin.1
+	-$(RM) -r $(CURDIR)/$(HAKE-GIS_BUILDDIR)
+
+override_dh_auto_configure:
+	-$(RM) -r $(CURDIR)/$(HAKE-GIS_BUILDDIR)
+	dh_auto_configure --builddirectory=$(HAKE-GIS_BUILDDIR) -- $(CMAKE_OPTS)
+
+override_dh_auto_build:
+ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
+	ninja $(NINJA_OPTS) -C $(HAKE-GIS_BUILDDIR) $(DEB_TEST_TARGET)Build
+	! grep -q "<Error>" $(HAKE-GIS_BUILDDIR)/Testing/$$(head -1 $(HAKE-GIS_BUILDDIR)/Testing/TAG)/Build.xml || { \
+		cat $(HAKE-GIS_BUILDDIR)/Testing/Temporary/LastBuild_$$(head -1 $(HAKE-GIS_BUILDDIR)/Testing/TAG).log; \
+		ninja $(NINJA_OPTS) -C $(HAKE-GIS_BUILDDIR) $(DEB_TEST_TARGET)Submit; \
+		false; }
+else
+	ninja $(NINJA_OPTS) -C $(HAKE-GIS_BUILDDIR)
+endif
+
+ifneq (,$(filter apidoc,$(CONTROL_EXPRESSIONS)))
+	PATH=/usr/lib/qt6/libexec:$(PATH) ninja $(NINJA_OPTS) -C $(HAKE-GIS_BUILDDIR) apidoc
+endif
+
+override_dh_auto_test: test-stamp
+
+test-stamp:
+ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
+	# Code to run the package test suite
+	mkdir -p debian/tmp/locale/
+	localedef -f UTF-8 -i en_US ./debian/tmp/locale/en_US.UTF-8/
+	rm -f $(HAKE-GIS_BUILDDIR)/.error
+	LOCPATH=$(CURDIR)/debian/tmp/locale/ \
+	LC_ALL=en_US.UTF-8 \
+	LD_LIBRARY_PATH=$(CURDIR)/$(HAKE-GIS_BUILDDIR)/output/lib:$(LD_LIBRARY_PATH) \
+	PATH=/usr/sbin:$(PATH) \
+		$(TESTMAKE) -C $(HAKE-GIS_BUILDDIR) $(DEB_TEST_TARGET)Test || touch $(HAKE-GIS_BUILDDIR)/.error
+	# ignore submission errors
+	-$(TESTMAKE) -C $(HAKE-GIS_BUILDDIR) $(DEB_TEST_TARGET)Submit
+	# ignore the test outcome for now
+	# ! [ -f $(HAKE-GIS_BUILDDIR)/.error ]
+else
+	@echo Skipping tests.
+endif
+	touch test-stamp
+
+override_dh_auto_install:
+	DESTDIR=$(CURDIR)/debian/tmp ninja $(NINJA_OPTS) -C $(HAKE-GIS_BUILDDIR) install
+
+	# remove extra license files
+	-find $(CURDIR)/debian/tmp/usr/share/hake-gis*/resources/cpt-city-hake-gis-min/ -name COPYING.xml -delete
+	$(RM) $(CURDIR)/debian/tmp/usr/share/hake-gis*/resources/cpt-city-hake-gis-min/README-hake-gis.txt
+	$(RM) $(CURDIR)/debian/tmp/usr/share/hake-gis*/resources/cpt-city-hake-gis-min/README.txt
+	$(RM) $(CURDIR)/debian/tmp/usr/share/hake-gis*/doc/LICENSE
+	$(RM) $(CURDIR)/debian/tmp/usr/share/hake-gis*/python/plugins/db_manager/LICENSE
+	$(RM) $(CURDIR)/debian/tmp/usr/share/hake-gis*/python/plugins/MetaSearch/LICENSE.txt
+	$(RM) $(CURDIR)/debian/tmp/usr/share/hake-gis*/resources/wcs-servers.json
+	$(RM) $(CURDIR)/usr/share/hake-gis*/python/plugins/db_manager/README
+
+	$(RM) $(CURDIR)/debian/tmp/usr/bin/hake-gis_bench*
+	$(RM) $(CURDIR)/debian/tmp/usr/bin/test_provider_wcs*
+	$(RM) $(CURDIR)/debian/tmp/usr/bin/hake-gis_quickapp*
+
+	# landing page not packaged
+	$(RM) $(CURDIR)/debian/tmp/usr/lib/hake-gis*/server/liblandingpage*.so
+	$(RM) -r $(CURDIR)/debian/tmp/usr/share/hake-gis*/resources/server/src/landingpage
+
+	# Man pages are installed by dh_installman
+	$(RM) $(CURDIR)/debian/tmp/usr/man/man1/hake-gis.1
+
+	# Don't ship srs.db, automatically updated in postinst with crssync
+	mv $(CURDIR)/debian/tmp/usr/share/hake-gis/resources/srs.db $(CURDIR)/debian/tmp/usr/share/hake-gis/resources/srs-template.db
+
+	# hake-gis mime info
+	install -d $(CURDIR)/debian/tmp/usr/share/mime/packages
+	install -m 644 $(CURDIR)/debian/hake-gis.xml $(CURDIR)/debian/tmp/usr/share/mime/packages/hake-gis.xml
+
+	# hake-gis binaries info
+	install -m 755 -d $(CURDIR)/debian/hake-gis/usr/bin
+
+	install -m 755 $(CURDIR)/debian/tmp/usr/bin/hake-gis $(CURDIR)/debian/hake-gis/usr/bin/hake-gis.bin
+	install -m 755 $(CURDIR)/debian/tmp/usr/bin/hake-gis-process $(CURDIR)/debian/hake-gis/usr/bin/hake-gis-process.bin
+	install -m 755 -d $(CURDIR)/debian/tmp/usr/lib/$(DEB_BUILD_MULTIARCH)/qt6/qml/QgsQuick
+	install -m 755 \
+		$(CURDIR)/debian/tmp/usr/share/hake-gis/qml/QgsQuick/libhake-gis_quick_plugin.so \
+		$(CURDIR)/debian/tmp/usr/lib/$(DEB_BUILD_MULTIARCH)/qt6/qml/QgsQuick/libhake-gis_quick_plugin.so
+
+	$(RM) \
+		$(CURDIR)/debian/tmp/usr/bin/hake-gis \
+		$(CURDIR)/debian/tmp/usr/bin/hake-gis-process \
+		$(CURDIR)/debian/tmp/usr/share/hake-gis/qml/QgsQuick/libhake-gis_quick_plugin.so
+
+	# hake-gis binary wrappers
+	sed -r \
+		-e "s/\{GRASS\}/$(GRASS)/g" \
+		-e "s#\{ORACLE_LIBDIR\}#$(ORACLE_LIBDIR)#g" \
+		-e "s#\{HAKE-GISPOSTFIX\}##g" \
+		$(CURDIR)/debian/hake-gis.sh.in >$(CURDIR)/debian/hake-gis.sh
+
+	install -m 755 $(CURDIR)/debian/hake-gis.sh $(CURDIR)/debian/hake-gis/usr/bin/hake-gis
+	install -m 755 $(CURDIR)/debian/hake-gis.sh $(CURDIR)/debian/hake-gis/usr/bin/hake-gis-process
+
+	mkdir -p $(CURDIR)/debian/libhake-gis-dev
+	cd $(CURDIR)/debian/tmp && find . -name "*.sip" | tar --remove-files -cf - -T - | tar -C $(CURDIR)/debian/libhake-gis-dev -xf - --xform 's,\./usr/lib/python./dist-packages/hake-gis,usr/share/sip/hake-gis,'
+
+	find $(CURDIR)/debian/tmp/ -depth -empty -type d -delete
+
+ifneq (,$(filter apidoc,$(CONTROL_EXPRESSIONS)))
+	# remove unwanted files
+	$(RM) $(CURDIR)/debian/tmp/usr/share/hake-gis/doc/api/installdox
+endif
+
+override_dh_missing:
+	dh_missing --fail-missing
+
+override_dh_install:
+	dh_install --autodest
+
+override_dh_installchangelogs:
+	dh_installchangelogs ChangeLog
+
+override_dh_installman:
+	cp hake-gis.1 hake-gis.bin.1
+	dh_installman -phake-gis hake-gis.1 hake-gis.bin.1
+
+override_dh_installmime:
+	dh_installmime -phake-gis
+
+override_dh_python3:
+	dh_python3
+	dh_python3 usr/share/hake-gis/grass/scripts
+
+override_dh_compress:
+	dh_compress --exclude=pdf
+
+override_dh_makeshlibs:
+	dh_makeshlibs $(shlibs) -- -c0 -v$(HAKE-GIS_VERSION)
+
+override_dh_shlibdeps:
+ifneq (,$(filter oracle,$(CONTROL_EXPRESSIONS)))
+	dh_shlibdeps -l/usr/lib/$(GRASS)/lib -l$(ORACLE_LIBDIR)
+else
+	dh_shlibdeps -l/usr/lib/$(GRASS)/lib
+endif
+
+override_dh_gencontrol:
+	dh_gencontrol -- -Vgrass:Depends="grass$(GRASSABI)"

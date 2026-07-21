@@ -1,0 +1,6 @@
+usr/share/hake-gis/svg/*
+usr/share/hake-gis/resources/hake-gis.db
+usr/share/hake-gis/resources/srs-template.db
+usr/share/hake-gis/resources/customization.xml
+usr/share/hake-gis/resources/symbology-style.xml
+usr/share/hake-gis/resources/cpt-city-hake-gis-min/*

@@ -1,0 +1,9 @@
+usr/share/hake-gis/python/hake-gis/_gui.so
+usr/share/hake-gis/python/hake-gis/gui/__init__.py
+usr/share/hake-gis/python/hake-gis/_server.so
+usr/share/hake-gis/python/hake-gis/server/__init__.py
+usr/share/hake-gis/python/hake-gis/_analysis.so
+usr/share/hake-gis/python/hake-gis/analysis/__init__.py
+usr/share/hake-gis/python/hake-gis/_core.so
+usr/share/hake-gis/python/hake-gis/core/__init__.py
+usr/share/hake-gis/python/qsci_apis/PyHAKE-GIS.api

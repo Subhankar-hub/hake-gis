@@ -1,0 +1,2 @@
+package-contains-broken-symlink usr/share/hake-gis/doc/LICENSE ../../common-licenses/GPL-2
+package-contains-broken-symlink usr/share/hake-gis/doc/leaflet ../../javascript/leaflet

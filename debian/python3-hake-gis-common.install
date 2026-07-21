@@ -1,0 +1,8 @@
+#!/bin/sh
+
+set -e
+
+debian/python3-hake-gis.install >debian/python3-hake-gis-common.exclude
+
+cd debian/tmp
+find usr/share/hake-gis*/python -type f | fgrep -vf ../python3-hake-gis-common.exclude

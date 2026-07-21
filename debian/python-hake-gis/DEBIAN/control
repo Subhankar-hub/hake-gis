@@ -1,0 +1,12 @@
+Package: python-hake-gis
+Source: hake-gis
+Version: 4.0.2
+Architecture: all
+Maintainer: HAKE-GIS developers <hake-gis-developer@lists.osgeo.org>
+Installed-Size: 3639
+Depends: python3-hake-gis
+Section: oldlibs
+Priority: optional
+Homepage: https://hake-gis.org/
+Description: transitional package
+ This is a transitional package. It can safely be removed.

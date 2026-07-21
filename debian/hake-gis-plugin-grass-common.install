@@ -1,0 +1,6 @@
+usr/share/hake-gis/grass/locations.gml
+usr/share/hake-gis/grass/modules/*.png
+usr/share/hake-gis/grass/modules/*.qgm
+usr/share/hake-gis/grass/modules/*.svg
+usr/share/hake-gis/grass/modules/default.qgc
+usr/share/hake-gis/grass/scripts/*.py

@@ -1,0 +1,6 @@
+usr/lib/hake-gis/plugins/libplugin_geometrychecker.so
+usr/lib/hake-gis/plugins/libplugin_offlineediting.so
+usr/lib/hake-gis/plugins/libplugin_topology.so
+usr/lib/hake-gis/hake-giscrashhandler
+usr/share/applications/org.hake.geospatial.desktop
+usr/share/metainfo/org.hake.geospatial.appdata.xml

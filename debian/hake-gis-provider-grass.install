@@ -1,0 +1,6 @@
+usr/lib/hake-gis/grass/modules/hake-gis.d.rast?
+usr/lib/hake-gis/grass/modules/hake-gis.g.info?
+usr/lib/hake-gis/grass/modules/hake-gis.r.in?
+usr/lib/hake-gis/grass/modules/hake-gis.v.in?
+usr/lib/hake-gis/plugins/libprovider_grass?.so
+usr/lib/hake-gis/plugins/libprovider_grassraster?.so

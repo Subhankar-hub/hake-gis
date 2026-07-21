@@ -1,0 +1,16 @@
+image/tiff; hake-gis '%s'; description="TIFF Image"; test=test -n "$DISPLAY"; nametemplate=%s.tif; priority=2
+image/jpeg; hake-gis '%s'; description="JPEG Image"; test=test -n "$DISPLAY"; nametemplate=%s.jpg; priority=2
+image/jp2; hake-gis '%s'; description="JPEG 2000 Image"; test=test -n "$DISPLAY"; nametemplate=%s.jp2; priority=2
+application/x-raster-aig; hake-gis '%s'; description="AIG raster data"; test=test -n "$DISPLAY"; nametemplate=%s.aig; priority=2
+application/x-raster-ecw; hake-gis '%s'; description="ECW raster data"; test=test -n "$DISPLAY"; nametemplate=%s.ecw; priority=2
+application/x-raster-mrsid; hake-gis '%s'; description="MrSID raster data"; test=test -n "$DISPLAY"; nametemplate=%s.sid; priority=2
+application/x-raster-mif; hake-gis '%s'; description="MapInfo file"; test=test -n "$DISPLAY"; nametemplate=%s.mif; priority=2
+application/x-esri-shape; hake-gis '%s'; description="ESRI shape file"; test=test -n "$DISPLAY"; nametemplate=%s.shp; priority=2
+application/vnd.google-earth.kml+xml; hake-gis '%s'; description="Google Earth KML"; test=test -n "$DISPLAY"; nametemplate=%s.kml; priority=2
+application/vnd.google-earth.kmz; hake-gis '%s'; description="Google Earth KMZ"; test=test -n "$DISPLAY"; nametemplate=%s.kmz; priority=2
+application/geopackage+sqlite3; hake-gis '%s'; description="OGC GeoPackage"; test=test -n "$DISPLAY"; nametemplate=%s.gpkg; priority=2
+application/x-hake-gis-project; hake-gis '%s'; description="HAKE-GIS Project"; test=test -n "$DISPLAY"; nametemplate=%s.qgs
+application/x-hake-gis-project-container; hake-gis '%s'; description="HAKE-GIS Project"; test=test -n "$DISPLAY"; nametemplate=%s.qgz
+application/x-hake-gis-layer-settings; hake-gis '%s'; description="HAKE-GIS Layer Settings"; test=test -n "$DISPLAY"; nametemplate=%s.qml
+application/x-hake-gis-layer-definition; hake-gis '%s'; description="HAKE-GIS Layer Definition"; test=test -n "$DISPLAY"; nametemplate=%s.qlr
+application/x-hake-gis-composer-template; hake-gis '%s'; description="HAKE-GIS Composer Template"; test=test -n "$DISPLAY"; nametemplate=%s.qpt

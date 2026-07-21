@@ -1,0 +1,17 @@
+Hake Geospatial — License Notice
+================================
+
+Copyright (C) 2026 Hake Technologies
+https://haketech.com/
+
+Hake Geospatial is a commercial desktop GIS application developed by
+Hake Technologies.
+
+The QGIS source code is Copyright (C) by the QGIS Development Team
+and individual contributors as listed in the source file headers.
+
+Hake Technologies' modifications and additions to the Hake Geospatial codebase
+are Copyright (C) 2026 Hake Technologies.
+
+For support, contact: support@haketechnologies.com
+For more information, visit: https://haketech.com/
