@@ -2,10 +2,6 @@ name: Run sipify
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - master
-      - release-*
 
 jobs:
   sipify:

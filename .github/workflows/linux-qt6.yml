@@ -122,6 +122,8 @@ jobs:
                 -D WITH_QTWEBENGINE=OFF \
                 -D ENABLE_TESTS=OFF \
                 -D ENABLE_UNITY_BUILDS=OFF \
+                -D WITH_INTERNAL_SPATIALINDEX=ON \
+                -D WITH_SERVER=ON \
                 -D CREATE_ZIP=ON \
                 -D CREATE_DEB=ON
 

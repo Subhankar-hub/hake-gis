@@ -1,9 +1,6 @@
 name: 🚀 Release
 
 on:
-  push:
-    tags:
-      - 'final-*_*_*'
 
 permissions:
   contents: read
