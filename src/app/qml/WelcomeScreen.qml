@@ -362,7 +362,7 @@ Item {
 
             Text {
               Layout.fillWidth: true
-              text: newsSwitch.checked && newsListView.count != 0 ? qsTr("Latest news") : qsTr("Welcome to Hake Geospatial!")
+              text: newsSwitch.checked && newsListView.count != 0 ? qsTr("Latest news") : qsTr("Welcome to Hake Geospatial - DesktopVersion - 2026!")
               font.pointSize: Application.font.pointSize * 1.3
               font.bold: true
               color: "#ffffff"

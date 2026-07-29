@@ -388,7 +388,7 @@ if(WITH_CORE)
     # https://sourceforge.net/p/mingw-w64/bugs/527/
     # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=80816
 
-    # also OpenBSD has no thread_local support, see https://github.com/qgis/QGIS/issues/25248
+    # also OpenBSD has no thread_local support, see https://github.com/hake-gis/QGIS/issues/25248
 
   else()
     if (WITH_THREAD_LOCAL)
@@ -959,7 +959,7 @@ else()
 endif()
 
 # Fix python site-packages for Fedora
-# See https://github.com/qgis/QGIS/issues/54348#issuecomment-1694216152
+# See https://github.com/hake-gis/QGIS/issues/54348#issuecomment-1694216152
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   if(EXISTS "/etc/fedora-release")
     EXECUTE_PROCESS(COMMAND ${Python_EXECUTABLE} -c "import sysconfig;print(sysconfig.get_path(\"platlib\", \"rpm_prefix\"), end=\"\")" OUTPUT_VARIABLE Python_SITEARCH)
@@ -1024,11 +1024,11 @@ if (WITH_CORE)
 
       set(DEFAULT_BIN_SUBDIR      ${APP_MACOS_DIR})
       set(DEFAULT_LIB_SUBDIR      ${APP_FRAMEWORKS_DIR})
-      set(DEFAULT_DATA_SUBDIR     ${APP_RESOURCES_DIR}/qgis)
+      set(DEFAULT_DATA_SUBDIR     ${APP_RESOURCES_DIR}/hake-gis)
       set(DEFAULT_LIBEXEC_SUBDIR  ${APP_MACOS_DIR})
-      set(DEFAULT_PLUGIN_SUBDIR   ${APP_PLUGINS_DIR}/qgis)
-      set(DEFAULT_INCLUDE_SUBDIR  include/qgis)
-      set(DEFAULT_QML_SUBDIR      ${APP_RESOURCES_DIR}/qgis/qml)
+      set(DEFAULT_PLUGIN_SUBDIR   ${APP_PLUGINS_DIR}/hake-gis)
+      set(DEFAULT_INCLUDE_SUBDIR  include/hake-gis)
+      set(DEFAULT_QML_SUBDIR      ${APP_RESOURCES_DIR}/hake-gis/qml)
       set(DEFAULT_PYTHON_SUBDIR   ${APP_FRAMEWORKS_DIR}/${_RELATIVE_SITEARCH})
     else()
       # UNIX
@@ -1059,10 +1059,10 @@ if (WITH_CORE)
       endif()
 
       set (DEFAULT_LIB_SUBDIR     lib${LIB_SUFFIX})
-      set (DEFAULT_DATA_SUBDIR    share/qgis)
-      set (DEFAULT_LIBEXEC_SUBDIR lib${LIB_SUFFIX}/qgis)
-      set (DEFAULT_PLUGIN_SUBDIR  lib${LIB_SUFFIX}/qgis/plugins)
-      set (DEFAULT_INCLUDE_SUBDIR include/qgis)
+      set (DEFAULT_DATA_SUBDIR    share/hake-gis)
+      set (DEFAULT_LIBEXEC_SUBDIR lib${LIB_SUFFIX}/hake-gis)
+      set (DEFAULT_PLUGIN_SUBDIR  lib${LIB_SUFFIX}/hake-gis/plugins)
+      set (DEFAULT_INCLUDE_SUBDIR include/hake-gis)
       set (DEFAULT_QML_SUBDIR     qml)
 
       set (DEFAULT_SERVER_MODULE_SUBDIR ${DEFAULT_LIBEXEC_SUBDIR}/server)
@@ -1142,14 +1142,14 @@ set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${QGIS_OUTPUT_DIRECTORY}/${QGIS_LIB_SUBDIR})
 
 # write a marker with source directory path into the output's bin directory
 # if run from the build directory QGIS will detect it and alter the paths
-file(WRITE ${QGIS_OUTPUT_DIRECTORY}/${QGIS_BIN_SUBDIR}/qgisbuildpath.txt "${CMAKE_SOURCE_DIR}\n${QGIS_OUTPUT_DIRECTORY}")
+file(WRITE ${QGIS_OUTPUT_DIRECTORY}/${QGIS_BIN_SUBDIR}/hake-gisbuildpath.txt "${CMAKE_SOURCE_DIR}\n${QGIS_OUTPUT_DIRECTORY}")
 
 # Write the qgis.env file to the bin folder to allow running qgis.exe correctly from build folder
 # and find the SDK installed folders. Only runs when VCPKG_APPLOCAL_DEPS=OFF because ON means it is packaged together
 if(WITH_VCPKG AND NOT VCPKG_APPLOCAL_DEPS AND WIN32)
   # Used in the env.in file to setup the correct paths to the SDK folder
     set(VCPKG_TARGET_PATH "${VCPKG_INSTALL_PREFIX}/${VCPKG_TARGET_TRIPLET}")
-    configure_file("${CMAKE_SOURCE_DIR}/ms-windows/dev/qgis.env.in" "${QGIS_OUTPUT_DIRECTORY}/${QGIS_BIN_SUBDIR}/qgis.env")
+    configure_file("${CMAKE_SOURCE_DIR}/ms-windows/dev/hake-gis.env.in" "${QGIS_OUTPUT_DIRECTORY}/${QGIS_BIN_SUBDIR}/hake-gis.env")
 endif()
 
 # manual page - makes sense only on unix systems
@@ -1181,7 +1181,7 @@ endif()
 
 if (WITH_CORE AND WITH_BINDINGS)
   set(PYTHON_OUTPUT_DIRECTORY ${QGIS_OUTPUT_DIRECTORY}/python)
-  set (QGIS_PYTHON_OUTPUT_DIRECTORY ${PYTHON_OUTPUT_DIRECTORY}/qgis)
+  set (QGIS_PYTHON_OUTPUT_DIRECTORY ${PYTHON_OUTPUT_DIRECTORY}/hake-gis)
 
   # python support: check for interpreter, sip, pyqt6
   find_package(SIP REQUIRED)

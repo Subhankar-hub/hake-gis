@@ -15,8 +15,8 @@ void QgsPluginManager::initTabDescriptions()
   mTabDescriptions.insert( u"all_plugins"_s, tr( "<h3>All Plugins</h3>\
 \
 <p>\
-On the left you see the list of all plugins available for your QGIS, both installed and available for download. \
-Some plugins come with your QGIS installation while most of them are made available via the plugin repositories.\
+On the left you see the list of all plugins available for your Hake Geospatial, both installed and available for download. \
+Some plugins come with your Hake Geospatial installation while most of them are made available via the plugin repositories.\
 </p>\
 \
 <p>\
@@ -34,7 +34,7 @@ on the 'Invalid' tab. Click on the plugin name to see more details, or to reinst
   mTabDescriptions.insert( u"installed_plugins"_s, tr( "<h3>Installed Plugins</h3>\
 \
 <p>\
-Here you only see plugins <b>installed on your QGIS</b>.\
+Here you only see plugins <b>installed on your Hake Geospatial</b>.\
 </p>\
 <p>\
 Click on the name to see details. \
@@ -91,11 +91,11 @@ Here you see brand <b>new</b> plugins which can be installed.\
   mTabDescriptions.insert( u"invalid_plugins"_s, tr( "<h3>Invalid plugins</h3>\
 \
 <p>\
-Plugins in this list here are <b>broken or incompatible</b> with your version of QGIS.\
+Plugins in this list here are <b>broken or incompatible</b> with your version of Hake Geospatial.\
 </p>\
 \
 <p>\
-Click on an individual plugin; if possible QGIS shows you more information.\
+Click on an individual plugin; if possible Hake Geospatial shows you more information.\
 </p>\
 \
 <p>\

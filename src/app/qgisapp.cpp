@@ -629,7 +629,7 @@ static void setTitleBarText_( QWidget &qgisApp )
   if ( QgsProject::instance()->isDirty() )
     caption.prepend( '*' );
 
-  caption += QgisApp::tr( "Hake Geospatial" );
+  caption += QgisApp::tr( "Hake Geospatial - Desktop" );
 
   if ( Qgis::version().endsWith( "Master"_L1 ) )
   {
@@ -1589,7 +1589,7 @@ QgisApp::QgisApp(
   connect( QgsGui::mapLayerActionRegistry(), &QgsMapLayerActionRegistry::changed, this, &QgisApp::refreshActionFeatureAction );
 
   // set application's caption
-  QString caption = tr( "Hake Geospatial - %1 ('%2')" ).arg( Qgis::version(), Qgis::releaseName() );
+  QString caption = tr( "Hake Geospatial - Desktop - %1 ('%2')" ).arg( Qgis::version(), Qgis::releaseName() );
   setWindowTitle( caption );
 
   // QgsMessageLog::logMessage( tr( "Hake Geospatial starting…" ), QString(), Qgis::MessageLevel::Info );

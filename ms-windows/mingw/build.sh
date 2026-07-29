@@ -93,7 +93,7 @@ mkdir -p "$BUILDDIR"
     -DQGIS_LIBEXEC_SUBDIR=lib/qgis \
     -DQGIS_DATA_SUBDIR=share/qgis \
     -DQGIS_PLUGIN_SUBDIR=lib/qgis/plugins \
-    -DQGIS_INCLUDE_SUBDIR=include/qgis \
+    -DQGIS_INCLUDE_SUBDIR=include/hake-gis \
     -DQGIS_SERVER_MODULE_SUBDIR=lib/qgis/server \
     -DQGIS_QML_SUBDIR=lib/qt6/qml \
     -DBINDINGS_GLOBAL_INSTALL=ON \
