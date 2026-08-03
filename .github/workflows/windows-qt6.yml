@@ -152,6 +152,13 @@ jobs:
           Add-Content -Path $env:GITHUB_PATH -Value $perlBin
           Add-Content -Path $env:GITHUB_ENV -Value "PERL=$perl"
 
+          # Git for Windows usr/bin includes a broken perl.exe; keep cygpath via full path in bash.
+          $filtered = $env:PATH -split ';' | Where-Object {
+            $_ -and $_ -notmatch '(?i)[\\/]Git[\\/]usr[\\/]bin$'
+          }
+          $newPath = "$perlBin;" + ($filtered -join ';')
+          Add-Content -Path $env:GITHUB_ENV -Value "PATH=$newPath"
+
           & $perl -v
 
       - name: 🌱 Install dependencies and generate project files
@@ -160,8 +167,14 @@ jobs:
           X_VCPKG_ASSET_SOURCES: x-azurl,https://assetcache.open-vcpkg.org/assetcache,,read
           PERL: C:\Strawberry\perl\bin\perl.exe
         run: |
-          BUILD_DIR=$( cygpath "${{ github.workspace }}/build" )
-          SOURCE_DIR=$( cygpath "${{ github.workspace }}" )
+          export PATH="/c/Strawberry/perl/bin:$(echo "$PATH" | tr ':' '\n' | grep -iv 'git/usr/bin' | paste -sd: -)"
+          export PERL="/c/Strawberry/perl/bin/perl.exe"
+          echo "Using PERL=$PERL"
+          command -v perl
+          perl -v
+
+          BUILD_DIR=$( "/c/Program Files/Git/usr/bin/cygpath" "${{ github.workspace }}/build" )
+          SOURCE_DIR=$( "/c/Program Files/Git/usr/bin/cygpath" "${{ github.workspace }}" )
 
           cmake -S "${SOURCE_DIR}" \
                 -B "${BUILD_DIR}" \
