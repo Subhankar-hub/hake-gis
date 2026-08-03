@@ -79,6 +79,20 @@ jobs:
           tag: 'v2.5.24'
           extract: true
 
+      - name: 🧮 Install gfortran (MinGW)
+        shell: powershell
+        run: |
+          # lapack-reference is not always in the vcpkg NuGet cache; source builds need Fortran.
+          choco install mingw -y --no-progress
+          $gfortran = Get-ChildItem -Path "${env:ProgramData}\chocolatey\lib\mingw\tools\install" -Recurse -Filter gfortran.exe -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $gfortran) {
+            throw "gfortran.exe not found after mingw install"
+          }
+          $binDir = $gfortran.Directory.FullName
+          Write-Host "Using gfortran at $($gfortran.FullName)"
+          Add-Content -Path $env:GITHUB_PATH -Value $binDir
+          Add-Content -Path $env:GITHUB_ENV -Value "FC=$($gfortran.FullName)"
+
       - name: 📦 Install NSIS
         shell: powershell
         run: |
