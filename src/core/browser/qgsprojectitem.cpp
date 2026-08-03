@@ -20,6 +20,8 @@
 #include <QDir>
 #include <QString>
 
+#include "qgsapplication.h"
+
 #include "moc_qgsprojectitem.cpp"
 
 using namespace Qt::StringLiterals;

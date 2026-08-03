@@ -3,13 +3,15 @@
     <config>
         <add key="defaultPushSource" value="@NUGET_SOURCE@" />
     </config>
-    <activePackageSource>
-        <add key="vcpkg" value="@NUGET_SOURCE@" />
-    </activePackageSource>
     <packageSources>
+        <add key="vcpkg-read" value="@NUGET_READ_SOURCE@" />
         <add key="vcpkg" value="@NUGET_SOURCE@" />
     </packageSources>
     <packageSourceCredentials>
+        <vcpkg-read>
+            <add key="Username" value="@NUGET_READ_USERNAME@" />
+            <add key="ClearTextPassword" value="@NUGET_TOKEN@" />
+        </vcpkg-read>
         <vcpkg>
             <add key="Username" value="@NUGET_USERNAME@" />
             <add key="ClearTextPassword" value="@NUGET_TOKEN@" />

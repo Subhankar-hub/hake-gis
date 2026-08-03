@@ -1,5 +1,7 @@
-set(NUGET_SOURCE "https://nuget.pkg.github.com/qgis/index.json" CACHE STRING "Nuget source")
-set(NUGET_USERNAME "qgis" CACHE STRING "Nuget user")
+set(NUGET_SOURCE "https://nuget.pkg.github.com/qgis/index.json" CACHE STRING "Nuget push source for vcpkg binary cache")
+set(NUGET_USERNAME "qgis" CACHE STRING "Nuget user for push source")
+set(NUGET_READ_SOURCE "https://nuget.pkg.github.com/qgis/index.json" CACHE STRING "Read-only Nuget source for vcpkg binary cache (upstream QGIS packages)")
+set(NUGET_READ_USERNAME "qgis" CACHE STRING "Nuget user for read-only source")
 
 # Setup features (dependencies) based on cmake configuration
 if(WITH_3D)
@@ -70,20 +72,25 @@ if(NOT "${NUGET_TOKEN}" STREQUAL "" AND (CMAKE_HOST_WIN32 OR EXISTS "${_VCPKG_MO
     "${CMAKE_SOURCE_DIR}/cmake/NuGet.Config.in"
     "${_CONFIG_PATH}"
     @ONLY)
-  execute_process(
-    COMMAND ${_NUGET_EXE} setapikey "${NUGET_TOKEN}" -src ${NUGET_SOURCE} -configfile ${_CONFIG_PATH}
-    OUTPUT_VARIABLE _OUTPUT
-    ERROR_VARIABLE _ERROR
-    RESULT_VARIABLE _RESULT)
-  if(_RESULT EQUAL 0)
-    message(STATUS "Setup nuget api key - done")
-  else()
-    message(STATUS "Setup nuget api key - failed")
-    message(STATUS "Output:")
-    message(STATUS ${_OUTPUT})
-    message(STATUS "Error:")
-    message(STATUS ${_ERROR})
-  endif()
+  foreach(_nuget_feed IN ITEMS "${NUGET_READ_SOURCE}" "${NUGET_SOURCE}")
+    if(_nuget_feed STREQUAL "")
+      continue()
+    endif()
+    execute_process(
+      COMMAND ${_NUGET_EXE} setapikey "${NUGET_TOKEN}" -src "${_nuget_feed}" -configfile ${_CONFIG_PATH}
+      OUTPUT_VARIABLE _OUTPUT
+      ERROR_VARIABLE _ERROR
+      RESULT_VARIABLE _RESULT)
+    if(_RESULT EQUAL 0)
+      message(STATUS "Setup nuget api key for ${_nuget_feed} - done")
+    else()
+      message(STATUS "Setup nuget api key for ${_nuget_feed} - failed")
+      message(STATUS "Output:")
+      message(STATUS ${_OUTPUT})
+      message(STATUS "Error:")
+      message(STATUS ${_ERROR})
+    endif()
+  endforeach()
 
   file(TO_NATIVE_PATH "${_CONFIG_PATH}" _CONFIG_PATH_NATIVE)
   if("$ENV{GITHUB_EVENT_NAME}" STREQUAL "pull_request")
