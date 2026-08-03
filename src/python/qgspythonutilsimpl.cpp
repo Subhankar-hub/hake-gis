@@ -471,7 +471,11 @@ bool QgsPythonUtilsImpl::runString( const QString &command, QString msgOnError, 
                 + "<br>"
                 + version
                 + "<br><br>"
-                + QObject::tr( "Hake Geospatial version:" )
+                + QObject::tr( "Product:" )
+                + "<br>"
+                + Qgis::productDisplayName()
+                + "<br><br>"
+                + QObject::tr( "Build version:" )
                 + "<br>"
                 + u"%1 '%2', %3"_s.arg( Qgis::version(), Qgis::releaseName(), Qgis::devVersion() )
                 + "<br><br>"
@@ -542,7 +546,11 @@ bool QgsPythonUtilsImpl::runFile( const QString &filename, const QString &messag
                 + "<br>"
                 + version
                 + "<br><br>"
-                + QObject::tr( "Hake Geospatial version:" )
+                + QObject::tr( "Product:" )
+                + "<br>"
+                + Qgis::productDisplayName()
+                + "<br><br>"
+                + QObject::tr( "Build version:" )
                 + "<br>"
                 + u"%1 '%2', %3"_s.arg( Qgis::version(), Qgis::releaseName(), Qgis::devVersion() )
                 + "<br><br>"
@@ -622,7 +630,11 @@ bool QgsPythonUtilsImpl::setArgv( const QStringList &arguments, const QString &m
                 + "<br>"
                 + version
                 + "<br><br>"
-                + QObject::tr( "Hake Geospatial version:" )
+                + QObject::tr( "Product:" )
+                + "<br>"
+                + Qgis::productDisplayName()
+                + "<br><br>"
+                + QObject::tr( "Build version:" )
                 + "<br>"
                 + u"%1 '%2', %3"_s.arg( Qgis::version(), Qgis::releaseName(), Qgis::devVersion() )
                 + "<br><br>"

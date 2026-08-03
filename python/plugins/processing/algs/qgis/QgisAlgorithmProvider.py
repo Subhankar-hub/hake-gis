@@ -112,13 +112,13 @@ class QgisAlgorithmProvider(QgsProcessingProvider):
         return "qgis"
 
     def name(self):
-        return "QGIS"
+        return "Hake Geospatial - Desktop"
 
     def icon(self):
-        return QgsApplication.getThemeIcon("/providerQgis.svg")
+        return QgsApplication.getThemeIcon("/providerHakeGis.svg")
 
     def svgIconPath(self):
-        return QgsApplication.iconPath("providerQgis.svg")
+        return QgsApplication.iconPath("providerHakeGis.svg")
 
     def loadAlgorithms(self):
         for a in self.getAlgs():

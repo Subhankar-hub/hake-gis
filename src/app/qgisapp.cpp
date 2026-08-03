@@ -629,7 +629,7 @@ static void setTitleBarText_( QWidget &qgisApp )
   if ( QgsProject::instance()->isDirty() )
     caption.prepend( '*' );
 
-  caption += QgisApp::tr( "Hake Geospatial - Desktop" );
+  caption += Qgis::productDisplayName();
 
   if ( Qgis::version().endsWith( "Master"_L1 ) )
   {
@@ -1589,7 +1589,7 @@ QgisApp::QgisApp(
   connect( QgsGui::mapLayerActionRegistry(), &QgsMapLayerActionRegistry::changed, this, &QgisApp::refreshActionFeatureAction );
 
   // set application's caption
-  QString caption = tr( "Hake Geospatial - Desktop - %1 ('%2')" ).arg( Qgis::version(), Qgis::releaseName() );
+  QString caption = Qgis::productDisplayName();
   setWindowTitle( caption );
 
   // QgsMessageLog::logMessage( tr( "Hake Geospatial starting…" ), QString(), Qgis::MessageLevel::Info );
@@ -1837,7 +1837,7 @@ QgisApp::QgisApp(
 
   connect( QgsApplication::taskManager(), &QgsTaskManager::statusChanged, this, &QgisApp::onTaskCompleteShowNotify );
 
-  QgsGui::nativePlatformInterface()->initializeMainWindow( windowHandle(), QgsApplication::applicationName(), QgsApplication::organizationName(), Qgis::version() );
+  QgsGui::nativePlatformInterface()->initializeMainWindow( windowHandle(), QgsApplication::applicationName(), QgsApplication::organizationName(), Qgis::productDisplayName() );
   connect( QgsGui::nativePlatformInterface(), &QgsNative::usbStorageNotification, mBrowserModel, &QgsBrowserModel::refreshDrives );
 
   // setup application progress reports from task manager
@@ -5562,7 +5562,8 @@ QString QgisApp::getVersionString()
   const QString compLabel = tr( "Compiled" );
   const QString runLabel = tr( "Running" );
 
-  versionString += u"<tr><td>%1</td><td>%2</td>"_s.arg( tr( "Hake Geospatial version" ), Qgis::version() );
+  versionString += u"<tr><td>%1</td><td>%2</td>"_s.arg( tr( "Product" ), Qgis::productDisplayName() );
+  versionString += u"<tr><td>%1</td><td>%2</td>"_s.arg( tr( "Build version" ), Qgis::version() );
   versionString += "</tr><tr>"_L1;
   if ( QString( Qgis::devVersion() ) == "exported"_L1 )
   {
@@ -16302,7 +16303,7 @@ void QgisApp::keyReleaseEvent( QKeyEvent *event )
   if ( event->key() == Qt::Key_Close )
   {
     // do something useful here
-    int ret = QMessageBox::question( this, tr( "Exit Hake Geospatial" ), tr( "Do you really want to quit Hake Geospatial?" ), QMessageBox::Yes | QMessageBox::No );
+    int ret = QMessageBox::question( this, tr( "Exit Hake Geospatial - Desktop" ), tr( "Do you really want to quit Hake Geospatial - Desktop?" ), QMessageBox::Yes | QMessageBox::No );
     switch ( ret )
     {
       case QMessageBox::Yes:
@@ -17388,7 +17389,7 @@ void QgisApp::showSystemNotification( const QString &title, const QString &messa
   settings.transient = true;
   if ( replaceExisting )
     settings.messageId = sLastMessageId;
-  settings.svgAppIconPath = QgsApplication::iconsPath() + u"qgis_icon.svg"_s;
+  settings.svgAppIconPath = QgsApplication::appIconSvgPath();
   settings.pngAppIconPath = QgsApplication::appIconPath();
 
   QgsNative::NotificationResult result = QgsGui::nativePlatformInterface()->showDesktopNotification( title, message, settings );

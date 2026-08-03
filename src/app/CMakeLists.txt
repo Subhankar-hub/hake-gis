@@ -28,7 +28,6 @@ set(QGIS_APP_SRCS
   qgscustomization.cpp
   qgscustomizationdialog.cpp
   qgsdatumtransformtablewidget.cpp
-  qgscontributorsmapcanvas.cpp
   qgsdevtoolspanelwidget.cpp
   qgsdiscoverrelationsdialog.cpp
   qgsdxfexportdialog.cpp
@@ -487,9 +486,9 @@ else()
 
   if (HAKE_M4A_RENAME_DLL_OUTPUTS)
     if (MSVC)
-      target_compile_definitions(qgis PRIVATE "QGIS_APP_DLL_NAME=\"hake_app.dll\"")
+      target_compile_definitions(qgis PRIVATE "QGIS_APP_DLL_NAME=\"hakegis_app.dll\"")
     else()
-      target_compile_definitions(qgis PRIVATE "QGIS_APP_DLL_NAME=\"libhake_app.dll\"")
+      target_compile_definitions(qgis PRIVATE "QGIS_APP_DLL_NAME=\"libhakegis_app.dll\"")
     endif()
   endif()
 endif()
@@ -504,7 +503,7 @@ endif()
 # loaded (by plugin for example) in test unit (qgis_layoutpicturetest).
 add_library(qgis_app ${LIBRARY_TYPE} ${QGIS_APP_SRCS})
 if(HAKE_M4A_RENAME_DLL_OUTPUTS OR QGISPOSTFIX)
-  hake_set_output_name(qgis_app qgis_app hake_app)
+  hake_set_output_name(qgis_app qgis_app hakegis_app)
 endif()
 if(QGISPOSTFIX)
   set_target_properties(qgis PROPERTIES

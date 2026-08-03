@@ -29,7 +29,7 @@
       </sizepolicy>
      </property>
      <property name="text" >
-      <string>The plugin seems to be invalid or have unfulfilled dependencies. It has been installed, but can't be loaded. If you really need this plugin, you can contact its author or &lt;a href="http://lists.osgeo.org/mailman/listinfo/qgis-user">QGIS users group&lt;/a> and try to solve the problem. If not, you can just uninstall it. Here is the error message below:</string>
+      <string>The plugin seems to be invalid or have unfulfilled dependencies. It has been installed, but can't be loaded. If you really need this plugin, you can contact its author or visit &lt;a href="https://haketech.com/">haketech.com&lt;/a> for support and try to solve the problem. If not, you can just uninstall it. Here is the error message below:</string>
      </property>
      <property name="wordWrap" >
       <bool>true</bool>

@@ -17,6 +17,8 @@
 
 #include "qgscommandlineutils.h"
 
+#include "qgis.h"
+
 #include <gdal_version.h>
 #include <ogr_api.h>
 #include <proj.h>
@@ -43,8 +45,8 @@ using namespace Qt::StringLiterals;
 
 QString QgsCommandLineUtils::allVersions()
 {
-  // QGIS main version
-  QString versionString = u"QGIS %1 '%2' (%3)\n"_s.arg( VERSION, RELEASE_NAME, QGSVERSION );
+  // Product and build version
+  QString versionString = u"%1\nBuild version: %2 '%3' (%4)\n"_s.arg( Qgis::productDisplayName(), VERSION, RELEASE_NAME, QGSVERSION );
 
   // QGIS code revision
   if ( QString( Qgis::devVersion() ) == "exported"_L1 )

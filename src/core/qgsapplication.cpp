@@ -601,13 +601,13 @@ void QgsApplication::installTranslators()
   if ( *sTranslation() != "C"_L1 )
   {
     mQgisTranslator = std::make_unique<QTranslator>( this );
-    if ( mQgisTranslator->load( u"qgis_"_s + *sTranslation(), i18nPath() ) )
+    if ( mQgisTranslator->load( u"hakegis_"_s + *sTranslation(), i18nPath() ) )
     {
       installTranslator( mQgisTranslator.get() );
     }
     else
     {
-      QgsDebugMsgLevel( u"loading of qgis translation failed %1/qgis_%2"_s.arg( i18nPath(), *sTranslation() ), 2 );
+      QgsDebugMsgLevel( u"loading of hakegis translation failed %1/hakegis_%2"_s.arg( i18nPath(), *sTranslation() ), 2 );
     }
 
     /* Translation file for Qt.
@@ -869,7 +869,17 @@ QString QgsApplication::activeThemePath()
 
 QString QgsApplication::appIconPath()
 {
-  return iconsPath() + u"qgis-icon-60x60.png"_s;
+  return iconsPath() + u"hake-gis-icon-60x60.png"_s;
+}
+
+QString QgsApplication::appIconSvgPath()
+{
+  return pkgDataPath() + u"/svg/logos/hake-gis-icon.svg"_s;
+}
+
+QString QgsApplication::appIconSvgResourcePath()
+{
+  return u":/images/svg/logos/hake-gis-icon.svg"_s;
 }
 
 int QgsApplication::maxThreads()

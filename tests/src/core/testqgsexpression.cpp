@@ -3218,7 +3218,7 @@ class TestQgsExpression : public QObject
 
       QLocale::setDefault( language );
       QTranslator translator;
-      const bool ok = translator.load( "qgis_" + QLocale().name(), QgsApplication::i18nPath() );
+      const bool ok = translator.load( "hakegis_" + QLocale().name(), QgsApplication::i18nPath() );
       QVERIFY( ok );
       QCoreApplication::installTranslator( &translator );
 

@@ -528,8 +528,8 @@ QVariant QgsProcessingToolboxModel::data( const QModelIndex &index, int role ) c
           else if ( isParameterGroupNode )
             return QgsApplication::getThemeIcon( u"/mIconModelInput.svg"_s );
           else if ( !index.parent().isValid() )
-            // top level groups get the QGIS icon
-            return QgsApplication::getThemeIcon( u"/providerQgis.svg"_s );
+            // top level groups get the Hake Geospatial icon
+            return QgsApplication::getThemeIcon( u"/providerHakeGis.svg"_s );
           else
             return QVariant();
         }

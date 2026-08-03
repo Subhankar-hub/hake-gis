@@ -28,7 +28,7 @@ QgsFirstRunDialog::QgsFirstRunDialog( QWidget *parent )
 {
   setupUi( this );
   mWelcomeDevLabel->hide();
-  mWelcomeLabel->setText( tr( "Welcome to Hake Geospatial %1" ).arg( Qgis::version() ) );
+  mWelcomeLabel->setText( tr( "Welcome to %1" ).arg( Qgis::productDisplayName() ) );
   if ( Qgis::version().endsWith( "Master"_L1 ) )
   {
     mWelcomeDevLabel->show();

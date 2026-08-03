@@ -2025,7 +2025,7 @@ QStringList QgsOptions::i18nList()
 {
   QStringList myList;
   QString myI18nPath = QgsApplication::i18nPath();
-  QDir myDir( myI18nPath, u"qgis*.qm"_s );
+  QDir myDir( myI18nPath, u"hakegis*.qm"_s );
   QStringList myFileList = myDir.entryList();
   QStringListIterator myIterator( myFileList );
   while ( myIterator.hasNext() )
@@ -2033,10 +2033,10 @@ QStringList QgsOptions::i18nList()
     QString myFileName = myIterator.next();
 
     // Ignore the 'en' translation file, already added as 'en_US'.
-    if ( myFileName.compare( "qgis_en.qm"_L1 ) == 0 )
+    if ( myFileName.compare( "hakegis_en.qm"_L1 ) == 0 )
       continue;
 
-    myList << myFileName.remove( u"qgis_"_s ).remove( u".qm"_s );
+    myList << myFileName.remove( u"hakegis_"_s ).remove( u".qm"_s );
   }
   return myList;
 }

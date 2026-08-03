@@ -186,7 +186,7 @@ jobs:
         uses: actions/upload-artifact@v7
         id: artifact-win64-installer
         with:
-          name: hake-gis-4.0.2-win64
+          name: hake-gis-desktop-2026-win64
           path: |
             build/*.exe
 

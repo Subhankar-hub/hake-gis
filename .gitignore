@@ -118,3 +118,15 @@ venv
 build/*
 push_chunks.sh
 *.xlsx
+.cursor/
+HAKE_GIS_Review/
+AGENTS.md
+HAKE_REBRANDING_PROOF_PLAN.md
+resources/branding/
+cmake/HakeBrandingAssets.cmake
+scripts/generate_branding_assets.py
+scripts/hake_rebrand_audit.sh
+git_diagnose.py
+patch.py
+replace_a_c.py
+replace_py.py

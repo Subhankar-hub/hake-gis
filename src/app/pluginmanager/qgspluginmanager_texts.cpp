@@ -100,7 +100,7 @@ Click on an individual plugin; if possible Hake Geospatial shows you more inform
 \
 <p>\
 The main reasons to have invalid plugins is that this plugin is not build \
-for this version of Hake Geospatial. Maybe you can download another version from <a href=\"http://localhost/plugins/plugins.xml\">localhost</a>.\
+for this version of Hake Geospatial. Maybe you can download another version from <a href=\"https://plugins.haketech.com\">plugins.haketech.com</a>.\
 </p>\
 \
 <p>\

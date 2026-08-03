@@ -68,6 +68,14 @@ QgsExpressionContextScope *QgsExpressionContextUtils::globalScope()
   scope->addVariable( QgsExpressionContextScope::StaticVariable( u"qgis_platform"_s, QgsApplication::platform(), true, true ) );
   scope->addVariable( QgsExpressionContextScope::StaticVariable( u"qgis_os_name"_s, QgsApplication::osName(), true, true ) );
   scope->addVariable( QgsExpressionContextScope::StaticVariable( u"qgis_locale"_s, QgsApplication::locale(), true, true ) );
+  // Hake aliases (keep qgis_* for compatibility)
+  scope->addVariable( QgsExpressionContextScope::StaticVariable( u"hake_version"_s, Qgis::version(), true, true ) );
+  scope->addVariable( QgsExpressionContextScope::StaticVariable( u"hake_version_no"_s, Qgis::versionInt(), true, true ) );
+  scope->addVariable( QgsExpressionContextScope::StaticVariable( u"hake_short_version"_s, u"%1.%2"_s.arg( Qgis::versionInt() / 10000 ).arg( Qgis::versionInt() / 100 % 100 ), true, true ) );
+  scope->addVariable( QgsExpressionContextScope::StaticVariable( u"hake_release_name"_s, Qgis::releaseName(), true, true ) );
+  scope->addVariable( QgsExpressionContextScope::StaticVariable( u"hake_platform"_s, QgsApplication::platform(), true, true ) );
+  scope->addVariable( QgsExpressionContextScope::StaticVariable( u"hake_os_name"_s, QgsApplication::osName(), true, true ) );
+  scope->addVariable( QgsExpressionContextScope::StaticVariable( u"hake_locale"_s, QgsApplication::locale(), true, true ) );
   scope->addVariable( QgsExpressionContextScope::StaticVariable( u"user_account_name"_s, QgsApplication::userLoginName(), true, true ) );
   scope->addVariable( QgsExpressionContextScope::StaticVariable( u"user_full_name"_s, QgsApplication::userFullName(), true, true ) );
 

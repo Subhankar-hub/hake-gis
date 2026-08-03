@@ -8,6 +8,10 @@ Rectangle {
   implicitHeight: newsLayout.childrenRect.height + 32
   radius: 6
 
+  property real layoutSizeFactor: 1
+  readonly property real normalFontSize: Application.font.pointSize * layoutSizeFactor
+  readonly property real tinyFontSize: Application.font.pointSize * 0.875 * layoutSizeFactor
+
   property string title: ""
   property string description: ""
   property string imageSource: ""

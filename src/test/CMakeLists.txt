@@ -16,7 +16,7 @@ add_library(qgis_test ${LIBRARY_TYPE}
 set_target_properties(qgis_test PROPERTIES LINKER_LANGUAGE CXX)
 
 if(HAKE_M4A_RENAME_DLL_OUTPUTS OR QGISPOSTFIX)
-  hake_set_output_name(qgis_test qgis_test hake_test)
+  hake_set_output_name(qgis_test qgis_test hakegis_test)
 endif()
 
 target_include_directories(qgis_test PUBLIC

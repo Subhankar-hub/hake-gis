@@ -67,9 +67,9 @@
         <file>flags/zh-Hans.svg</file>
         <file>flags/zh-Hant.svg</file>
         <file>flags/ky.svg</file>
-        <file>icons/qgis-icon-16x16.png</file>
-        <file>icons/qgis-icon-60x60.png</file>
-        <file>icons/qgis-full.png</file>
+        <file>icons/hake-gis-icon-16x16.png</file>
+        <file>icons/hake-gis-icon-60x60.png</file>
+        <file>icons/hake-gis-full.png</file>
         <file>icons/qbrowser_icon.svg</file>
         <file>north_arrows/default.png</file>
         <file>north_arrows/default.svg</file>
@@ -771,7 +771,7 @@
         <file>themes/default/mTemporalNavigationAnimated.svg</file>
         <file>themes/default/providerGdal.svg</file>
         <file>themes/default/providerGrass.svg</file>
-        <file>themes/default/providerQgis.svg</file>
+        <file>themes/default/providerHakeGis.svg</file>
         <file>themes/default/providerSaga.svg</file>
         <file>themes/default/providerOtb.svg</file>
         <file>themes/default/processingModel.svg</file>
@@ -810,8 +810,7 @@
         <file>themes/default/mActionCircle3Tangents.svg</file>
         <file>themes/default/mActionAddGeoPackageLayer.svg</file>
         <file>themes/default/mActionFindReplace.svg</file>
-        <file>icons/qgis_icon.svg</file>
-        <file>icons/qgis-icon-minimal-black.svg</file>
+        <file alias="svg/logos/hake-gis-icon.svg">../svg/logos/hake-gis-icon.svg</file>
         <file>themes/default/mActionCircle2TangentsPoint.svg</file>
         <file>themes/default/mActionRegularPolygonCenterPoint.svg</file>
         <file>themes/default/3d.svg</file>

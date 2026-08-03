@@ -1,7 +1,7 @@
 [general]
 name=Processing
-description=Spatial data processing framework for QGIS
-about=Spatial data processing framework for QGIS
+description=Spatial data processing framework for Hake Geospatial - Desktop
+about=Spatial data processing framework for Hake Geospatial - Desktop
 category=Analysis
 version=2.12.99
 qgisMinimumVersion=4.0

@@ -20,6 +20,7 @@
 #include <iostream>
 
 #include "qgsapplication.h"
+#include "qgis.h"
 #include "qgslogger.h"
 #include "qgsproject.h"
 
@@ -79,7 +80,8 @@ void QgsCrashHandler::handleCrash( int processID, int threadID, const QString &s
     arguments << u"\"%1\""_s.arg( projectFile );
 
   QStringList reportData;
-  reportData.append( u"QGIS Version: %1"_s.arg( Qgis::version() ) );
+  reportData.append( u"Product: %1"_s.arg( Qgis::productDisplayName() ) );
+  reportData.append( u"Build version: %1"_s.arg( Qgis::version() ) );
 
   if ( QString( Qgis::devVersion() ) == "exported"_L1 )
   {

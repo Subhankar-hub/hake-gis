@@ -6,7 +6,7 @@
     "trDescription": "Creates a C++ QGIS Test",
     "trDisplayName": "QGIS C++ Test",
     "trDisplayCategory": "QGIS",
-    "icon": "../qgis_icon.svg",
+    "icon": "../hake-gis-icon.svg",
     "enabled": "%{JS: [ %{Plugins} ].indexOf('CppEditor') >= 0}",
     "platformIndependent" : true,
 

@@ -27,7 +27,7 @@ using namespace Qt::StringLiterals;
 QgsProjectItem::QgsProjectItem( QgsDataItem *parent, const QString &name, const QString &path, const QString &providerKey )
   : QgsDataItem( Qgis::BrowserItemType::Project, parent, name, path, providerKey )
 {
-  mIconName = u":/images/icons/qgis_icon.svg"_s;
+  mIconName = QgsApplication::appIconSvgResourcePath();
   setToolTip( QDir::toNativeSeparators( path ) );
   setState( Qgis::BrowserItemState::Populated ); // no more children
 }

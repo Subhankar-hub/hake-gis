@@ -45,7 +45,7 @@ class DBManagerPlugin:
                 QApplication.translate("DBManagerPlugin", "DB Manager"),
                 QApplication.translate(
                     "DBManagerPlugin",
-                    'The DB Manager plugin is no longer installed with QGIS. Please install the "DB Manager (community)" replacement plugin instead.',
+                    'The DB Manager plugin is no longer installed with Hake Geospatial - Desktop. Please install the "DB Manager (community)" replacement plugin instead.',
                 ),
             )
             install_button = QPushButton("Install Now")

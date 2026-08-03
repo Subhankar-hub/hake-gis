@@ -3810,6 +3810,7 @@ namespace QgsWms
           QXmlStreamReader xmlReader( filter.mFilter );
           xmlReader.addExtraNamespaceDeclaration( QXmlStreamNamespaceDeclaration( u"fes"_s, u"http://www.opengis.net/fes/2.0"_s ) );
           xmlReader.addExtraNamespaceDeclaration( QXmlStreamNamespaceDeclaration( u"ogc"_s, u"http://www.opengis.net/ogc"_s ) );
+#if QT_VERSION >= QT_VERSION_CHECK( 6, 5, 0 )
           if ( QDomDocument::ParseResult result = filterXml.setContent( &xmlReader, QDomDocument::ParseOption::UseNamespaceProcessing ); !result )
           {
             throw QgsBadRequestException(
@@ -3817,6 +3818,18 @@ namespace QgsWms
               u"Filter string rejected. Error %1:%2 : %3. The XML string was: %4"_s.arg( QString::number( result.errorLine ), QString::number( result.errorColumn ), result.errorMessage, filter.mFilter )
             );
           }
+#else
+          QString errorMessage;
+          int errorLine = 0;
+          int errorColumn = 0;
+          if ( !filterXml.setContent( &xmlReader, true, &errorMessage, &errorLine, &errorColumn ) )
+          {
+            throw QgsBadRequestException(
+              QgsServiceException::QGIS_InvalidParameterValue,
+              u"Filter string rejected. Error %1:%2 : %3. The XML string was: %4"_s.arg( QString::number( errorLine ), QString::number( errorColumn ), errorMessage, filter.mFilter )
+            );
+          }
+#endif
 
           QDomElement filterElem = filterXml.firstChildElement();
           std::unique_ptr<QgsExpression> filterExp( QgsOgcUtils::expressionFromOgcFilter( filterElem, filter.mVersion, filteredLayer ) );

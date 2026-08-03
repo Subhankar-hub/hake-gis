@@ -1,7 +1,7 @@
-option(HAKE_M4A_RENAME_DLL_OUTPUTS "Rename qgis_* shared library output names to hake_* for M4A validation" ON)
+option(HAKE_M4A_RENAME_DLL_OUTPUTS "Rename qgis_* shared library output names to hakegis_* for M4A validation" ON)
 
 if (HAKE_M4A_RENAME_DLL_OUTPUTS)
-  add_compile_definitions(QGIS_PYTHON_LIBRARY_NAME="hakepython")
+  add_compile_definitions(QGIS_PYTHON_LIBRARY_NAME="hakegispython")
 else()
   add_compile_definitions(QGIS_PYTHON_LIBRARY_NAME="qgispython")
 endif()
@@ -17,6 +17,11 @@ function(hake_set_output_name target legacy_name m4a_name)
     RUNTIME_OUTPUT_NAME ${_output_name}
     LIBRARY_OUTPUT_NAME ${_output_name}
   )
+  if (WIN32)
+    set_target_properties(${target} PROPERTIES
+      ARCHIVE_OUTPUT_NAME ${_output_name}
+    )
+  endif()
 endfunction()
 
 add_subdirectory(core)

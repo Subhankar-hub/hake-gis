@@ -2631,7 +2631,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_library(qgis_core ${LIBRARY_TYPE} ${QGIS_CORE_SRCS} ${QGIS_CORE_HDRS} ${QGIS_CORE_PRIVATE_HDRS} ${IMAGE_RCCS})
 if(HAKE_M4A_RENAME_DLL_OUTPUTS OR QGISPOSTFIX)
-  hake_set_output_name(qgis_core qgis_core hake_core)
+  hake_set_output_name(qgis_core qgis_core hakegis_core)
 endif()
 
 if(USE_PRECOMPILED_HEADERS)

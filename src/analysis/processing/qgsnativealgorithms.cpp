@@ -331,12 +331,12 @@ QgsNativeAlgorithms::QgsNativeAlgorithms( QObject *parent )
 
 QIcon QgsNativeAlgorithms::icon() const
 {
-  return QgsApplication::getThemeIcon( u"/providerQgis.svg"_s );
+  return QgsApplication::getThemeIcon( u"/providerHakeGis.svg"_s );
 }
 
 QString QgsNativeAlgorithms::svgIconPath() const
 {
-  return QgsApplication::iconPath( u"providerQgis.svg"_s );
+  return QgsApplication::iconPath( u"providerHakeGis.svg"_s );
 }
 
 QString QgsNativeAlgorithms::id() const

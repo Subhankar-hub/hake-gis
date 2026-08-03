@@ -61,11 +61,11 @@ except AttributeError:
 
 app = QCoreApplication(argvb)
 
-for qm in sorted(glob(sys.argv[1] + "/output/i18n/qgis_*.qm")):
+for qm in sorted(glob(sys.argv[1] + "/output/i18n/hakegis_*.qm")):
     translator = QTranslator()
     translator.load(qm)
 
-    lang = qm[len(sys.argv[1] + "/output/i18n/qgis_"):-3]
+    lang = qm[len(sys.argv[1] + "/output/i18n/hakegis_"):-3]
 
     for s in strings:
         translation = translator.translate("appinfo", s, "")

@@ -90,7 +90,7 @@ endif()
 
 add_library(qgis_server SHARED ${QGIS_SERVER_SRCS} ${QGIS_SERVER_HDRS})
 if(HAKE_M4A_RENAME_DLL_OUTPUTS OR QGISPOSTFIX)
-  hake_set_output_name(qgis_server qgis_server hake_server)
+  hake_set_output_name(qgis_server qgis_server hakegis_server)
 endif()
 
 if (USE_PRECOMPILED_HEADERS)

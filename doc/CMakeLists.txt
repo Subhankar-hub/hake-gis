@@ -12,20 +12,11 @@ set(QGIS_DOC_FILES
   nohelp.html
   favicon.ico
   style.css
-  AUTHORS
-  CONTRIBUTORS
-  SPONSORS
-  DONORS
-  TRANSLATORS
   LICENSE
 )
 
 install(FILES ${QGIS_DOC_FILES} DESTINATION ${QGIS_DATA_DIR}/doc)
-install(FILES ../images/icons/qgis-icon-60x60.png DESTINATION ${QGIS_DATA_DIR}/doc/images)
-
-# Sponsor images
-file (GLOB SPONSOR_IMAGES images/projects/thumbnails/* )
-install (FILES ${SPONSOR_IMAGES} DESTINATION ${QGIS_DATA_DIR}/doc/images/projects/thumbnails/)
+install(FILES ../images/icons/hake-gis-icon-60x60.png DESTINATION ${QGIS_DATA_DIR}/doc/images)
 
 if(WITH_APIDOC)
   find_package(Doxygen 1.8.2 REQUIRED)
@@ -210,7 +201,7 @@ if(WITH_APIDOC)
       COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
       WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
       COMMENT "Generating API documentation" VERBATIM)
-    install(FILES ../images/icons/qgis-icon-60x60.png DESTINATION ${QGIS_DATA_DIR}/doc/api)
+    install(FILES ../images/icons/hake-gis-icon-60x60.png DESTINATION ${QGIS_DATA_DIR}/doc/api)
     if(GENERATE_QHP)
       install(FILES ${CMAKE_CURRENT_BINARY_DIR}/api/qch/qgis.qch DESTINATION ${QGIS_DATA_DIR}/doc/api)
     endif()

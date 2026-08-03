@@ -28,10 +28,11 @@ GENERATE_EXPORT_HEADER(
  )
 
 if (HAKE_M4A_RENAME_DLL_OUTPUTS OR QGISPOSTFIX)
-  hake_set_output_name(qgispython qgispython hakepython)
+  hake_set_output_name(qgispython qgispython hakegispython)
 endif()
 
 install(TARGETS qgispython
   RUNTIME DESTINATION ${QGIS_BIN_DIR}
   LIBRARY DESTINATION ${QGIS_LIB_DIR}
+  ARCHIVE DESTINATION ${QGIS_LIB_DIR}
 )

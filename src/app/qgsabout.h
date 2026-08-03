@@ -40,7 +40,6 @@ class APP_EXPORT QgsAbout : public QgsOptionsDialogBase, private Ui::QgsAbout
   private:
     void setWhatsNew();
     void setLicence();
-    void setPluginInfo();
     void init();
 
     QString mVersionString;

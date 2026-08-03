@@ -104,7 +104,7 @@ include_directories(SYSTEM
 add_library(qgis_customwidgets SHARED ${QGIS_CUSTOMWIDGETS_SRCS} ${QGIS_CUSTOMWIDGETS_MOC_SRCS} ${QGIS_CUSTOMWIDGETS_MOC_HDRS})
 
 if(HAKE_M4A_RENAME_DLL_OUTPUTS OR QGISPOSTFIX)
-  hake_set_output_name(qgis_customwidgets qgis_customwidgets hake_customwidgets)
+  hake_set_output_name(qgis_customwidgets qgis_customwidgets hakegis_customwidgets)
 endif()
 
 set_target_properties(qgis_customwidgets PROPERTIES UNITY_BUILD ${ENABLE_UNITY_BUILDS})

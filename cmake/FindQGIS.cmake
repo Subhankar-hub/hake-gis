@@ -46,12 +46,12 @@ IF(WIN32)
         "$ENV{PROGRAMFILES}/QGIS/include"
     )
     FIND_LIBRARY(QGIS_CORE_LIBRARY
-      NAMES qgis_core
+      NAMES hakegis_core qgis_core
       PATHS
         "$ENV{PROGRAMFILES}/QGIS/"
     )
     FIND_LIBRARY(QGIS_GUI_LIBRARY
-      NAMES qgis_gui
+      NAMES hakegis_gui qgis_gui
       PATHS
         "$ENV{PROGRAMFILES}/QGIS/"
     )
@@ -74,7 +74,7 @@ IF(WIN32)
         "$ENV{PROGRAMFILES}/QGIS/include"
     )
     FIND_LIBRARY(QGIS_CORE_LIBRARY
-      NAMES qgis_core
+      NAMES hakegis_core qgis_core
       PATHS
         "$ENV{LIB_DIR}/lib/"
         "$ENV{LIB}"
@@ -83,7 +83,7 @@ IF(WIN32)
         "$ENV{PROGRAMFILES}/QGIS/lib"
     )
     FIND_LIBRARY(QGIS_GUI_LIBRARY
-      NAMES qgis_gui
+      NAMES hakegis_gui qgis_gui
       PATHS
         "$ENV{LIB_DIR}"
         "$ENV{LIB}"
@@ -92,7 +92,7 @@ IF(WIN32)
         "$ENV{PROGRAMFILES}/QGIS/lib"
     )
     FIND_LIBRARY(QGIS_ANALYSIS_LIBRARY
-      NAMES qgis_analysis
+      NAMES hakegis_analysis qgis_analysis
       PATHS
         "$ENV{LIB_DIR}"
         "$ENV{LIB}"
@@ -166,7 +166,7 @@ ELSE(WIN32)
     ENDIF (APPLE)
 
     FIND_LIBRARY(QGIS_CORE_LIBRARY
-      NAMES qgis_core
+      NAMES hakegis_core qgis_core
       PATHS
         ${QGIS_BUILD_PATH}/output/lib
         ${QGIS_MAC_PATH}/Frameworks
@@ -179,7 +179,7 @@ ELSE(WIN32)
         "$ENV{LIB_DIR}/lib/"
     )
     FIND_LIBRARY(QGIS_GUI_LIBRARY
-      NAMES qgis_gui
+      NAMES hakegis_gui qgis_gui
       PATHS
         ${QGIS_BUILD_PATH}/output/lib
         ${QGIS_MAC_PATH}/Frameworks
@@ -192,7 +192,7 @@ ELSE(WIN32)
         "$ENV{LIB_DIR}/lib/"
     )
     FIND_LIBRARY(QGIS_ANALYSIS_LIBRARY
-      NAMES qgis_analysis
+      NAMES hakegis_analysis qgis_analysis
       PATHS
         ${QGIS_BUILD_PATH}/output/lib
         ${QGIS_MAC_PATH}/Frameworks

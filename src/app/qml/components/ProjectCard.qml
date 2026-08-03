@@ -10,6 +10,10 @@ Rectangle {
   implicitHeight: 120 * layoutSizeFactor
   radius: 6
 
+  property real layoutSizeFactor: 1
+  readonly property real normalFontSize: Application.font.pointSize * layoutSizeFactor
+  readonly property real smallFontSize: Application.font.pointSize * 0.925 * layoutSizeFactor
+
   property color backgroundColor: "#ffffff"
   property string title: ""
   property string subtitle: ""

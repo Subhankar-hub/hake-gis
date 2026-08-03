@@ -58,12 +58,12 @@ QgsPdalAlgorithms::QgsPdalAlgorithms( QObject *parent )
 
 QIcon QgsPdalAlgorithms::icon() const
 {
-  return QgsApplication::getThemeIcon( u"/providerQgis.svg"_s );
+  return QgsApplication::getThemeIcon( u"/providerHakeGis.svg"_s );
 }
 
 QString QgsPdalAlgorithms::svgIconPath() const
 {
-  return QgsApplication::iconPath( u"providerQgis.svg"_s );
+  return QgsApplication::iconPath( u"providerHakeGis.svg"_s );
 }
 
 QString QgsPdalAlgorithms::id() const

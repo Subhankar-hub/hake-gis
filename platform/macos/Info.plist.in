@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleName</key>
-	<string>HAKE-GIS</string>
+	<string>@HAKE_PRODUCT_DISPLAY_NAME@</string>
 	<key>CFBundleIdentifier</key>
 	<string>org.hake-gis.hake-gis3</string>
 	<key>CFBundleExecutable</key>
@@ -17,7 +17,7 @@
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © HAKE-GIS contributors</string>
 	<key>CFBundleShortVersionString</key>
-	<string>@COMPLETE_VERSION@</string>
+	<string>@HAKE_PRODUCT_VERSION_LABEL@</string>
 	<key>CFBundleVersion</key>
 	<string>@COMPLETE_VERSION@</string>
 	<key>CFBundleIconFile</key>

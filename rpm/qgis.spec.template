@@ -278,7 +278,6 @@ rm -f %{buildroot}%{_datadir}/%{name}/doc/INSTALL*
 %exclude %{_libdir}/%{name}/grass/
 
 %files devel
-%{_datadir}/%{name}/FindQGIS.cmake
 %{_includedir}/%{name}/
 %{_libdir}/lib%{name}*.so
 %{?_qt6_plugindir}/designer/libqgis_customwidgets.so*

@@ -602,8 +602,14 @@ class CORE_EXPORT QgsApplication : public QApplication
   //! deletes provider registry and map layer registry
   static void exitQgis();
 
-  //! Gets application icon
+  //! Gets application icon (PNG, for window icons)
   static QString appIconPath();
+
+  //! Gets canonical application icon SVG on the filesystem
+  static QString appIconSvgPath();
+
+  //! Gets canonical application icon SVG in Qt resources
+  static QString appIconSvgResourcePath();
 
   // clang-format off
   //! Constants for endian-ness

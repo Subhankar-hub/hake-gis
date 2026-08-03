@@ -2,6 +2,7 @@
 
 #define VERSION          @CPACK_PACKAGE_VERSION_MAJOR@,@CPACK_PACKAGE_VERSION_MINOR@,@CPACK_PACKAGE_VERSION_PATCH@,0
 #define VERSION_STR "@COMPLETE_VERSION@"
+#define PRODUCT_VERSION_STR "@HAKE_PRODUCT_VERSION_LABEL@"
 
 VS_VERSION_INFO VERSIONINFO
 FILEVERSION     VERSION
@@ -18,7 +19,7 @@ BEGIN
             VALUE "InternalName",     "@WIN32_VI_FILENAME@"
             VALUE "OriginalFilename", "@WIN32_VI_FILENAME@"
             VALUE "ProductName",      "@WIN32_VI_PRODUCT@"
-            VALUE "ProductVersion",   VERSION_STR
+            VALUE "ProductVersion",   PRODUCT_VERSION_STR
         END
     END
     BLOCK "VarFileInfo"

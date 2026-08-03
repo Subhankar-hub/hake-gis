@@ -225,7 +225,7 @@ def handleAlgorithmResults(
         msg += "\n" + "\n".join([f"• {lay}" for lay in wrong_layers]) + "\n"
         msg += QCoreApplication.translate(
             "Postprocessing",
-            "You can check the 'Log Messages Panel' in QGIS main window "
+            "You can check the 'Log Messages Panel' in the Hake Geospatial main window "
             "to find more information about the execution of the algorithm.",
         )
         feedback.reportError(msg)

@@ -5,6 +5,9 @@ import QtQuick.Controls
 Rectangle {
   id: root
 
+  property real layoutSizeFactor: 1
+  readonly property real tinyFontSize: Application.font.pointSize * 0.875 * layoutSizeFactor
+
   property string message: ""
   property string buttonText: qsTr("Install update")
 

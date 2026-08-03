@@ -52,7 +52,7 @@ add_library(qgis_quick_plugin ${LIBRARY_TYPE}
     ${QGIS_QUICK_PLUGIN_RESOURCES}
 )
 if(HAKE_M4A_RENAME_DLL_OUTPUTS OR QGISPOSTFIX)
-  hake_set_output_name(qgis_quick_plugin qgis_quick_plugin hake_quick_plugin)
+  hake_set_output_name(qgis_quick_plugin qgis_quick_plugin hakegis_quick_plugin)
 endif()
 
 target_link_libraries(qgis_quick_plugin qgis_quick)

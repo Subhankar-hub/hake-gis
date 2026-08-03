@@ -727,13 +727,20 @@ void QgsExpression::initVariableHelp()
 void QgsExpression::buildVariableHelp()
 {
   //global variables
-  sVariableHelpTexts()->insert( u"qgis_version"_s, QCoreApplication::translate( "variable_help", "Current QGIS version string." ) );
-  sVariableHelpTexts()->insert( u"qgis_version_no"_s, QCoreApplication::translate( "variable_help", "Current QGIS version number." ) );
-  sVariableHelpTexts()->insert( u"qgis_release_name"_s, QCoreApplication::translate( "variable_help", "Current QGIS release name." ) );
-  sVariableHelpTexts()->insert( u"qgis_short_version"_s, QCoreApplication::translate( "variable_help", "Short QGIS version string." ) );
+  sVariableHelpTexts()->insert( u"qgis_version"_s, QCoreApplication::translate( "variable_help", "Current Hake Geospatial - Desktop version string." ) );
+  sVariableHelpTexts()->insert( u"qgis_version_no"_s, QCoreApplication::translate( "variable_help", "Current Hake Geospatial - Desktop version number." ) );
+  sVariableHelpTexts()->insert( u"qgis_release_name"_s, QCoreApplication::translate( "variable_help", "Current Hake Geospatial - Desktop release name." ) );
+  sVariableHelpTexts()->insert( u"qgis_short_version"_s, QCoreApplication::translate( "variable_help", "Short Hake Geospatial - Desktop version string." ) );
   sVariableHelpTexts()->insert( u"qgis_os_name"_s, QCoreApplication::translate( "variable_help", "Operating system name, e.g., 'windows', 'linux' or 'osx'." ) );
-  sVariableHelpTexts()->insert( u"qgis_platform"_s, QCoreApplication::translate( "variable_help", "QGIS platform, e.g., 'desktop' or 'server'." ) );
-  sVariableHelpTexts()->insert( u"qgis_locale"_s, QCoreApplication::translate( "variable_help", "Two letter identifier for current QGIS locale." ) );
+  sVariableHelpTexts()->insert( u"qgis_platform"_s, QCoreApplication::translate( "variable_help", "Hake Geospatial - Desktop platform, e.g., 'desktop' or 'server'." ) );
+  sVariableHelpTexts()->insert( u"qgis_locale"_s, QCoreApplication::translate( "variable_help", "Two letter identifier for current Hake Geospatial - Desktop locale." ) );
+  sVariableHelpTexts()->insert( u"hake_version"_s, QCoreApplication::translate( "variable_help", "Current Hake Geospatial - Desktop version string (alias of qgis_version)." ) );
+  sVariableHelpTexts()->insert( u"hake_version_no"_s, QCoreApplication::translate( "variable_help", "Current Hake Geospatial - Desktop version number (alias of qgis_version_no)." ) );
+  sVariableHelpTexts()->insert( u"hake_release_name"_s, QCoreApplication::translate( "variable_help", "Current Hake Geospatial - Desktop release name (alias of qgis_release_name)." ) );
+  sVariableHelpTexts()->insert( u"hake_short_version"_s, QCoreApplication::translate( "variable_help", "Short Hake Geospatial - Desktop version string (alias of qgis_short_version)." ) );
+  sVariableHelpTexts()->insert( u"hake_os_name"_s, QCoreApplication::translate( "variable_help", "Operating system name, e.g., 'windows', 'linux' or 'osx' (alias of qgis_os_name)." ) );
+  sVariableHelpTexts()->insert( u"hake_platform"_s, QCoreApplication::translate( "variable_help", "Hake Geospatial - Desktop platform, e.g., 'desktop' or 'server' (alias of qgis_platform)." ) );
+  sVariableHelpTexts()->insert( u"hake_locale"_s, QCoreApplication::translate( "variable_help", "Two letter identifier for current Hake Geospatial - Desktop locale (alias of qgis_locale)." ) );
   sVariableHelpTexts()->insert( u"user_account_name"_s, QCoreApplication::translate( "variable_help", "Current user's operating system account name." ) );
   sVariableHelpTexts()->insert( u"user_full_name"_s, QCoreApplication::translate( "variable_help", "Current user's operating system user name (if available)." ) );
 

@@ -1119,16 +1119,16 @@ QgsProjectProperties::QgsProjectProperties( QgsMapCanvas *mapCanvas, QWidget *pa
 
   //fill ts language checkbox
   QString i18nPath = QgsApplication::i18nPath();
-  QDir i18Dir( i18nPath, u"qgis*.qm"_s );
+  QDir i18Dir( i18nPath, u"hakegis*.qm"_s );
   const QStringList qmFileList = i18Dir.entryList();
   for ( const QString &qmFile : qmFileList )
   {
     // Ignore the 'en' translation file, already added as 'en_US'.
-    if ( qmFile.compare( "qgis_en.qm"_L1 ) == 0 )
+    if ( qmFile.compare( "hakegis_en.qm"_L1 ) == 0 )
       continue;
 
     QString qmFileName = qmFile;
-    QString l = qmFileName.remove( u"qgis_"_s ).remove( u".qm"_s );
+    QString l = qmFileName.remove( u"hakegis_"_s ).remove( u".qm"_s );
 
     // QTBUG-57802: eo locale is improperly handled
     QString displayName = l.startsWith( "eo"_L1 ) ? QLocale::languageToString( QLocale::Esperanto ) : QLocale( l ).nativeLanguageName();

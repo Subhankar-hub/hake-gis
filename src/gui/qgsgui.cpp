@@ -327,7 +327,7 @@ QgsGui::QgsGui()
 {
 #ifdef Q_OS_MAC
   auto macNative = std::make_unique<QgsMacNative>();
-  macNative->setIconPath( QgsApplication::iconsPath() + u"qgis-icon-macos.png"_s );
+  macNative->setIconPath( QgsApplication::iconsPath() + u"hake-gis-icon-macos.png"_s );
   mNative = std::move( macNative );
 #elif defined( Q_OS_WIN )
 #ifndef __MINGW32__

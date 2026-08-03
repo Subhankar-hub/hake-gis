@@ -696,6 +696,16 @@ QString Qgis::releaseName()
   return QString::fromUtf8( RELEASE_NAME );
 }
 
+QString Qgis::productDisplayName()
+{
+  return QString::fromUtf8( HAKE_PRODUCT_DISPLAY_NAME );
+}
+
+QString Qgis::productVersionLabel()
+{
+  return QString::fromUtf8( HAKE_PRODUCT_VERSION_LABEL );
+}
+
 QString Qgis::devVersion()
 {
   return QString::fromUtf8( QGIS_DEV_VERSION );

@@ -6,7 +6,9 @@ macro(ADD_TRANSLATION_FILES _sources )
       get_filename_component(_in ${_current_FILE} ABSOLUTE)
       get_filename_component(_basename ${_current_FILE} NAME_WE)
 
-      set(_out ${QGIS_OUTPUT_DIRECTORY}/i18n/${_basename}.qm)
+      # Source .ts files remain qgis_<locale>.ts; install artifacts are hakegis_<locale>.qm
+      string(REGEX REPLACE "^qgis_" "hakegis_" _install_basename "${_basename}")
+      set(_out ${QGIS_OUTPUT_DIRECTORY}/i18n/${_install_basename}.qm)
 
       add_custom_command(
          OUTPUT ${_out}

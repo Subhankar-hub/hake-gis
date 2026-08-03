@@ -17,7 +17,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>About Hake Geospatial</string>
+   <string>About Hake-GIS Desktop 2026</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -101,36 +101,6 @@
          </item>
          <item>
           <property name="text">
-           <string>Providers</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Developers</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Contributors</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Contributors Map</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Translators</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Donors</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
            <string>License</string>
           </property>
          </item>
@@ -200,7 +170,7 @@
                 </size>
                </property>
                <property name="pixmap">
-                <pixmap>:/images/icons/qgis-full.png</pixmap>
+                <pixmap>:/images/icons/hake-gis-full.png</pixmap>
                </property>
                <property name="scaledContents">
                 <bool>true</bool>
@@ -232,7 +202,7 @@
            <item>
             <widget class="QLabel" name="label_3">
              <property name="text">
-              <string>Hake Geospatial is licensed under the GNU General Public License</string>
+              <string>Hake Geospatial - Desktop is licensed under the GNU General Public License</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignCenter</set>
@@ -254,7 +224,7 @@
              <item>
               <widget class="QPushButton" name="btnQgisHome">
                <property name="text">
-                <string>Hake Geospatial Home Page</string>
+                <string>Hake Geospatial - Desktop Home Page</string>
                </property>
                <property name="flat">
                 <bool>false</bool>
@@ -291,157 +261,6 @@
            </property>
            <item>
             <widget class="QTextBrowser" name="txtWhatsNew"/>
-           </item>
-          </layout>
-         </widget>
-         <widget class="QWidget" name="page_2">
-          <layout class="QVBoxLayout" name="verticalLayout_6">
-           <property name="leftMargin">
-            <number>0</number>
-           </property>
-           <property name="topMargin">
-            <number>0</number>
-           </property>
-           <property name="rightMargin">
-            <number>0</number>
-           </property>
-           <property name="bottomMargin">
-            <number>0</number>
-           </property>
-           <item>
-            <widget class="QTextBrowser" name="txtProviders"/>
-           </item>
-          </layout>
-         </widget>
-         <widget class="QWidget" name="page_3">
-          <layout class="QGridLayout" name="gridLayout">
-           <property name="leftMargin">
-            <number>0</number>
-           </property>
-           <property name="topMargin">
-            <number>0</number>
-           </property>
-           <property name="rightMargin">
-            <number>0</number>
-           </property>
-           <property name="bottomMargin">
-            <number>0</number>
-           </property>
-           <item row="0" column="0" rowspan="2">
-            <widget class="QListWidget" name="lstDevelopers">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="alternatingRowColors">
-              <bool>true</bool>
-             </property>
-             <property name="isWrapping" stdset="0">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-         <widget class="QWidget" name="page_4">
-          <layout class="QVBoxLayout" name="verticalLayout_7">
-           <property name="leftMargin">
-            <number>0</number>
-           </property>
-           <property name="topMargin">
-            <number>0</number>
-           </property>
-           <property name="rightMargin">
-            <number>0</number>
-           </property>
-           <property name="bottomMargin">
-            <number>0</number>
-           </property>
-           <item>
-            <widget class="QListWidget" name="lstContributors">
-             <property name="alternatingRowColors">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-         <widget class="QWidget" name="contributorsMap">
-          <layout class="QGridLayout" name="gridLayout_2">
-           <property name="leftMargin">
-            <number>0</number>
-           </property>
-           <property name="topMargin">
-            <number>0</number>
-           </property>
-           <property name="rightMargin">
-            <number>0</number>
-           </property>
-           <property name="bottomMargin">
-            <number>0</number>
-           </property>
-           <item row="0" column="0">
-            <widget class="QgsContributorsMapCanvas" name="contributorsMapCanvas" native="true">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-         <widget class="QWidget" name="page_5">
-          <layout class="QVBoxLayout" name="verticalLayout_8">
-           <property name="leftMargin">
-            <number>0</number>
-           </property>
-           <property name="topMargin">
-            <number>0</number>
-           </property>
-           <property name="rightMargin">
-            <number>0</number>
-           </property>
-           <property name="bottomMargin">
-            <number>0</number>
-           </property>
-           <item>
-            <widget class="QgsWebView" name="txtTranslators" native="true">
-             <property name="url" stdset="0">
-              <url>
-               <string notr="true">about:blank</string>
-              </url>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-         <widget class="QWidget" name="page_7">
-          <layout class="QVBoxLayout" name="verticalLayout_10">
-           <property name="leftMargin">
-            <number>0</number>
-           </property>
-           <property name="topMargin">
-            <number>0</number>
-           </property>
-           <property name="rightMargin">
-            <number>0</number>
-           </property>
-           <property name="bottomMargin">
-            <number>0</number>
-           </property>
-           <item>
-            <widget class="QTextBrowser" name="txtDonors">
-             <property name="openExternalLinks">
-              <bool>true</bool>
-             </property>
-             <property name="openLinks">
-              <bool>true</bool>
-             </property>
-            </widget>
            </item>
           </layout>
          </widget>

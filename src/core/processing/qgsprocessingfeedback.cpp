@@ -17,6 +17,8 @@
 
 #include "qgsprocessingfeedback.h"
 
+#include "qgis.h"
+
 #include <gdal_version.h>
 #include <ogr_api.h>
 #include <proj.h>
@@ -148,7 +150,8 @@ void QgsProcessingFeedback::pushConsoleInfo( const QString &info )
 
 void QgsProcessingFeedback::pushVersionInfo( const QgsProcessingProvider *provider )
 {
-  pushDebugInfo( tr( "Hake Geospatial version: %1" ).arg( Qgis::version() ) );
+  pushDebugInfo( tr( "Product: %1" ).arg( Qgis::productDisplayName() ) );
+  pushDebugInfo( tr( "Build version: %1" ).arg( Qgis::version() ) );
   if ( QString( Qgis::devVersion() ) != "exported"_L1 )
   {
     pushDebugInfo( tr( "Hake Geospatial code revision: %1" ).arg( Qgis::devVersion() ) );

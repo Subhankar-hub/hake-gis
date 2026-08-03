@@ -131,7 +131,7 @@ QString QgsDecorationImage::imagePath()
     }
   }
 
-  return u":/images/icons/qgis-icon-minimal-black.svg"_s;
+  return QgsApplication::appIconSvgResourcePath();
 }
 
 void QgsDecorationImage::render( const QgsMapSettings &mapSettings, QgsRenderContext &context )

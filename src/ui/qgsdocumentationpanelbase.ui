@@ -81,7 +81,7 @@
   <action name="mActionPyQgis">
    <property name="icon">
     <iconset resource="../../images/images.qrc">
-     <normaloff>:/images/icons/qgis_icon.svg</normaloff>:/images/icons/qgis_icon.svg</iconset>
+     <normaloff>:/images/svg/logos/hake-gis-icon.svg</normaloff>:/images/svg/logos/hake-gis-icon.svg</iconset>
    </property>
    <property name="text">
     <string>PyHake Geospatial API Documentation</string>

@@ -44,7 +44,7 @@
       <string/>
      </property>
      <property name="pixmap">
-      <pixmap>../../images/icons/qgis-icon-16x16.png</pixmap>
+      <pixmap>../../images/icons/hake-gis-icon-16x16.png</pixmap>
      </property>
      <property name="alignment">
       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>

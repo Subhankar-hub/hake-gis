@@ -43,7 +43,7 @@ QString QgsDateTimeEditPlugin::includeFile() const
 
 QIcon QgsDateTimeEditPlugin::icon() const
 {
-  return QIcon( ":/images/icons/qgis-icon-60x60.png" );
+  return QIcon( ":/images/icons/hake-gis-icon-60x60.png" );
 }
 
 bool QgsDateTimeEditPlugin::isContainer() const

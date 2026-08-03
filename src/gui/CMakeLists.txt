@@ -1919,7 +1919,7 @@ add_library(qgis_gui ${LIBRARY_TYPE}
   ${QGIS_GUI_SRCS} ${QGIS_GUI_HDRS} ${QGIS_GUI_PRIVATE_HDRS}
 )
 if(HAKE_M4A_RENAME_DLL_OUTPUTS OR QGISPOSTFIX)
-  hake_set_output_name(qgis_gui qgis_gui hake_gui)
+  hake_set_output_name(qgis_gui qgis_gui hakegis_gui)
 endif()
 
 if (USE_PRECOMPILED_HEADERS)

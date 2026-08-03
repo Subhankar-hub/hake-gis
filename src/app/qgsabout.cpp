@@ -18,19 +18,13 @@
 #include "qgsabout.h"
 
 #include "qgsapplication.h"
-#include "qgsauthmethodregistry.h"
-#include "qgscontributorsmapcanvas.h"
 #include "qgslogger.h"
-#include "qgsproviderregistry.h"
 
 #include <QClipboard>
 #include <QDesktopServices>
 #include <QFile>
-#include <QImageReader>
 #include <QRegularExpression>
-#include <QSqlDatabase>
 #include <QString>
-#include <QTextStream>
 #include <QUrl>
 
 #include "moc_qgsabout.cpp"
@@ -66,132 +60,12 @@ QgsAbout::QgsAbout( QWidget *parent )
 
 void QgsAbout::init()
 {
-  setPluginInfo();
-
-  //read the authors file to populate the svn committers list
-  QStringList lines;
-
-  //
-  // Load the authors (svn committers) list
-  //
-  QFile file( QgsApplication::authorsFilePath() );
-  if ( file.open( QIODevice::ReadOnly ) )
-  {
-    QTextStream stream( &file );
-    QString line;
-    while ( !stream.atEnd() )
-    {
-      line = stream.readLine(); // line of text excluding '\n'
-      //ignore the line if it starts with a hash....
-      if ( !line.isEmpty() && line.at( 0 ) == '#' )
-        continue;
-      QStringList myTokens = line.split( '\t', Qt::SkipEmptyParts );
-      lines << myTokens[0];
-    }
-    file.close();
-    lstDevelopers->clear();
-    lstDevelopers->insertItems( 0, lines );
-
-    if ( lstDevelopers->count() > 0 )
-    {
-      lstDevelopers->setCurrentRow( 0 );
-    }
-  }
-
-  lines.clear();
-  //
-  // Now load up the contributors list
-  //
-  QFile file2( QgsApplication::contributorsFilePath() );
-  if ( file2.open( QIODevice::ReadOnly ) )
-  {
-    QTextStream stream( &file2 );
-    QString line;
-    while ( !stream.atEnd() )
-    {
-      line = stream.readLine(); // line of text excluding '\n'
-      //ignore the line if it starts with a hash....
-      if ( !line.isEmpty() && line.at( 0 ) == '#' )
-        continue;
-      lines += line;
-    }
-    file2.close();
-    lstContributors->clear();
-    lstContributors->insertItems( 0, lines );
-    if ( lstContributors->count() > 0 )
-    {
-      lstContributors->setCurrentRow( 0 );
-    }
-  }
-
-  // read the DONORS file and populate the text widget
-  QFile donorsFile( QgsApplication::donorsFilePath() );
-  if ( donorsFile.open( QIODevice::ReadOnly ) )
-  {
-    const QString donorsHTML = tr(
-      "<p>For a list of individuals and institutions who have contributed "
-      "money to fund Hake Geospatial development and other project costs see "
-      "<a href=\"https://haketech.com/\">"
-      "https://haketech.com/</a></p>"
-    );
-#if 0
-    QString website;
-    QTextStream donorsStream( &donorsFile );
-    // Always use UTF-8
-    donorsStream.setCodec( "UTF-8" );
-    QString sline;
-    while ( !donorsStream.atEnd() )
-    {
-      sline = donorsStream.readLine(); // line of text excluding '\n'
-      //ignore the line if it starts with a hash....
-      if ( sline.left( 1 ) == "#" )
-        continue;
-      QStringList myTokens = sline.split( '|', QString::SkipEmptyParts );
-      if ( myTokens.size() > 1 )
-      {
-        website = "<a href=\"" + myTokens[1].remove( ' ' ) + "\">" + myTokens[1] + "</a>";
-      }
-      else
-      {
-        website = "&nbsp;";
-      }
-      donorsHTML += "<tr>";
-      donorsHTML += "<td>" + myTokens[0] + "</td><td>" + website + "</td>";
-      // close the row
-      donorsHTML += "</tr>";
-    }
-    donorsHTML += "</table>";
-#endif
-
-    txtDonors->clear();
-    txtDonors->document()->setDefaultStyleSheet( QgsApplication::reportStyleSheet() );
-    txtDonors->setHtml( donorsHTML );
-    QgsDebugMsgLevel( u"donorsHTML:%1"_s.arg( donorsHTML.toLatin1().constData() ), 2 );
-  }
-
-  // read the TRANSLATORS file and populate the text widget
-  QFile translatorFile( QgsApplication::translatorsFilePath() );
-  if ( translatorFile.open( QIODevice::ReadOnly ) )
-  {
-    QString translatorHTML;
-    QTextStream translatorStream( &translatorFile );
-    // Always use UTF-8
-    const QString myStyle = QgsApplication::reportStyleSheet();
-    translatorHTML += "<style>" + myStyle + "</style>";
-    while ( !translatorStream.atEnd() )
-    {
-      translatorHTML += translatorStream.readLine();
-    }
-    txtTranslators->setHtml( translatorHTML );
-    QgsDebugMsgLevel( u"translatorHTML:%1"_s.arg( translatorHTML.toLatin1().constData() ), 2 );
-  }
   setWhatsNew();
   setLicence();
 }
 
 void QgsAbout::setLicence()
 {
-  // read the DONORS file and populate the text widget
   QFile licenceFile( QgsApplication::licenceFilePath() );
   QgsDebugMsgLevel( u"Reading licence file %1"_s.arg( licenceFile.fileName() ), 2 );
   if ( licenceFile.open( QIODevice::ReadOnly ) )
@@ -216,41 +90,6 @@ void QgsAbout::setWhatsNew()
     return;
 
   txtWhatsNew->setSource( QString( "file:///" + QgsApplication::pkgDataPath() + "/doc/NEWS.html" ) );
-}
-
-void QgsAbout::setPluginInfo()
-{
-  QString myString;
-  //provide info about the plugins available
-  myString += "<b>" + tr( "Available Hake Geospatial Data Provider Plugins" ) + "</b><br>";
-  myString += QgsProviderRegistry::instance()->pluginList( true );
-  myString += "<b>" + tr( "Available Hake Geospatial Authentication Method Plugins" ) + "</b><br>";
-  myString += QgsAuthMethodRegistry::instance()->pluginList( true );
-  //qt database plugins
-  myString += "<b>" + tr( "Available Qt Database Plugins" ) + "</b><br>";
-  myString += "<ol>\n<li>\n"_L1;
-  const QStringList myDbDriverList = QSqlDatabase::drivers();
-  myString += myDbDriverList.join( "</li>\n<li>"_L1 );
-  myString += "</li>\n</ol>\n"_L1;
-  //qt image plugins
-  myString += "<b>" + tr( "Available Qt Image Plugins" ) + "</b><br>";
-  myString += tr( "Qt Image Plugin Search Paths <br>" );
-  myString += QApplication::libraryPaths().join( "<br>"_L1 );
-  myString += "<ol>\n<li>\n"_L1;
-  const QList<QByteArray> myImageFormats = QImageReader::supportedImageFormats();
-  QList<QByteArray>::const_iterator myIterator = myImageFormats.constBegin();
-  while ( myIterator != myImageFormats.constEnd() )
-  {
-    const QString myFormat = ( *myIterator ).data();
-    myString += myFormat + "</li>\n<li>";
-    ++myIterator;
-  }
-  myString += "</li>\n</ol>\n"_L1;
-
-  const QString myStyle = QgsApplication::reportStyleSheet();
-  txtProviders->clear();
-  txtProviders->document()->setDefaultStyleSheet( myStyle );
-  txtProviders->setText( myString );
 }
 
 void QgsAbout::btnCopyToClipboard_clicked()

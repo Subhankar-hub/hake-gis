@@ -12,6 +12,13 @@ Item {
   id: welcomeScreen
 
   property bool narrowLayout: height < 350 || width < 480
+  property real layoutSizeFactor: width > 1200 && height > 880 ? 1.25 : 1
+
+  property real titleFontSize: Application.font.pointSize * 1.3 * layoutSizeFactor
+  property real largeFontSize: Application.font.pointSize * 1.1 * layoutSizeFactor
+  property real normalFontSize: Application.font.pointSize * layoutSizeFactor
+  property real smallFontSize: Application.font.pointSize * 0.925 * layoutSizeFactor
+  property real tinyFontSize: Application.font.pointSize * 0.875 * layoutSizeFactor
 
   visible: height >= 300 && width >= 360
   width: 1100
@@ -66,7 +73,7 @@ Item {
           Text {
             width: parent.width
             text: qsTr("Turning Spatial Information to Knowledge")
-            font.pointSize: Application.font.pointSize
+            font.pointSize: normalFontSize
             font.bold: true
             wrapMode: Text.WordWrap
 
@@ -106,7 +113,7 @@ Item {
 
               TabButton {
                 text: qsTr("Recent")
-                font.pointSize: Application.font.pointSize * 1.1
+                font.pointSize: largeFontSize
                 font.bold: true
                 visible: recentProjectsListView.count > 0
                 width: recentProjectsListView.count > 0 ? implicitWidth : 0
@@ -115,7 +122,7 @@ Item {
               TabButton {
                 text: qsTr("Templates")
                 width: implicitWidth
-                font.pointSize: Application.font.pointSize * 1.1
+                font.pointSize: largeFontSize
                 font.bold: true
                 background: null
               }
@@ -138,6 +145,7 @@ Item {
 
               delegate: ProjectCard {
                 width: recentProjectsListView.width - 12
+                layoutSizeFactor: welcomeScreen.layoutSizeFactor
                 title: Title || ""
                 // Add invisible spaces after slash and backslash characters to help wrapping paths
                 subtitle: (ProjectNativePath || ProjectPath || "").replace(/([\\\/])/g,"$1\u200b")
@@ -298,6 +306,7 @@ Item {
 
               delegate: ProjectCard {
                 width: templatesListView.width - 12
+                layoutSizeFactor: welcomeScreen.layoutSizeFactor
                 backgroundColor: CanvasColor || "#ffffff"
                 title: Title || ""
                 subtitle: Crs || ""
@@ -362,8 +371,8 @@ Item {
 
             Text {
               Layout.fillWidth: true
-              text: newsSwitch.checked && newsListView.count != 0 ? qsTr("Latest news") : qsTr("Welcome to Hake Geospatial - DesktopVersion - 2026!")
-              font.pointSize: Application.font.pointSize * 1.3
+              text: newsSwitch.checked && newsListView.count != 0 ? qsTr("Latest news") : qsTr("Welcome to Hake-GIS Desktop 2026!")
+              font.pointSize: titleFontSize
               font.bold: true
               color: "#ffffff"
               elide: Text.ElideRight
@@ -398,7 +407,7 @@ Item {
                 x: newsSwitch.checked ? 10 : 30
                 anchors.verticalCenter: parent.verticalCenter
                 text: qsTr("News")
-                font.pointSize: Application.font.pointSize * 0.8
+                font.pointSize: tinyFontSize
                 font.bold: true
                 color: newsSwitch.checked ? "#ffffff" : "#666666"
               }
@@ -471,7 +480,7 @@ Item {
                   anchors.fill: parent
                   anchors.margins: 16
                   text: qsTr("Unlock the power of geo-located data with Hake Geospatial’s Desktop Business Intelligence solutions. Gain actionable insights into subscriber, device, and network performance through advanced analytics designed to support smarter business decisions..")
-                  font.pointSize: Application.font.pointSize * 0.8
+                  font.pointSize: tinyFontSize
                   color: "black"
                   wrapMode: Text.WordWrap
                   lineHeight: 1.3
@@ -493,7 +502,7 @@ Item {
 
                   Text {
                     text: qsTr("Stay up to date!")
-                    font.pointSize: Application.font.pointSize
+                    font.pointSize: normalFontSize
                     font.bold: true
                     color: "black"
                   }
@@ -501,7 +510,7 @@ Item {
                   Text {
                     Layout.fillWidth: true
                     text: qsTr("Would you like to enable the Hake Geospatial news feed to stay updated on new features, releases, and community highlights?")
-                    font.pointSize: Application.font.pointSize * 0.8
+                    font.pointSize: tinyFontSize
                     color: "black"
                     wrapMode: Text.WordWrap
                   }
@@ -518,7 +527,7 @@ Item {
                       id: enableNewsText
                       anchors.centerIn: parent
                       text: qsTr("Enable news feed")
-                      font.pointSize: Application.font.pointSize * 0.8
+                      font.pointSize: tinyFontSize
                       color: "black"
                     }
 
@@ -550,6 +559,7 @@ Item {
             delegate: NewsCard {
               radius: 6
               width: newsListView.width - 12
+              layoutSizeFactor: welcomeScreen.layoutSizeFactor
               title: Title
               description: Content
               imageSource: ImageUrl
@@ -647,6 +657,7 @@ Item {
 
     UpdateNotificationBar {
       id: pluginsUpdateBar
+      layoutSizeFactor: welcomeScreen.layoutSizeFactor
       Layout.fillWidth: true
       Layout.preferredHeight: 50
       radius: 16
@@ -661,6 +672,7 @@ Item {
 
     UpdateNotificationBar {
       id: qgisUpdateBar
+      layoutSizeFactor: welcomeScreen.layoutSizeFactor
       Layout.fillWidth: true
       Layout.preferredHeight: 50
       radius: 16
@@ -689,7 +701,7 @@ Item {
     target: welcomeScreenController
     
     function onNewVersionAvailable(versionString) {
-      qgisUpdateBar.message = qsTr("Hake Geospatial %1 is out!").arg(versionString);
+      qgisUpdateBar.message = qsTr("Hake Geospatial - Desktop %1 is out!").arg(versionString);
       qgisUpdateBar.visible = true;
     }
     

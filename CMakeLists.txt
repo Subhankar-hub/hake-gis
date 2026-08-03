@@ -78,6 +78,8 @@ set(CPACK_PACKAGE_VERSION_MINOR "0")
 set(CPACK_PACKAGE_VERSION_PATCH "2")
 set(COMPLETE_VERSION ${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH})
 set(RELEASE_NAME "Norrköping")
+set(HAKE_PRODUCT_DISPLAY_NAME "Hake-GIS Desktop 2026" CACHE STRING "User-facing product name shown in UI and installers")
+set(HAKE_PRODUCT_VERSION_LABEL "2026" CACHE STRING "User-facing product version label (e.g. year-based release)")
 project(hake-gis VERSION ${COMPLETE_VERSION})
 
 set(QGIS_APP_NAME "hake-gis" CACHE STRING "The main app name and bundle name")
@@ -1152,6 +1154,14 @@ if(WITH_VCPKG AND NOT VCPKG_APPLOCAL_DEPS AND WIN32)
     configure_file("${CMAKE_SOURCE_DIR}/ms-windows/dev/hake-gis.env.in" "${QGIS_OUTPUT_DIRECTORY}/${QGIS_BIN_SUBDIR}/hake-gis.env")
 endif()
 
+# Ship a short install-local env file with the Windows package.
+# Uses {app}/{prefix} tokens expanded by mainwin.cpp — never copies the host machine PATH.
+if(WIN32)
+  install(FILES "${CMAKE_SOURCE_DIR}/ms-windows/installer/hake-gis.env.in"
+          DESTINATION "${QGIS_BIN_SUBDIR}"
+          RENAME "hake-gis.env")
+endif()
+
 # manual page - makes sense only on unix systems
 if (UNIX AND NOT APPLE)
   set (DEFAULT_MANUAL_SUBDIR  man)
@@ -1273,7 +1283,8 @@ if (WITH_CORE)
     install (FILES qgis.1 DESTINATION ${QGIS_MANUAL_DIR}/man1)
   endif()
 
-  install(FILES cmake/FindQGIS.cmake DESTINATION ${QGIS_DATA_DIR})
+  # Do not ship FindQGIS.cmake — proprietary end-user product, not an SDK for
+  # third-party CMake consumers.
 endif()
 
 if (ENABLE_TESTS)

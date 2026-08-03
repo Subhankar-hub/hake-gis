@@ -29,7 +29,7 @@ ALTERNATE_AVATARS_DIR = os.path.join(
 )
 
 QGIS_ICON_PATH = os.path.join(
-    os.path.dirname(os.path.realpath(__file__)), "../images/icons/qgis_icon.svg"
+    os.path.dirname(os.path.realpath(__file__)), "../images/svg/logos/hake-gis-icon.svg"
 )
 
 

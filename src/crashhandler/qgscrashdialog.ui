@@ -258,7 +258,7 @@
       <string/>
      </property>
      <property name="pixmap">
-      <pixmap resource="../../images/images.qrc">:/images/icons/qgis_icon.svg</pixmap>
+      <pixmap resource="../../images/images.qrc">:/images/svg/logos/hake-gis-icon.svg</pixmap>
      </property>
      <property name="scaledContents">
       <bool>true</bool>

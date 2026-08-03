@@ -43,7 +43,7 @@ QString QgsFilterLineEditPlugin::includeFile() const
 
 QIcon QgsFilterLineEditPlugin::icon() const
 {
-  return QIcon( ":/images/icons/qgis-icon-60x60.png" );
+  return QIcon( ":/images/icons/hake-gis-icon-60x60.png" );
 }
 
 bool QgsFilterLineEditPlugin::isContainer() const

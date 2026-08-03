@@ -34,12 +34,12 @@ Qgs3DAlgorithms::Qgs3DAlgorithms( QObject *parent )
 
 QIcon Qgs3DAlgorithms::icon() const
 {
-  return QgsApplication::getThemeIcon( u"/providerQgis.svg"_s );
+  return QgsApplication::getThemeIcon( u"/providerHakeGis.svg"_s );
 }
 
 QString Qgs3DAlgorithms::svgIconPath() const
 {
-  return QgsApplication::iconPath( u"providerQgis.svg"_s );
+  return QgsApplication::iconPath( u"providerHakeGis.svg"_s );
 }
 
 QString Qgs3DAlgorithms::id() const
