@@ -133,10 +133,32 @@ jobs:
           # To make ccache work properly with precompiled headers
           ccache --set-config sloppiness=pch_defines,time_macros,include_file_mtime,include_file_ctime
 
+      - name: 🍓 Setup Strawberry Perl for vcpkg/openssl
+        shell: powershell
+        run: |
+          choco install strawberryperl -y --no-progress
+
+          $perl = "C:\Strawberry\perl\bin\perl.exe"
+          if (!(Test-Path $perl)) {
+            $perl = (Get-ChildItem "C:\Strawberry" -Recurse -Filter perl.exe -ErrorAction SilentlyContinue |
+                     Select-Object -First 1).FullName
+          }
+
+          if (!(Test-Path $perl)) {
+            throw "Strawberry Perl was not found after installation"
+          }
+
+          $perlBin = Split-Path $perl
+          Add-Content -Path $env:GITHUB_PATH -Value $perlBin
+          Add-Content -Path $env:GITHUB_ENV -Value "PERL=$perl"
+
+          & $perl -v
+
       - name: 🌱 Install dependencies and generate project files
         shell: bash
         env:
           X_VCPKG_ASSET_SOURCES: x-azurl,https://assetcache.open-vcpkg.org/assetcache,,read
+          PERL: C:\Strawberry\perl\bin\perl.exe
         run: |
           BUILD_DIR=$( cygpath "${{ github.workspace }}/build" )
           SOURCE_DIR=$( cygpath "${{ github.workspace }}" )
