@@ -810,7 +810,7 @@
         <file>themes/default/mActionCircle3Tangents.svg</file>
         <file>themes/default/mActionAddGeoPackageLayer.svg</file>
         <file>themes/default/mActionFindReplace.svg</file>
-        <file alias="svg/logos/hake-gis-icon.svg">../svg/logos/hake-gis-icon.svg</file>
+        <file alias="svg/logos/hake-gis-icon.svg">svg/logos/hake-gis-icon.svg</file>
         <file>themes/default/mActionCircle2TangentsPoint.svg</file>
         <file>themes/default/mActionRegularPolygonCenterPoint.svg</file>
         <file>themes/default/3d.svg</file>
