@@ -152,13 +152,6 @@ jobs:
           Add-Content -Path $env:GITHUB_PATH -Value $perlBin
           Add-Content -Path $env:GITHUB_ENV -Value "PERL=$perl"
 
-          # Git for Windows usr/bin includes a broken perl.exe; keep cygpath via full path in bash.
-          $filtered = $env:PATH -split ';' | Where-Object {
-            $_ -and $_ -notmatch '(?i)[\\/]Git[\\/]usr[\\/]bin$'
-          }
-          $newPath = "$perlBin;" + ($filtered -join ';')
-          Add-Content -Path $env:GITHUB_ENV -Value "PATH=$newPath"
-
           & $perl -v
 
       - name: 🌱 Install dependencies and generate project files
@@ -166,12 +159,17 @@ jobs:
         env:
           X_VCPKG_ASSET_SOURCES: x-azurl,https://assetcache.open-vcpkg.org/assetcache,,read
           PERL: C:\Strawberry\perl\bin\perl.exe
+          DISTUTILS_USE_SDK: 1
         run: |
-          export PATH="/c/Strawberry/perl/bin:$(echo "$PATH" | tr ':' '\n' | grep -iv 'git/usr/bin' | paste -sd: -)"
           export PERL="/c/Strawberry/perl/bin/perl.exe"
           echo "Using PERL=$PERL"
-          command -v perl
-          perl -v
+
+          # Local vcpkg Python builds invoke vcvarsall via setuptools; trim PATH to avoid
+          # cmd.exe "The input line is too long" (NuGet misses force local py-cython builds).
+          CMAKE_BIN=$(dirname "$(command -v cmake)")
+          NINJA_BIN="/c/Program Files/Microsoft Visual Studio/2022/Enterprise/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja"
+          export PATH="/c/Strawberry/perl/bin:/c/mingw64/bin:/c/.vcpkg:${CMAKE_BIN}:${NINJA_BIN}:/c/Windows/system32:/c/Windows"
+          echo "PATH length: ${#PATH}"
 
           BUILD_DIR=$( "/c/Program Files/Git/usr/bin/cygpath" "${{ github.workspace }}/build" )
           SOURCE_DIR=$( "/c/Program Files/Git/usr/bin/cygpath" "${{ github.workspace }}" )

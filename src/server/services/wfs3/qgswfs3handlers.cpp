@@ -2050,7 +2050,11 @@ void QgsWfs3CollectionsItemsHandler::writeJsonOutput( const QgsVectorLayer *mapL
 
 void QgsWfs3CollectionsItemsHandler::writeFlatGeobufOutput( const QgsVectorLayer *mapLayer, QgsFeatureRequest &featureRequest, const QgsServerApiContext &apiContext, const ExportContext &exportContext ) const
 {
+#if GDAL_VERSION_NUM >= GDAL_COMPUTE_VERSION( 3, 10, 0 )
   const QString destination = VSIMemGenerateHiddenFilename( "data.fgb" );
+#else
+  const QString destination = QString( "/vsimem/qgs_wfs3_%1_data.fgb" ).arg( reinterpret_cast<quintptr>( this ) );
+#endif
   // RIIA deleter for generated file
   QObject obj;
   obj.connect( &obj, &QObject::destroyed, [destination]() { VSIUnlink( destination.toStdString().c_str() ); } );
