@@ -166,13 +166,21 @@ jobs:
 
           # Local vcpkg Python builds invoke vcvarsall via setuptools; trim PATH to avoid
           # cmd.exe "The input line is too long" (NuGet misses force local py-cython builds).
-          # Capture MSVC cl.exe before rewriting PATH — without it, CMake+Ninja picks
-          # MinGW from /c/mingw64/bin and cannot link MSVC-built Qt import libs.
+          # Capture MSVC + Windows SDK tools before rewriting PATH:
+          # - without cl, CMake+Ninja picks MinGW and cannot link MSVC Qt import libs
+          # - without rc, CMake's MSVC ABI check fails (RC Pass 1 / manifest.rc)
           CL_BINDIR=$(dirname "$(command -v cl.exe || command -v cl)")
+          RC_BINDIR=$(dirname "$(command -v rc.exe || command -v rc)")
+          if [ -z "${CL_BINDIR}" ] || [ -z "${RC_BINDIR}" ]; then
+            echo "MSVC cl and/or Windows SDK rc not found on PATH before trim" >&2
+            echo "cl=$(command -v cl.exe || command -v cl || true) rc=$(command -v rc.exe || command -v rc || true)" >&2
+            exit 1
+          fi
           CMAKE_BIN=$(dirname "$(command -v cmake)")
           NINJA_BIN="/c/Program Files/Microsoft Visual Studio/2022/Enterprise/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja"
-          export PATH="${CL_BINDIR}:/c/Strawberry/perl/bin:/c/.vcpkg:${CMAKE_BIN}:${NINJA_BIN}:/c/Windows/system32:/c/Windows"
+          export PATH="${CL_BINDIR}:${RC_BINDIR}:/c/Strawberry/perl/bin:/c/.vcpkg:${CMAKE_BIN}:${NINJA_BIN}:/c/Windows/system32:/c/Windows"
           echo "Using MSVC from ${CL_BINDIR}"
+          echo "Using Windows SDK rc from ${RC_BINDIR}"
           echo "PATH length: ${#PATH}"
 
           BUILD_DIR=$( "/c/Program Files/Git/usr/bin/cygpath" "${{ github.workspace }}/build" )
