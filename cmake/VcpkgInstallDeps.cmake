@@ -62,20 +62,29 @@ if(WITH_BINDINGS)
 endif()
 
 function(fixup_shebang INPUT_FILE OUTPUT_VARIABLE)
-  get_filename_component(_FILE ${INPUT_FILE} NAME)
-  file(READ ${INPUT_FILE} CONTENTS)
+  get_filename_component(_FILE "${INPUT_FILE}" NAME)
+
+  if(NOT EXISTS "${INPUT_FILE}")
+    message(STATUS "fixup_shebang: missing file '${INPUT_FILE}', skipping")
+    set(${OUTPUT_VARIABLE} "" PARENT_SCOPE)
+    return()
+  endif()
+
+  file(READ "${INPUT_FILE}" CONTENTS)
   string(REGEX MATCH "^#!" SHEBANG_PRESENT "${CONTENTS}")
-  if (NOT SHEBANG_PRESENT)
-    message(FATAL_ERROR "File ${INPUT_FILE} does not start with a shebang (#!).")
+  if(NOT SHEBANG_PRESENT)
+    message(STATUS "fixup_shebang: no shebang in '${INPUT_FILE}', skipping")
+    set(${OUTPUT_VARIABLE} "" PARENT_SCOPE)
+    return()
   endif()
 
   # Replace the first line
-  string(REGEX REPLACE "^#![^\n]*" "#!/bin/sh\n\"exec\" \"\`dirname \$0\`/python\" \"\$0\" \"\$@\"" TRANSFORMED_CONTENTS "${CONTENTS}")
+  string(REGEX REPLACE "^#![^\n]*" "#!/bin/sh\n\"exec\" \"`dirname \\$0`/python\" \"\\$0\" \"\\$@\"" TRANSFORMED_CONTENTS "${CONTENTS}")
   
   # Write the transformed contents to the output file
   set(OUTPUT_FILE "${CMAKE_BINARY_DIR}/bundled_program/${_FILE}")
   file(WRITE "${OUTPUT_FILE}" "${TRANSFORMED_CONTENTS}")
-  set(${OUTPUT_VARIABLE} ${OUTPUT_FILE} PARENT_SCOPE)
+  set(${OUTPUT_VARIABLE} "${OUTPUT_FILE}" PARENT_SCOPE)
 endfunction()
 
 if(NOT EMSCRIPTEN)
@@ -149,8 +158,12 @@ if(NOT EMSCRIPTEN)
       fixup_shebang("${FILE}" OUTPUT_FILE)
       fixup_shebang("${FILE}.py" PY_OUTPUT_FILE)
 
-      list(APPEND BUNDLED_PROGRAMS "${OUTPUT_FILE}")
-      list(APPEND BUNDLED_PROGRAMS "${PY_OUTPUT_FILE}")
+      if(OUTPUT_FILE)
+        list(APPEND BUNDLED_PROGRAMS "${OUTPUT_FILE}")
+      endif()
+      if(PY_OUTPUT_FILE)
+        list(APPEND BUNDLED_PROGRAMS "${PY_OUTPUT_FILE}")
+      endif()
     endforeach()
   endif()
   install(PROGRAMS ${BUNDLED_PROGRAMS}
