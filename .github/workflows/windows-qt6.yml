@@ -84,9 +84,9 @@ jobs:
         run: |
           # lapack-reference is not always in the vcpkg NuGet cache; source builds need Fortran.
           function Set-GfortranEnv([string]$GfortranPath) {
-            $binDir = Split-Path $GfortranPath
             Write-Host "Using gfortran at $GfortranPath"
-            Add-Content -Path $env:GITHUB_PATH -Value $binDir
+            # Do NOT add MinGW's bin dir to PATH: it ships gcc/c++/ld that hijack
+            # CMake+Ninja away from MSVC. FC is absolute so vcpkg can invoke it.
             Add-Content -Path $env:GITHUB_ENV -Value "FC=$GfortranPath"
           }
 
@@ -166,9 +166,13 @@ jobs:
 
           # Local vcpkg Python builds invoke vcvarsall via setuptools; trim PATH to avoid
           # cmd.exe "The input line is too long" (NuGet misses force local py-cython builds).
+          # Capture MSVC cl.exe before rewriting PATH — without it, CMake+Ninja picks
+          # MinGW from /c/mingw64/bin and cannot link MSVC-built Qt import libs.
+          CL_BINDIR=$(dirname "$(command -v cl.exe || command -v cl)")
           CMAKE_BIN=$(dirname "$(command -v cmake)")
           NINJA_BIN="/c/Program Files/Microsoft Visual Studio/2022/Enterprise/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja"
-          export PATH="/c/Strawberry/perl/bin:/c/mingw64/bin:/c/.vcpkg:${CMAKE_BIN}:${NINJA_BIN}:/c/Windows/system32:/c/Windows"
+          export PATH="${CL_BINDIR}:/c/Strawberry/perl/bin:/c/.vcpkg:${CMAKE_BIN}:${NINJA_BIN}:/c/Windows/system32:/c/Windows"
+          echo "Using MSVC from ${CL_BINDIR}"
           echo "PATH length: ${#PATH}"
 
           BUILD_DIR=$( "/c/Program Files/Git/usr/bin/cygpath" "${{ github.workspace }}/build" )
@@ -178,6 +182,8 @@ jobs:
                 -B "${BUILD_DIR}" \
                 -G Ninja \
                 -D CMAKE_BUILD_TYPE=Release \
+                -D CMAKE_C_COMPILER=cl \
+                -D CMAKE_CXX_COMPILER=cl \
                 -D WITH_VCPKG=ON \
                 -D CREATE_ZIP=ON \
                 -D CREATE_NSIS=ON \

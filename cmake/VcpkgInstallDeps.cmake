@@ -78,9 +78,14 @@ function(fixup_shebang INPUT_FILE OUTPUT_VARIABLE)
     return()
   endif()
 
-  # Replace the first line
-  string(REGEX REPLACE "^#![^\n]*" "#!/bin/sh\n\"exec\" \"`dirname \\$0`/python\" \"\\$0\" \"\\$@\"" TRANSFORMED_CONTENTS "${CONTENTS}")
-  
+  # Replace the first line. Use a bracket argument so `$0`/`$@` stay literal shell
+  # expansions: quoted `\\$0` becomes `\$0` after CMake parsing, and string(REGEX
+  # REPLACE) rejects `\$` as an unknown escape (CMake 3.30+ on macOS CI).
+  string(REGEX REPLACE "^#![^\n]*"
+    [=[#!/bin/sh
+"exec" "`dirname $0`/python" "$0" "$@"]=]
+    TRANSFORMED_CONTENTS "${CONTENTS}")
+
   # Write the transformed contents to the output file
   set(OUTPUT_FILE "${CMAKE_BINARY_DIR}/bundled_program/${_FILE}")
   file(WRITE "${OUTPUT_FILE}" "${TRANSFORMED_CONTENTS}")
