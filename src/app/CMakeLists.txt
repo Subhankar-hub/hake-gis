@@ -10,6 +10,7 @@ set(QGIS_APP_SRCS
   qgisapp.cpp
   qgisappinterface.cpp
   qgisappstylesheet.cpp
+  qgsappsidebar.cpp
   qgsabout.cpp
   qgsappauthrequesthandler.cpp
   qgsappbrowserproviders.cpp

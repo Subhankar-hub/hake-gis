@@ -44,23 +44,28 @@ QToolTip
 QMenuBar {
     background-color: @background;
     color: @text;
+    border-bottom: 1px solid @itemdarkbackground;
+    padding: 0.1em 0.2em;
 }
 
 QMenuBar::item
 {
     background: transparent;
+    padding: 0.25em 0.55em;
+    border-radius: 0.2em;
+    color: @text;
 }
 
 QMenuBar::item:selected
 {
     background: @selection;
-    color: @text;
+    color: @textlight;
 }
 
 QMenuBar::item:pressed
 {
-    background: @selection;
-    color: @text;
+    background: @focus;
+    color: @textlight;
 }
 
 /* ==================================================================================== */
@@ -355,8 +360,25 @@ QToolBox::tab {
 
 QToolBar QToolButton, QToolButton::menu-button
 {
-    border-color: rgba(0,0,0,0);
+    border: 1px solid transparent;
+    border-radius: 0.25em;
     background-color: none;
+    padding: 0.2em;
+}
+
+QToolBar QToolButton:hover
+{
+    background-color: @hover;
+    border-color: @focus;
+    color: @textlight;
+}
+
+QToolBar QToolButton:pressed,
+QToolBar QToolButton:checked
+{
+    background-color: @selection;
+    border-color: @focus;
+    color: @textlight;
 }
 
 QPushButton:hover {
@@ -544,26 +566,30 @@ QDockWidget
 
 QDockWidget::separator
 {
-    border: 1px solid red;
+    border: 1px solid @itemdarkbackground;
 }
 
 QDockWidget::title
 {
-    text-align: center;
+    text-align: left;
     spacing: 0.1em; /* spacing between items in the tool bar */
-    background-color: @background;
+    background-color: @itemdarkbackground;
     font-weight: bold;
+    padding: 0.35em 0.5em;
 }
 
 QDockWidget::close-button, QDockWidget::float-button
 {
     text-align: center;
     spacing: 1px; /* spacing between items in the tool bar */
+    border: 1px solid transparent;
+    border-radius: 0.2em;
 }
 
 QDockWidget::close-button:hover, QDockWidget::float-button:hover
 {
-    background: #0a1945;
+    background: @hover;
+    border-color: @focus;
 }
 
 QDockWidget::close-button:pressed, QDockWidget::float-button:pressed
@@ -592,7 +618,8 @@ QMainWindow::separator:hover
 
 QToolBar {
     background: @background;
-    border: 1px solid @background;
+    border: none;
+    border-bottom: 1px solid @itemdarkbackground;
 }
 
 QToolBar::handle:horizontal
@@ -1475,3 +1502,36 @@ QgsAdvancedDigitizingFloater QLineEdit {
 QgsLocatorResultsView::item:disabled {
     color: @text;
 }
+
+/* Hake left navigation rail */
+QToolBar#HakeAppSidebar {
+    background-color: @background;
+    border: none;
+    border-right: 2px solid @itemdarkbackground;
+    border-bottom: none;
+    spacing: 0.15em;
+    padding: 0.25em 0.1em;
+}
+
+QToolBar#HakeAppSidebar QToolButton {
+    color: @text;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 0.25em;
+    padding: 0.35em 0.15em;
+    margin: 0.1em 0.15em;
+}
+
+QToolBar#HakeAppSidebar QToolButton:hover {
+    background-color: @hover;
+    border-color: @focus;
+    color: @textlight;
+}
+
+QToolBar#HakeAppSidebar QToolButton:checked,
+QToolBar#HakeAppSidebar QToolButton:pressed {
+    background-color: @selection;
+    border-color: @focus;
+    color: @textlight;
+}
+

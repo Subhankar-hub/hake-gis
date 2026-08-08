@@ -122,11 +122,11 @@ typedef SInt32 SRefCon;
 #endif
 
 /**
- * Print QGIS version
+ * Print Hake Geospatial version
  */
 void version()
 {
-  const QString msg = u"QGIS %1 '%2' (%3)\n"_s.arg( VERSION ).arg( RELEASE_NAME ).arg( QGSVERSION );
+  const QString msg = u"%1 %2 '%3' (%4)\n"_s.arg( Qgis::productDisplayName(), VERSION, RELEASE_NAME, QGSVERSION );
   std::cout << msg.toStdString();
 }
 
@@ -138,7 +138,7 @@ void usage( const QString &appName )
   QStringList msg;
 
   msg
-    << u"QGIS is a user friendly Open Source Geographic Information System.\n"_s
+    << u"%1 is a user friendly Geographic Information System.\n"_s.arg( Qgis::productDisplayName() )
     << u"Usage: "_s
     << appName
     << u" [OPTION] [FILE]\n"_s
@@ -148,10 +148,10 @@ void usage( const QString &appName )
     << u"\t[-w, --width width]\twidth of snapshot to emit\n"_s
     << u"\t[-h, --height height]\theight of snapshot to emit\n"_s
     << u"\t[-l, --lang language]\tuse language for interface text (changes existing override)\n"_s
-    << u"\t[-p, --project projectfile]\tload the given QGIS project\n"_s
+    << u"\t[-p, --project projectfile]\tload the given project\n"_s
     << u"\t[-e, --extent xmin,ymin,xmax,ymax]\tset initial map extent\n"_s
     << u"\t[-n, --nologo]\thide splash screen\n"_s
-    << u"\t[-V, --noversioncheck]\tdon't check for new version of QGIS at startup\n"_s
+    << u"\t[-V, --noversioncheck]\tdon't check for new version at startup\n"_s
     << u"\t[-P, --noplugins]\tdon't restore plugins on startup\n"_s
     << u"\t[--nopython]\tdisable Python support\n"_s
     << u"\t[-B, --skipbadlayers]\tdon't prompt for missing layers\n"_s
@@ -160,7 +160,7 @@ void usage( const QString &appName )
     << u"\t[-g, --globalsettingsfile path]\tuse the given ini file as Global Settings (defaults)\n"_s
     << u"\t[-a, --authdbdirectory path] use the given directory for authentication database\n"_s
     << u"\t[-f, --code path]\trun the given python file on load\n"_s
-    << u"\t[-F, --py-args arguments]\targuments for python. These arguments will be available for each python execution via 'sys.argv' including the file specified by '--code'. All arguments till '--' are passed to python and ignored by QGIS\n"_s
+    << u"\t[-F, --py-args arguments]\targuments for python. These arguments will be available for each python execution via 'sys.argv' including the file specified by '--code'. All arguments till '--' are passed to python and ignored by the application\n"_s
     << u"\t[-d, --defaultui]\tstart by resetting user ui settings to default\n"_s
     << u"\t[--hide-browser]\thide the browser widget\n"_s
     << u"\t[--dxf-export filename.dxf]\temit dxf output of loaded datasets to given file\n"_s
@@ -181,7 +181,7 @@ void usage( const QString &appName )
     << u"\t[--]\t\ttreat all following arguments as FILEs\n\n"_s
     << u"  FILE:\n"_s
     << u"    Files specified on the command line can include rasters, vectors,\n"_s
-    << u"    QGIS layer definition files (.qlr) and QGIS project files (.qgs and .qgz): \n"_s
+    << u"    layer definition files (.qlr) and project files (.qgs and .qgz): \n"_s
     << u"     1. Rasters - supported formats include GeoTiff, DEM \n"_s
     << u"        and others supported by GDAL\n"_s
     << u"     2. Vectors - supported formats include ESRI Shapefiles\n"_s
@@ -189,7 +189,7 @@ void usage( const QString &appName )
     << u"        the PostGIS extension\n"_s; // OK
 
 #ifdef Q_OS_WIN
-  MessageBoxA( nullptr, msg.join( QString() ).toLocal8Bit().constData(), "QGIS command line options", MB_OK );
+  MessageBoxA( nullptr, msg.join( QString() ).toLocal8Bit().constData(), "Hake Geospatial command line options", MB_OK );
 #else
   std::cout << msg.join( QString() ).toLocal8Bit().constData();
 #endif

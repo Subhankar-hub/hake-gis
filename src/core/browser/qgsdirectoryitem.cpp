@@ -41,7 +41,7 @@
 using namespace Qt::StringLiterals;
 
 const QgsSettingsEntryBool *QgsDirectoryItem::settingsMonitorDirectoriesInBrowser
-  = new QgsSettingsEntryBool( u"monitor-directories-in-browser"_s, QgsSettingsTree::sTreeQgis, true, u"If true, directories are automatically monitored and refreshed in the browser when their contents change outside of QGIS."_s );
+  = new QgsSettingsEntryBool( u"monitor-directories-in-browser"_s, QgsSettingsTree::sTreeQgis, true, u"If true, directories are automatically monitored and refreshed in the browser when their contents change outside of Hake Geospatial."_s );
 const QgsSettingsEntryStringList *QgsDirectoryItem::settingsHiddenPaths
   = new QgsSettingsEntryStringList( u"hiddenPaths"_s, QgsSettingsTree::sTreeBrowser, QStringList(), u"List of directory paths which should be hidden from the browser."_s );
 const QgsSettingsEntryStringList *QgsDirectoryItem::settingsDisableMonitorItemUris

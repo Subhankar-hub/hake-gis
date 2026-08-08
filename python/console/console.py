@@ -425,11 +425,11 @@ class PythonConsoleWidget(QWidget):
         )
         self.help_api_action = QAction(self)
         self.help_api_action.setText(
-            QCoreApplication.translate("PythonConsole", "PyQGIS API Documentation")
+            QCoreApplication.translate("PythonConsole", "Python API Documentation")
         )
         self.help_cookbook_action = QAction(self)
         self.help_cookbook_action.setText(
-            QCoreApplication.translate("PythonConsole", "PyQGIS Cookbook")
+            QCoreApplication.translate("PythonConsole", "Python Cookbook")
         )
 
         self.helpMenu = QMenu(self)

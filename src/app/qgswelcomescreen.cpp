@@ -120,7 +120,7 @@ void QgsWelcomeScreenController::forwardDrop( const QString &text, const QString
 
 
 const QgsSettingsEntryBool *QgsWelcomeScreen::settingsCheckVersion
-  = new QgsSettingsEntryBool( u"check-version"_s, QgsSettingsTree::sTreeApp, true, u"Whether the welcome screen should check for a newer QGIS version online"_s );
+  = new QgsSettingsEntryBool( u"check-version"_s, QgsSettingsTree::sTreeApp, true, u"Whether the welcome screen should check for a newer Hake Geospatial version online"_s );
 
 QgsWelcomeScreen::QgsWelcomeScreen( bool skipVersionCheck, QWidget *parent )
   : QQuickWidget( parent )

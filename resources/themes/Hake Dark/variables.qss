@@ -8,8 +8,8 @@
 @textlight: #e8eef8
 @text: #c5d0e6
 @toggleoff: #122456
-@toggleon: #2563eb
-@selection: #1e4d9c
-@hover: #122456
-@focusdark: rgba(59,130,246,100)
-@focus: #3b82f6
+@toggleon: #818cf8
+@selection: #4338ca
+@hover: #312e81
+@focusdark: rgba(129,140,248,100)
+@focus: #818cf8

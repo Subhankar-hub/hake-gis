@@ -1,4 +1,4 @@
-Change history for the QGIS Project
+Change history for Hake Geospatial - Desktop (based on upstream QGIS)
 
 # What's new in Version 4.2 'Belém do Pará'?
 

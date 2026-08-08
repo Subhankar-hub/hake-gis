@@ -24,7 +24,7 @@ my ($news,$tempfile) = tempfile();
 open my $in, "NEWS.md";
 while(<$in>) {
 	print $news $_;
-	last if /^Change history for the QGIS Project/;
+	last if /^Change history for Hake Geospatial/;
 }
 
 my $content = `curl -LA Mozilla -s https://changelog.qgis.org/en/qgis/version/$version/gnu/`;
@@ -60,7 +60,7 @@ close $in;
 
 copy($tempfile, "NEWS.md");
 
-system "pandoc --table-of-contents --toc-depth=1 -s -o doc/NEWS.html NEWS.md --metadata title=\"QGIS News\"";
+system "pandoc --table-of-contents --toc-depth=1 -s -o doc/NEWS.html NEWS.md --metadata title=\"Hake Geospatial - Desktop News\"";
 
 =head1 NAME
 

@@ -85,7 +85,7 @@ const QgsSettingsEntryBool *QgsAuthManager::settingsUsingGeneratedRandomPassword
 const QgsSettingsEntryBool *QgsAuthManager::settingsPasswordHelperInsecureFallback
   = new QgsSettingsEntryBool( u"password-helper-insecure-fallback"_s, QgsSettingsTree::sTreeAuthentication, false, u"If true, allow the password helper to fall back to an insecure plain-text storage when the system keychain is not available."_s );
 const QgsSettingsEntryBool *QgsAuthManager::settingsUsePasswordHelper
-  = new QgsSettingsEntryBool( u"use-password-helper"_s, QgsSettingsTree::sTreeAuthentication, true, u"If true, the authentication database master password is stored in the system keychain instead of being prompted on each QGIS startup."_s );
+  = new QgsSettingsEntryBool( u"use-password-helper"_s, QgsSettingsTree::sTreeAuthentication, true, u"If true, the authentication database master password is stored in the system keychain instead of being prompted on each Hake Geospatial startup."_s );
 const QgsSettingsEntryBool *QgsAuthManager::settingsPasswordHelperLogging
   = new QgsSettingsEntryBool( u"password-helper-logging"_s, QgsSettingsTree::sTreeAuthentication, false, u"If true, enable verbose logging for the authentication password helper (for troubleshooting keychain issues)."_s );
 

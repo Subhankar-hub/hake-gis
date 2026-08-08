@@ -38,6 +38,7 @@ class QValidator;
 
 class QgisAppInterface;
 class QgisAppStyleSheet;
+class QgsAppSidebar;
 class QgsAbout;
 class QgsAppDbUtils;
 class QgsAnnotation;
@@ -1476,6 +1477,9 @@ class APP_EXPORT QgisApp : public QMainWindow, private Ui::MainWindow
     //! Show and focus the browser panel to spatial bookmarks
     void showBookmarks();
 
+    //! Show and focus the browser panel to Favorites
+    void showBrowserFavorites();
+
     //! Create a new spatial bookmark
     void newBookmark( bool inProject = false, const QString &groupName = QString() );
 
@@ -2438,6 +2442,7 @@ class APP_EXPORT QgisApp : public QMainWindow, private Ui::MainWindow
     void createProfileMenu();
     void createToolBars();
     void createStatusBar();
+    void createAppSidebar();
     void setupConnections();
     void initLayerTreeView();
     void createOverview();
@@ -2638,6 +2643,8 @@ class APP_EXPORT QgisApp : public QMainWindow, private Ui::MainWindow
     QgsDockWidget *mpGpsDock = nullptr;
     QgsDockWidget *mLogDock = nullptr;
     QgsVertexEditor *mVertexEditorDock = nullptr;
+
+    QgsAppSidebar *mAppSidebar = nullptr;
 
 #ifdef Q_OS_MAC
     //! Window menu action to select this window

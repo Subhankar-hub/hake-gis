@@ -237,6 +237,7 @@ using namespace Qt::StringLiterals;
 #include "moc_qgisapp.cpp"
 #include "qgisappinterface.h"
 #include "qgisappstylesheet.h"
+#include "qgsappsidebar.h"
 #include "qgis.h"
 #include "qgsabout.h"
 #include "qgsabstractmaptoolhandler.h"
@@ -998,17 +999,17 @@ const QgsSettingsEntryEnumFlag<Qgis::LegendLayerDoubleClickAction> *QgisApp::set
   Qgis::LegendLayerDoubleClickAction>( u"legend-double-click-action"_s, QgsSettingsTree::sTreeApp, Qgis::LegendLayerDoubleClickAction::LayerProperties, u"Action performed when double-clicking a layer in the legend"_s );
 const QgsSettingsEntryBool *QgisApp::settingsEnableEventTracing
   = new QgsSettingsEntryBool( u"enable-event-tracing"_s, QgsSettingsTree::sTreeApp, false, u"Whether event tracing is enabled for performance diagnostics"_s );
-const QgsSettingsEntryBool *QgisApp::settingsHideSplash = new QgsSettingsEntryBool( u"hide-splash"_s, QgsSettingsTree::sTreeApp, false, u"Whether the splash screen is hidden at QGIS startup"_s );
+const QgsSettingsEntryBool *QgisApp::settingsHideSplash = new QgsSettingsEntryBool( u"hide-splash"_s, QgsSettingsTree::sTreeApp, false, u"Whether the splash screen is hidden at Hake Geospatial startup"_s );
 const QgsSettingsEntryBool *QgisApp::settingsMapTipsEnabled = new QgsSettingsEntryBool( u"enabled"_s, QgsSettingsTree::sTreeMapTips, false, u"Whether map tips are enabled"_s );
 const QgsSettingsEntryInteger *QgisApp::settingsMapTipsDelay = new QgsSettingsEntryInteger( u"delay"_s, QgsSettingsTree::sTreeMapTips, 850, u"Delay in milliseconds before a map tip is displayed"_s );
 const QgsSettingsEntryBool *QgisApp::settingsAskToSaveProjectChanges
   = new QgsSettingsEntryBool( u"ask-to-save-project-changes"_s, QgsSettingsTree::sTreeProject, true, u"Whether to ask the user to save project changes when closing"_s );
 const QgsSettingsEntryBool *QgisApp::settingsWarnOldProjectVersion
-  = new QgsSettingsEntryBool( u"warn-old-project-version"_s, QgsSettingsTree::sTreeProject, true, u"Whether to warn when opening a project saved with an older QGIS version"_s );
+  = new QgsSettingsEntryBool( u"warn-old-project-version"_s, QgsSettingsTree::sTreeProject, true, u"Whether to warn when opening a project saved with an older Hake Geospatial version"_s );
 const QgsSettingsEntryBool *QgisApp::settingsNewProjectDefault
   = new QgsSettingsEntryBool( u"new-project-default"_s, QgsSettingsTree::sTreeProject, false, u"Whether new projects open from the default project template"_s );
 const QgsSettingsEntryInteger *QgisApp::settingsProjOpenAtLaunch
-  = new QgsSettingsEntryInteger( u"proj-open-at-launch"_s, QgsSettingsTree::sTreeProject, 0, u"Behavior when QGIS launches: 0=new project, 1=most recent, 2=welcome page, 3=specific project"_s );
+  = new QgsSettingsEntryInteger( u"proj-open-at-launch"_s, QgsSettingsTree::sTreeProject, 0, u"Behavior when Hake Geospatial launches: 0=new project, 1=most recent, 2=welcome page, 3=specific project"_s );
 const QgsSettingsEntryString *QgisApp::settingsProjOpenAtLaunchPath
   = new QgsSettingsEntryString( u"proj-open-at-launch-path"_s, QgsSettingsTree::sTreeProject, QString(), u"Path of the specific project to open at launch"_s );
 const QgsSettingsEntryBool *QgisApp::settingsProjOpenedOKAtLaunch
@@ -1016,9 +1017,9 @@ const QgsSettingsEntryBool *QgisApp::settingsProjOpenedOKAtLaunch
 const QgsSettingsEntryBool *QgisApp::settingsShowScriptWarning
   = new QgsSettingsEntryBool( u"show-script-warning"_s, QgsSettingsTree::sTreeApp, true, u"Whether to warn the user before running a Python script embedded in a project"_s );
 const QgsSettingsEntryBool *QgisApp::settingsDisplayWaylandWarning
-  = new QgsSettingsEntryBool( u"display-wayland-warning"_s, QgsSettingsTree::sTreeGui, true, u"Whether to show the warning dialog when running QGIS under Wayland"_s );
+  = new QgsSettingsEntryBool( u"display-wayland-warning"_s, QgsSettingsTree::sTreeGui, true, u"Whether to show the warning dialog when running Hake Geospatial under Wayland"_s );
 const QgsSettingsEntryBool *QgisApp::settingsRestoreDefaultWindowState
-  = new QgsSettingsEntryBool( u"restore-default-window-state"_s, QgsSettingsTree::sTreeApp, false, u"Whether to restore the default window state on next QGIS startup"_s );
+  = new QgsSettingsEntryBool( u"restore-default-window-state"_s, QgsSettingsTree::sTreeApp, false, u"Whether to restore the default window state on next Hake Geospatial startup"_s );
 
 QgisApp::QgisApp(
   QSplashScreen *splash, AppOptions options, const QString &rootProfileLocation, const QString &activeProfile, QWidget *parent, Qt::WindowFlags fl, std::unique_ptr<QgsCustomization> customization
@@ -1765,6 +1766,9 @@ QgisApp::QgisApp(
   startProfile( tr( "Restore window state" ) );
   restoreWindowState();
   endProfile();
+
+  // Create after docks/plugins and window-state restore so the rail stays visible
+  functionProfile( &QgisApp::createAppSidebar, this, u"Create app sidebar"_s );
 
   mSplash->showMessage( tr( "Populate saved styles" ), Qt::AlignHCenter | Qt::AlignBottom, splashTextColor );
   startProfile( tr( "Populate saved styles" ) );
@@ -16474,6 +16478,97 @@ void QgisApp::showBookmarks()
   mBrowserWidget->setUserVisible( true );
   QModelIndex index = browserModel()->findPath( u"bookmarks:"_s );
   mBrowserWidget->browserWidget()->setActiveIndex( index );
+}
+
+void QgisApp::showBrowserFavorites()
+{
+  mBrowserWidget->setUserVisible( true );
+  QModelIndex index = browserModel()->findPath( u"favorites:"_s );
+  mBrowserWidget->browserWidget()->setActiveIndex( index );
+}
+
+void QgisApp::createAppSidebar()
+{
+  if ( mAppSidebar )
+    return;
+
+  mAppSidebar = new QgsAppSidebar( this );
+  // Use QMainWindow API directly so the rail is not listed under View → Toolbars
+  QMainWindow::addToolBar( Qt::LeftToolBarArea, mAppSidebar );
+  mAppSidebar->show();
+
+  auto syncChecked = [this]( const QString &id, QDockWidget *dock ) {
+    if ( !dock || !mAppSidebar )
+      return;
+    mAppSidebar->setItemChecked( id, dock->isVisible() );
+    connect( dock, &QDockWidget::visibilityChanged, mAppSidebar, [this, id]( bool visible ) {
+      if ( mAppSidebar )
+        mAppSidebar->setItemChecked( id, visible );
+    } );
+  };
+
+  syncChecked( u"browser"_s, mBrowserWidget );
+  syncChecked( u"layers"_s, mLayerTreeDock );
+  syncChecked( u"styles"_s, mMapStylingDock );
+
+  QgsDockWidget *processingDock = nullptr;
+  const QList<QDockWidget *> docks = findChildren<QDockWidget *>();
+  for ( QDockWidget *dock : docks )
+  {
+    if ( dock->objectName() == "ProcessingToolbox"_L1 )
+    {
+      processingDock = qobject_cast<QgsDockWidget *>( dock );
+      break;
+    }
+  }
+  if ( processingDock )
+    syncChecked( u"processing"_s, processingDock );
+
+  connect( mAppSidebar, &QgsAppSidebar::itemActivated, this, [this]( const QString &id ) {
+    if ( id == "browser"_L1 )
+    {
+      mBrowserWidget->toggleUserVisible();
+    }
+    else if ( id == "layers"_L1 )
+    {
+      mLayerTreeDock->toggleUserVisible();
+    }
+    else if ( id == "styles"_L1 )
+    {
+      mMapStylingDock->toggleUserVisible();
+    }
+    else if ( id == "processing"_L1 )
+    {
+      QgsDockWidget *dock = nullptr;
+      const QList<QDockWidget *> docks = findChildren<QDockWidget *>();
+      for ( QDockWidget *candidate : docks )
+      {
+        if ( candidate->objectName() == "ProcessingToolbox"_L1 )
+        {
+          dock = qobject_cast<QgsDockWidget *>( candidate );
+          break;
+        }
+      }
+      if ( dock )
+      {
+        dock->toggleUserVisible();
+        if ( mAppSidebar )
+          mAppSidebar->setItemChecked( u"processing"_s, dock->isUserVisible() );
+      }
+      else if ( mAppSidebar )
+      {
+        mAppSidebar->setItemChecked( u"processing"_s, false );
+      }
+    }
+    else if ( id == "plugins"_L1 )
+    {
+      showPluginManager();
+    }
+    else if ( id == "favorites"_L1 )
+    {
+      showBrowserFavorites();
+    }
+  } );
 }
 
 void QgisApp::showBookmarkManager( bool show )
