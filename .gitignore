@@ -130,3 +130,5 @@ git_diagnose.py
 patch.py
 replace_a_c.py
 replace_py.py
+
+CHANGELOG_2026*.md
