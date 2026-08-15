@@ -238,6 +238,7 @@ using namespace Qt::StringLiterals;
 #include "qgisappinterface.h"
 #include "qgisappstylesheet.h"
 #include "qgsappsidebar.h"
+#include "qgsappribbon.h"
 #include "qgis.h"
 #include "qgsabout.h"
 #include "qgsabstractmaptoolhandler.h"
@@ -1274,6 +1275,8 @@ QgisApp::QgisApp(
   QgsGui::mapToolShapeRegistry()->addMapTool( new QgsMapToolShapeRegularPolygonCenterCornerMetadata() );
 
   functionProfile( &QgisApp::createToolBars, this, u"Toolbars"_s );
+  functionProfile( &QgisApp::createAppRibbon, this, u"Create app ribbon"_s );
+  hideClassicToolBars();
   functionProfile( &QgisApp::createStatusBar, this, u"Status bar"_s );
   functionProfile( &QgisApp::setupCanvasTools, this, u"Create canvas tools"_s );
   mMapCanvas->setStatusBar( mStatusBar );
@@ -1501,6 +1504,7 @@ QgisApp::QgisApp(
 
   mGpsToolBar = new QgsGpsToolBar( mGpsConnection, mMapCanvas, this );
   addToolBar( mGpsToolBar );
+  hideClassicToolBars();
 
   mGpsDigitizing = new QgsAppGpsDigitizing( mGpsConnection, mMapCanvas, this );
   connect( mGpsToolBar, &QgsGpsToolBar::addFeatureClicked, mGpsDigitizing, &QgsAppGpsDigitizing::createFeature );
@@ -1766,6 +1770,7 @@ QgisApp::QgisApp(
   startProfile( tr( "Restore window state" ) );
   restoreWindowState();
   endProfile();
+  hideClassicToolBars();
 
   // Create after docks/plugins and window-state restore so the rail stays visible
   functionProfile( &QgisApp::createAppSidebar, this, u"Create app sidebar"_s );
@@ -4041,6 +4046,67 @@ void QgisApp::createToolBars()
   QAction *annotationAction = mAnnotationsToolBar->addWidget( bt );
   annotationAction->setObjectName( u"ActionAnnotation"_s );
   connect( bt, &QToolButton::triggered, this, &QgisApp::toolButtonActionTriggered );
+}
+
+void QgisApp::createAppRibbon()
+{
+  if ( mAppRibbonBar )
+    return;
+
+  mAppRibbonBar = new QToolBar( this );
+  mAppRibbonBar->setObjectName( u"HakeAppRibbon"_s );
+  mAppRibbonBar->setWindowTitle( tr( "Ribbon" ) );
+  mAppRibbonBar->setMovable( false );
+  mAppRibbonBar->setFloatable( false );
+  mAppRibbonBar->setAllowedAreas( Qt::TopToolBarArea );
+  mAppRibbonBar->setContextMenuPolicy( Qt::PreventContextMenu );
+
+  mAppRibbon = new QgsAppRibbon( mAppRibbonBar, this );
+  mAppRibbonBar->addWidget( mAppRibbon );
+
+  // Host at the top without listing the ribbon under View → Toolbars
+  if ( mFileToolBar )
+    QMainWindow::insertToolBar( mFileToolBar, mAppRibbonBar );
+  else
+    QMainWindow::addToolBar( Qt::TopToolBarArea, mAppRibbonBar );
+  mAppRibbonBar->show();
+}
+
+void QgisApp::hideClassicToolBars()
+{
+  QList<QToolBar *> classicToolBars;
+  classicToolBars
+    << mFileToolBar
+    << mDataSourceManagerToolBar
+    << mLayerToolBar
+    << mDigitizeToolBar
+    << mAdvancedDigitizeToolBar
+    << mShapeDigitizeToolBar
+    << mMapNavToolBar
+    << mAttributesToolBar
+    << mSelectionToolBar
+    << mPluginToolBar
+    << mHelpToolBar
+    << mRasterToolBar
+    << mVectorToolBar
+    << mDatabaseToolBar
+    << mWebToolBar
+    << mLabelToolBar
+    << mSnappingToolBar
+    << mMeshToolBar
+    << mAnnotationsToolBar
+    << mGpsToolBar;
+
+  for ( QToolBar *toolBar : classicToolBars )
+  {
+    if ( toolBar )
+      toolBar->hide();
+  }
+
+  if ( mAppRibbonBar )
+    mAppRibbonBar->show();
+  if ( mAppSidebar )
+    mAppSidebar->show();
 }
 
 void QgisApp::createStatusBar()
@@ -16496,6 +16562,8 @@ void QgisApp::createAppSidebar()
   // Use QMainWindow API directly so the rail is not listed under View → Toolbars
   QMainWindow::addToolBar( Qt::LeftToolBarArea, mAppSidebar );
   mAppSidebar->show();
+  if ( mAppRibbon )
+    mAppRibbon->refreshOptionalActions();
 
   auto syncChecked = [this]( const QString &id, QDockWidget *dock ) {
     if ( !dock || !mAppSidebar )
@@ -17827,6 +17895,7 @@ void QgisApp::showEvent( QShowEvent *event )
     {
       QgsDebugError( u"restore of UI state failed"_s );
     }
+    hideClassicToolBars();
   } );
 }
 

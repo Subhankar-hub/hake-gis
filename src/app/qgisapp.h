@@ -39,6 +39,7 @@ class QValidator;
 class QgisAppInterface;
 class QgisAppStyleSheet;
 class QgsAppSidebar;
+class QgsAppRibbon;
 class QgsAbout;
 class QgsAppDbUtils;
 class QgsAnnotation;
@@ -2442,6 +2443,8 @@ class APP_EXPORT QgisApp : public QMainWindow, private Ui::MainWindow
     void createProfileMenu();
     void createToolBars();
     void createStatusBar();
+    void createAppRibbon();
+    void hideClassicToolBars();
     void createAppSidebar();
     void setupConnections();
     void initLayerTreeView();
@@ -2645,6 +2648,8 @@ class APP_EXPORT QgisApp : public QMainWindow, private Ui::MainWindow
     QgsVertexEditor *mVertexEditorDock = nullptr;
 
     QgsAppSidebar *mAppSidebar = nullptr;
+    QgsAppRibbon *mAppRibbon = nullptr;
+    QToolBar *mAppRibbonBar = nullptr;
 
 #ifdef Q_OS_MAC
     //! Window menu action to select this window

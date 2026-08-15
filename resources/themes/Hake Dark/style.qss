@@ -1535,3 +1535,80 @@ QToolBar#HakeAppSidebar QToolButton:pressed {
     color: @textlight;
 }
 
+/* Hake tabbed ribbon */
+QToolBar#HakeAppRibbon {
+    background-color: @background;
+    border: none;
+    border-bottom: 2px solid @itemdarkbackground;
+    spacing: 0;
+    padding: 0;
+}
+
+QTabWidget#HakeAppRibbon {
+    background-color: @background;
+    border: none;
+}
+
+QTabWidget#HakeAppRibbon::pane {
+    background-color: @background;
+    border: none;
+    top: 0;
+}
+
+QTabWidget#HakeAppRibbon > QTabBar::tab {
+    background: transparent;
+    color: @text;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 0.4em 0.9em;
+    margin: 0 0.1em;
+}
+
+QTabWidget#HakeAppRibbon > QTabBar::tab:selected {
+    color: @textlight;
+    border-bottom-color: @focus;
+    background-color: @selection;
+}
+
+QTabWidget#HakeAppRibbon > QTabBar::tab:hover {
+    background-color: @hover;
+    color: @textlight;
+}
+
+QToolBar#HakeAppRibbon QToolButton,
+QTabWidget#HakeAppRibbon QToolButton {
+    color: @text;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 0.25em;
+    padding: 0.25em 0.35em;
+    margin: 0.05em;
+}
+
+QToolBar#HakeAppRibbon QToolButton:hover,
+QTabWidget#HakeAppRibbon QToolButton:hover {
+    background-color: @hover;
+    border-color: @focus;
+    color: @textlight;
+}
+
+QToolBar#HakeAppRibbon QToolButton:checked,
+QToolBar#HakeAppRibbon QToolButton:pressed,
+QTabWidget#HakeAppRibbon QToolButton:checked,
+QTabWidget#HakeAppRibbon QToolButton:pressed {
+    background-color: @selection;
+    border-color: @focus;
+    color: @textlight;
+}
+
+QTabWidget#HakeAppRibbon QLabel#HakeAppRibbonGroupLabel {
+    color: @text;
+    font-size: 0.85em;
+}
+
+QTabWidget#HakeAppRibbon QFrame#HakeAppRibbonSeparator {
+    color: @itemdarkbackground;
+    max-width: 1px;
+}
+
+
