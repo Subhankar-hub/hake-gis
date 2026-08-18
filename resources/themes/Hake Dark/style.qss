@@ -37,7 +37,7 @@ QWebView, QTextBrowser
 
 QToolTip
 {
-    border: 1px solid #050d28;
+    border: 1px solid @itemdarkbackground;
     color: @text;
 }
 
@@ -92,7 +92,7 @@ QAbstractSpinBox::up-button {
     margin-right:2px;
     margin-bottom:-1px;
     width: 0.8em;
-    background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #1a2d5c, stop: 0.1 #162650, stop: 0.5 #122048, stop: 1 #122048);
+    background-color: @darkgradient;
     border: 0;
 }
 
@@ -103,7 +103,7 @@ QAbstractSpinBox::down-button {
     margin-right:2px;
     margin-top:-1px;
     width: 0.8em;
-    background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #122048, stop: 0.9 #0e1a3e, stop: 1 #0c1738);
+    background-color: @darkalternativegradient;
     border: 0;
 }
 
@@ -195,8 +195,8 @@ QCalendarWidget QAbstractItemView:disabled
 
 QMenu
 {
-    background: #122456;
-    border: 1px solid #050d28;
+    background: @itemdarkbackground;
+    border: 1px solid @itemdarkbackground;
     padding: 0.2em;
     padding-right: 0em;
 }
@@ -214,7 +214,7 @@ QMenu::item
 
 QMenu::item:disabled
 {
-    color: #1a2d5c;
+    color: #b7d6f7;
     background: transparent;
     padding: 0.2em 1.3em 0.2em 0.4em;
 }
@@ -312,7 +312,7 @@ QToolButton::menu-button {
 QToolButton:hover, QToolButton::menu-button:hover
 {
     border-width: 1px;
-    border-color: #050d28;
+    border-color: @itemdarkbackground;
     border-style: solid;
     border-radius: 0px;
     background-color: transparent;
@@ -419,12 +419,7 @@ QComboBox:hover {
 QComboBox:on {
     padding: 0.12em;
     padding-left: 0.2em;
-    background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1,
-        stop: 0     #1a2d5c,
-        stop: 0.1   #1a2d5c,
-        stop: 0.5   #0c1738,
-        stop: 0.9   #0e1a3e,
-        stop: 1     #122456);
+    background-color: @darkalternativegradient;
     selection-background-color: @selection;
     selection-color: @text;
 }
@@ -602,7 +597,7 @@ QMainWindow::separator
     /*background-color: QLinearGradient(x1:0, y1:0, x2:0, y2:1, stop:0 #161616, stop: 0.5 #151515, stop: 0.6 #212121, stop:1 #343434);*/
     color: white;
     padding-left: 0.2em;
-    border: 0px solid #1a2d5c;
+    border: 0px solid @itemdarkbackground;
     spacing: 0.1m; /* spacing between items in the tool bar */
 }
 
@@ -1550,7 +1545,7 @@ QTabWidget#HakeAppRibbon {
 }
 
 QTabWidget#HakeAppRibbon::pane {
-    background-color: @background;
+    background-color: @itembackground;
     border: none;
     top: 0;
 }
