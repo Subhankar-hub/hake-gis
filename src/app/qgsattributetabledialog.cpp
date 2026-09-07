@@ -483,11 +483,12 @@ void QgsAttributeTableDialog::updateTitle()
   {
     return;
   }
-  const QString title = tr( " %1 — Features Total: %L2, Filtered: %L3, Selected: %L4" )
+  const QString title = tr( "Attribute Table — %1 — Features Total: %L2, Filtered: %L3, Selected: %L4" )
                           .arg( mLayer->name() )
                           .arg( std::max( static_cast<long long>( mMainView->featureCount() ), mLayer->featureCount() ) ) // layer count may be estimated, so use larger of the two
                           .arg( mMainView->filteredFeatureCount() )
-                          .arg( mLayer->selectedFeatureCount() );
+                          .arg( mLayer->selectedFeatureCount() )
+                          .toUpper();
   mDockableWidgetHelper->setWindowTitle( title );
 
   if ( mMainView->filterMode() == QgsAttributeTableFilterModel::ShowAll )

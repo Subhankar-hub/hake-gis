@@ -1426,7 +1426,7 @@ QgisApp::QgisApp(
   endProfile();
 
   mBrowserModel = new QgsBrowserGuiModel( this );
-  mBrowserWidget = new QgsBrowserDockWidget( tr( "Browser" ), mBrowserModel, this );
+  mBrowserWidget = new QgsBrowserDockWidget( tr( "Browser" ).toUpper(), mBrowserModel, this );
   mBrowserWidget->setObjectName( u"Browser"_s );
   mBrowserWidget->setMessageBar( mInfoBar );
   mBrowserWidget->setMapCanvas( mMapCanvas );
@@ -1477,7 +1477,7 @@ QgisApp::QgisApp(
   connect( mBrowserWidget, &QgsBrowserDockWidget::openFile, this, [this]( const QString &file ) { openFile( file ); } );
   connect( mBrowserWidget, &QgsBrowserDockWidget::handleDropUriList, this, [this]( const QgsMimeDataUtils::UriList &list ) { handleDropUriList( list ); } );
 
-  mBrowserWidget2 = new QgsBrowserDockWidget( tr( "Browser (2)" ), mBrowserModel, this );
+  mBrowserWidget2 = new QgsBrowserDockWidget( tr( "Browser (2)" ).toUpper(), mBrowserModel, this );
   mBrowserWidget2->setObjectName( u"Browser2"_s );
   addDockWidget( Qt::LeftDockWidgetArea, mBrowserWidget2 );
   mBrowserWidget2->hide();
@@ -2973,7 +2973,7 @@ void QgisApp::applyDefaultSettingsToCanvas( QgsMapCanvas *canvas )
 void QgisApp::readSettings()
 {
   QgsSettings settings;
-  const QString themeName = settings.value( u"UI/UITheme"_s, "Hake Dark" ).toString();
+  const QString themeName = settings.value( u"UI/UITheme"_s, "Hake Light" ).toString();
   setTheme( themeName );
 
   // Read legacy settings
@@ -5012,7 +5012,7 @@ void QgisApp::addUserInputWidget( QWidget *widget )
 
 void QgisApp::initLayerTreeView()
 {
-  mLayerTreeDock = new QgsDockWidget( tr( "Layers" ), this );
+  mLayerTreeDock = new QgsDockWidget( tr( "Layers" ).toUpper(), this );
   mLayerTreeDock->setObjectName( u"Layers"_s );
   mLayerTreeDock->setAllowedAreas( Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea );
 

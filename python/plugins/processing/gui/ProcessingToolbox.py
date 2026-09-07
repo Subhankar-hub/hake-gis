@@ -69,6 +69,7 @@ class ProcessingToolbox(QgsDockWidget, WIDGET):
         self.tipWasClosed = False
         self.in_place_mode = False
         self.setupUi(self)
+        self.setWindowTitle(self.windowTitle().upper())
         self.setAllowedAreas(
             Qt.DockWidgetArea.LeftDockWidgetArea | Qt.DockWidgetArea.RightDockWidgetArea
         )

@@ -898,26 +898,78 @@ QString QgsApplication::iconPath( const QString &iconFile )
   return defaultThemePath() + iconFile;
 }
 
-QIcon QgsApplication::getThemeIcon( const QString &name, const QColor &fillColor, const QColor &strokeColor )
+namespace
 {
-  const QString cacheKey = ( name.startsWith( '/' ) ? name.mid( 1 ) : name )
-                           + ( fillColor.isValid() ? u"_%1"_s.arg( fillColor.name( QColor::HexArgb ).mid( 1 ) ) : QString() )
-                           + ( strokeColor.isValid() ? u"_%1"_s.arg( strokeColor.name( QColor::HexArgb ).mid( 1 ) ) : QString() );
-  QgsApplication *app = instance();
-  if ( app && app->mIconCache.contains( cacheKey ) )
-    return app->mIconCache.value( cacheKey );
+  /**
+   * Force SVG paint colors to Hake Light navy (#1B2F4B) for theme.png-style monochrome toolbars.
+   * Leaves none/transparent/currentColor alone; near-white fills become none (hollow glyphs).
+   */
+  QByteArray hakeLightMonochromeSvg( const QByteArray &svgBytes )
+  {
+    QString svg = QString::fromUtf8( svgBytes );
+    const QString navy = QStringLiteral( "#1B2F4B" );
 
-  QIcon icon;
-  const bool colorBased = fillColor.isValid() || strokeColor.isValid();
+    const auto replaceColor = [&navy]( const QString &color ) -> QString {
+      const QString trimmed = color.trimmed();
+      if ( trimmed.compare( QLatin1String( "none" ), Qt::CaseInsensitive ) == 0
+           || trimmed.compare( QLatin1String( "transparent" ), Qt::CaseInsensitive ) == 0
+           || trimmed.compare( QLatin1String( "currentColor" ), Qt::CaseInsensitive ) == 0 )
+      {
+        return trimmed;
+      }
+      const QColor c( trimmed );
+      if ( !c.isValid() )
+        return trimmed;
+      if ( c.alpha() == 0 )
+        return QStringLiteral( "none" );
+      // Near-white / light-gray "hole" fills → transparent (line-icon look)
+      if ( c.red() >= 230 && c.green() >= 230 && c.blue() >= 230 )
+        return QStringLiteral( "none" );
+      return navy;
+    };
 
-  auto iconFromColoredSvg = [fillColor, strokeColor, cacheKey]( const QString &path ) -> QIcon {
-    // sizes are unused here!
-    const QByteArray svgContent = QgsApplication::svgCache()->svgContent( path, 16, fillColor, strokeColor, 1, 1 );
+    const auto rewrite = [&replaceColor]( const QString &input, const QRegularExpression &re ) -> QString {
+      QString out;
+      out.reserve( input.size() );
+      qsizetype last = 0;
+      QRegularExpressionMatchIterator it = re.globalMatch( input );
+      while ( it.hasNext() )
+      {
+        const QRegularExpressionMatch m = it.next();
+        out.append( input.mid( last, m.capturedStart() - last ) );
+        out.append( m.captured( 1 ) );
+        out.append( replaceColor( m.captured( 2 ) ) );
+        out.append( m.captured( 3 ) );
+        last = m.capturedEnd();
+      }
+      out.append( input.mid( last ) );
+      return out;
+    };
 
-    const QString iconPath = sIconCacheDir()->filePath( cacheKey + u".svg"_s );
+    // fill="…" / stroke="…"
+    static const QRegularExpression attrRe(
+      QStringLiteral( R"(((?:fill|stroke)\s*=\s*["'])([^"']+)(["']))" ),
+      QRegularExpression::CaseInsensitiveOption
+    );
+    svg = rewrite( svg, attrRe );
+
+    // fill:… / stroke:… inside style= (no trailing group 3)
+    static const QRegularExpression styleRe(
+      QStringLiteral( R"(((?:fill|stroke)\s*:\s*)([^;}"'\s]+)())" ),
+      QRegularExpression::CaseInsensitiveOption
+    );
+    svg = rewrite( svg, styleRe );
+
+    return svg.toUtf8();
+  }
+
+  QIcon iconFromCachedSvgBytes( const QString &cacheKey, const QByteArray &svgContent )
+  {
+    const QString safeKey = QString( cacheKey ).replace( QLatin1Char( '/' ), QLatin1Char( '_' ) ).replace( QLatin1Char( '\\' ), QLatin1Char( '_' ) );
+    const QString iconPath = sIconCacheDir()->filePath( safeKey + u".svg"_s );
     if ( const QDir dir = QFileInfo( iconPath ).dir(); !dir.exists() )
     {
-      dir.mkpath( "." );
+      dir.mkpath( QStringLiteral( "." ) );
     }
 
     QFile f( iconPath );
@@ -933,33 +985,63 @@ QIcon QgsApplication::getThemeIcon( const QString &name, const QColor &fillColor
     }
 
     return QIcon( f.fileName() );
+  }
+} // namespace
+
+QIcon QgsApplication::getThemeIcon( const QString &name, const QColor &fillColor, const QColor &strokeColor )
+{
+  const QString theme = themeName();
+  const QString cacheKey = ( name.startsWith( '/' ) ? name.mid( 1 ) : name )
+                           + u"_"_s + theme
+                           + ( fillColor.isValid() ? u"_%1"_s.arg( fillColor.name( QColor::HexArgb ).mid( 1 ) ) : QString() )
+                           + ( strokeColor.isValid() ? u"_%1"_s.arg( strokeColor.name( QColor::HexArgb ).mid( 1 ) ) : QString() );
+  QgsApplication *app = instance();
+  if ( app && app->mIconCache.contains( cacheKey ) )
+    return app->mIconCache.value( cacheKey );
+
+  QIcon icon;
+  const bool colorBased = fillColor.isValid() || strokeColor.isValid();
+  const bool monochrome = !colorBased && theme == QLatin1String( "Hake Light" );
+
+  auto iconFromColoredSvg = [fillColor, strokeColor, cacheKey]( const QString &path ) -> QIcon {
+    // sizes are unused here!
+    const QByteArray svgContent = QgsApplication::svgCache()->svgContent( path, 16, fillColor, strokeColor, 1, 1 );
+    return iconFromCachedSvgBytes( cacheKey, svgContent );
+  };
+
+  auto iconFromMonochromeSvg = [cacheKey]( const QString &path ) -> QIcon {
+    QFile in( path );
+    if ( !in.open( QIODevice::ReadOnly ) )
+      return QIcon();
+    return iconFromCachedSvgBytes( cacheKey, hakeLightMonochromeSvg( in.readAll() ) );
+  };
+
+  const auto resolveIcon = [&]( const QString &path ) {
+    if ( colorBased )
+    {
+      icon = iconFromColoredSvg( path );
+    }
+    else if ( monochrome && path.endsWith( QLatin1String( ".svg" ), Qt::CaseInsensitive ) )
+    {
+      icon = iconFromMonochromeSvg( path );
+    }
+    else
+    {
+      icon = QIcon( path );
+    }
   };
 
   QString preferredPath = activeThemePath() + QDir::separator() + name;
   QString defaultPath = defaultThemePath() + QDir::separator() + name;
   if ( QFile::exists( preferredPath ) )
   {
-    if ( colorBased )
-    {
-      icon = iconFromColoredSvg( preferredPath );
-    }
-    else
-    {
-      icon = QIcon( preferredPath );
-    }
+    resolveIcon( preferredPath );
   }
   else if ( QFile::exists( defaultPath ) )
   {
     //could still return an empty icon if it
     //doesn't exist in the default theme either!
-    if ( colorBased )
-    {
-      icon = iconFromColoredSvg( defaultPath );
-    }
-    else
-    {
-      icon = QIcon( defaultPath );
-    }
+    resolveIcon( defaultPath );
   }
   else
   {
@@ -1144,6 +1226,11 @@ QString QgsApplication::themeName()
 
 void QgsApplication::setUITheme( const QString &themeName )
 {
+  if ( QgsApplication *app = instance() )
+  {
+    app->mIconCache.clear();
+  }
+
   // Loop all style sheets, find matching name, load it.
   const QString path = applicationThemeRegistry()->themeFolder( themeName );
   if ( themeName == "default"_L1 || path.isEmpty() )
