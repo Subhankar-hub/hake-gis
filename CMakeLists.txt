@@ -1191,7 +1191,7 @@ endif()
 
 if (WITH_CORE AND WITH_BINDINGS)
   set(PYTHON_OUTPUT_DIRECTORY ${QGIS_OUTPUT_DIRECTORY}/python)
-  set (QGIS_PYTHON_OUTPUT_DIRECTORY ${PYTHON_OUTPUT_DIRECTORY}/hake-gis)
+  set (QGIS_PYTHON_OUTPUT_DIRECTORY ${PYTHON_OUTPUT_DIRECTORY}/qgis)
 
   # python support: check for interpreter, sip, pyqt6
   find_package(SIP REQUIRED)

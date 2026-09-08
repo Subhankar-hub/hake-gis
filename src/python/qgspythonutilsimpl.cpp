@@ -160,6 +160,38 @@ _ssr = StartupScriptRunner()
   newpaths << pluginpaths;
   runString( "sys.path = [" + newpaths.join( ','_L1 ) + "] + sys.path" );
 
+  // Ensure `import qgis` resolves to this build/install (not a system Qt5 package).
+  // Must run before any qgis.* import to avoid loading mismatched native modules.
+  {
+    QString expectedQgisDir = QDir::cleanPath( pythonPath() + u"/qgis"_s );
+#ifdef Q_OS_WIN
+    expectedQgisDir.replace( '\\', "\\\\"_L1 );
+#endif
+    const QString pathCheckError = QObject::tr( "Couldn't load PyHake Geospatial." ) + '\n'
+                                   + QObject::tr( "Python support will be disabled." );
+    if ( !runString(
+           u"import importlib.util, os\n"
+           "_exp = os.path.realpath(r'%1')\n"
+           "_spec = importlib.util.find_spec('qgis')\n"
+           "if _spec is None:\n"
+           "    raise ImportError('qgis package not found')\n"
+           "_loc = None\n"
+           "if getattr(_spec, 'submodule_search_locations', None):\n"
+           "    _loc = list(_spec.submodule_search_locations)[0]\n"
+           "elif _spec.origin:\n"
+           "    _loc = os.path.dirname(_spec.origin)\n"
+           "_loc = os.path.realpath(_loc) if _loc else ''\n"
+           "if not _loc or os.path.commonpath([_loc, _exp]) != _exp:\n"
+           "    raise ImportError('Wrong qgis package: %r (expected under %r)' % (_loc, _exp))\n"_s
+             .arg( expectedQgisDir ),
+           pathCheckError,
+           false
+         ) )
+    {
+      return false;
+    }
+  }
+
   // import SIP
   if ( !runString( u"from qgis.PyQt import sip"_s, QObject::tr( "Couldn't load SIP module." ) + '\n' + QObject::tr( "Python support will be disabled." ) ) )
   {
