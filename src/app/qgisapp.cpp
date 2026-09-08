@@ -5565,8 +5565,55 @@ void QgisApp::saveWindowState()
   // store the toolbar/dock widget settings using Qt4 settings API
   settings.setValue( u"UI/state"_s, saveState() );
 
-  // store window geometry
-  settings.setValue( u"UI/geometry"_s, saveGeometry() );
+  // Collect per-monitor work areas (never virtual-desktop union).
+  QList<QRect> screens;
+  const auto qScreens = QGuiApplication::screens();
+  for ( QScreen *screen : qScreens )
+  {
+    if ( screen && !screen->availableGeometry().isEmpty() )
+      screens.append( screen->availableGeometry() );
+  }
+
+  auto geometryIsInvalid = [&screens]( const QRect &rect ) -> bool {
+    if ( rect.width() <= 0 || rect.height() <= 0 )
+      return true;
+    if ( screens.isEmpty() )
+      return false;
+
+    int maxSingleWidth = 0;
+    int maxSingleHeight = 0;
+    qint64 bestInterArea = 0;
+    QRect bestScreen;
+    for ( const QRect &screen : screens )
+    {
+      maxSingleWidth = std::max( maxSingleWidth, screen.width() );
+      maxSingleHeight = std::max( maxSingleHeight, screen.height() );
+      const QRect intersection = rect.intersected( screen );
+      const qint64 interArea = static_cast<qint64>( intersection.width() ) * intersection.height();
+      if ( interArea > bestInterArea )
+      {
+        bestInterArea = interArea;
+        bestScreen = screen;
+      }
+    }
+
+    const qint64 rectArea = static_cast<qint64>( rect.width() ) * rect.height();
+    if ( rectArea <= 0 || bestInterArea * 2 < rectArea )
+      return true;
+    if ( rect.width() > maxSingleWidth * 1.05 )
+      return true;
+    if ( rect.height() > maxSingleHeight * 1.05 )
+      return true;
+    return rect.height() > 0
+           && ( static_cast<double>( rect.width() ) / static_cast<double>( rect.height() ) ) > 3.5
+           && rect.width() > bestScreen.width();
+  };
+
+  // Do not persist ultra-wide / off-screen geometry (avoids rewriting a bad blob on quit).
+  if ( geometryIsInvalid( frameGeometry() ) || geometryIsInvalid( normalGeometry() ) )
+    settings.remove( u"UI/geometry"_s );
+  else
+    settings.setValue( u"UI/geometry"_s, saveGeometry() );
 
   QgsPluginRegistry::instance()->unloadAll();
 }
@@ -5595,14 +5642,124 @@ void QgisApp::restoreWindowState()
   }
 
   // restore window geometry
-  if ( !restoreGeometry( settings.value( u"UI/geometry"_s ).toByteArray() ) )
+  const bool geometryRestored = restoreGeometry( settings.value( u"UI/geometry"_s ).toByteArray() );
+  if ( !geometryRestored )
   {
     QgsDebugError( u"restore of UI geometry failed"_s );
-    // default to 80% of screen size, at 10% from top left corner
-    resize( mScreenHelper->availableGeometry().size() * 0.8 );
-    QSize pos = mScreenHelper->availableGeometry().size() * 0.1;
-    move( pos.width(), pos.height() );
+    sanitizeMainWindowGeometry( true );
   }
+  else
+  {
+    sanitizeMainWindowGeometry( false );
+  }
+}
+
+void QgisApp::sanitizeMainWindowGeometry( bool forceDefault )
+{
+  QList<QRect> screens;
+  const auto qScreens = QGuiApplication::screens();
+  for ( QScreen *screen : qScreens )
+  {
+    if ( screen && !screen->availableGeometry().isEmpty() )
+      screens.append( screen->availableGeometry() );
+  }
+
+  auto geometryIsInvalid = [&screens]( const QRect &rect ) -> bool {
+    if ( rect.width() <= 0 || rect.height() <= 0 )
+      return true;
+    if ( screens.isEmpty() )
+      return false; // cannot judge yet; first showEvent will re-check
+
+    int maxSingleWidth = 0;
+    int maxSingleHeight = 0;
+    qint64 bestInterArea = 0;
+    QRect bestScreen;
+    for ( const QRect &screen : screens )
+    {
+      maxSingleWidth = std::max( maxSingleWidth, screen.width() );
+      maxSingleHeight = std::max( maxSingleHeight, screen.height() );
+      const QRect intersection = rect.intersected( screen );
+      const qint64 interArea = static_cast<qint64>( intersection.width() ) * intersection.height();
+      if ( interArea > bestInterArea )
+      {
+        bestInterArea = interArea;
+        bestScreen = screen;
+      }
+    }
+
+    const qint64 rectArea = static_cast<qint64>( rect.width() ) * rect.height();
+    if ( rectArea <= 0 || bestInterArea * 2 < rectArea )
+      return true;
+    if ( rect.width() > maxSingleWidth * 1.05 )
+      return true;
+    if ( rect.height() > maxSingleHeight * 1.05 )
+      return true;
+    return rect.height() > 0
+           && ( static_cast<double>( rect.width() ) / static_cast<double>( rect.height() ) ) > 3.5
+           && rect.width() > bestScreen.width();
+  };
+
+  const QRect frame = frameGeometry();
+  const QRect normal = normalGeometry();
+
+  if ( !forceDefault && !geometryIsInvalid( frame ) && !geometryIsInvalid( normal ) )
+    return;
+
+  const bool wasMaximized = isMaximized();
+
+  // Pick best screen: center containment, else largest intersection, else primary/fallback.
+  const QRect reference = !normal.isEmpty() ? normal : frame;
+  QRect available;
+  if ( !screens.isEmpty() )
+  {
+    if ( !reference.isEmpty() )
+    {
+      const QPoint center = reference.center();
+      for ( const QRect &screen : screens )
+      {
+        if ( screen.contains( center ) )
+        {
+          available = screen;
+          break;
+        }
+      }
+      if ( available.isEmpty() )
+      {
+        qint64 bestInterArea = -1;
+        for ( const QRect &screen : screens )
+        {
+          const QRect intersection = reference.intersected( screen );
+          const qint64 interArea = static_cast<qint64>( intersection.width() ) * intersection.height();
+          if ( interArea > bestInterArea )
+          {
+            bestInterArea = interArea;
+            available = screen;
+          }
+        }
+      }
+    }
+    if ( available.isEmpty() )
+      available = screens.first();
+  }
+  else if ( QScreen *screen = QGuiApplication::primaryScreen() )
+  {
+    available = screen->availableGeometry();
+  }
+  if ( available.isEmpty() )
+    available = QRect( 0, 0, 1280, 800 );
+
+  QgsDebugMsgLevel( u"main window geometry is invalid for current screens; applying default size"_s, 1 );
+  showNormal();
+  resize( available.size() * 0.8 );
+  const QSize pos = available.size() * 0.1;
+  move( available.x() + pos.width(), available.y() + pos.height() );
+
+  QgsSettings settings;
+  settings.remove( u"UI/geometry"_s );
+
+  // Re-apply maximize on the chosen monitor after installing a sane normal size.
+  if ( wasMaximized && !forceDefault )
+    showMaximized();
 }
 ///////////// END OF GUI SETUP ROUTINES ///////////////
 void QgisApp::sponsors()
@@ -17895,6 +18052,9 @@ void QgisApp::showEvent( QShowEvent *event )
     {
       QgsDebugError( u"restore of UI state failed"_s );
     }
+    // Screen geometry is reliable after first show; catch bad normalGeometry
+    // that may have been missed during ctor-time restoreWindowState().
+    sanitizeMainWindowGeometry( false );
     hideClassicToolBars();
   } );
 }

@@ -1796,6 +1796,12 @@ class APP_EXPORT QgisApp : public QMainWindow, private Ui::MainWindow
     void saveWindowState();
     //! Restore the window and toolbar state
     void restoreWindowState();
+    /**
+     * Clamp or reset main-window geometry that is off-screen or ultra-wide
+     * (e.g. a multi-monitor virtual desktop size stored as normalGeometry).
+     * \param forceDefault when true, always apply the 80% screen fallback
+     */
+    void sanitizeMainWindowGeometry( bool forceDefault = false );
     //! Save project. Returns true if the user selected a file to save to, false if not.
     bool fileSave();
     //! Save project as
