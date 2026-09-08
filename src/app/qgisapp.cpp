@@ -19,6 +19,7 @@
 
 #include <QAction>
 #include <QApplication>
+#include <QGuiApplication>
 #include <QBitmap>
 #include <QCheckBox>
 #include <QClipboard>
@@ -237,7 +238,6 @@ using namespace Qt::StringLiterals;
 #include "moc_qgisapp.cpp"
 #include "qgisappinterface.h"
 #include "qgisappstylesheet.h"
-#include "qgsappsidebar.h"
 #include "qgsappribbon.h"
 #include "qgis.h"
 #include "qgsabout.h"
@@ -1276,7 +1276,6 @@ QgisApp::QgisApp(
 
   functionProfile( &QgisApp::createToolBars, this, u"Toolbars"_s );
   functionProfile( &QgisApp::createAppRibbon, this, u"Create app ribbon"_s );
-  hideClassicToolBars();
   functionProfile( &QgisApp::createStatusBar, this, u"Status bar"_s );
   functionProfile( &QgisApp::setupCanvasTools, this, u"Create canvas tools"_s );
   mMapCanvas->setStatusBar( mStatusBar );
@@ -1504,6 +1503,9 @@ QgisApp::QgisApp(
 
   mGpsToolBar = new QgsGpsToolBar( mGpsConnection, mMapCanvas, this );
   addToolBar( mGpsToolBar );
+  // Default visibility: ribbon is the primary command surface, classic toolbars
+  // start hidden. Called once here, after the last toolbar (GPS) is created;
+  // afterwards restoreState()/View > Toolbars control visibility.
   hideClassicToolBars();
 
   mGpsDigitizing = new QgsAppGpsDigitizing( mGpsConnection, mMapCanvas, this );
@@ -1770,10 +1772,11 @@ QgisApp::QgisApp(
   startProfile( tr( "Restore window state" ) );
   restoreWindowState();
   endProfile();
-  hideClassicToolBars();
 
-  // Create after docks/plugins and window-state restore so the rail stays visible
-  functionProfile( &QgisApp::createAppSidebar, this, u"Create app sidebar"_s );
+  // The Processing toolbox dock only exists after plugins have loaded; pick up
+  // its toggle action for the ribbon now.
+  if ( mAppRibbon )
+    mAppRibbon->refreshOptionalActions();
 
   mSplash->showMessage( tr( "Populate saved styles" ), Qt::AlignHCenter | Qt::AlignBottom, splashTextColor );
   startProfile( tr( "Populate saved styles" ) );
@@ -4105,8 +4108,6 @@ void QgisApp::hideClassicToolBars()
 
   if ( mAppRibbonBar )
     mAppRibbonBar->show();
-  if ( mAppSidebar )
-    mAppSidebar->show();
 }
 
 void QgisApp::createStatusBar()
@@ -4510,6 +4511,12 @@ void QgisApp::setupConnections()
 {
   // connect the "cleanup" slot
   connect( qApp, &QApplication::aboutToQuit, this, &QgisApp::saveWindowState );
+  // Repair the window geometry if it became unreachable because a monitor was
+  // unplugged or the current screen's work area changed (resolution change,
+  // taskbar/dock moved, VM/RDP display resize). Queued so Qt's screen list has
+  // settled before we inspect it.
+  connect( qApp, &QGuiApplication::screenRemoved, this, [this]( QScreen * ) { sanitizeMainWindowGeometry( false ); }, Qt::QueuedConnection );
+  connect( mScreenHelper, &QgsScreenHelper::availableGeometryChanged, this, [this]( const QRect & ) { sanitizeMainWindowGeometry( false ); }, Qt::QueuedConnection );
 
   // signal when mouse moved over window (coords display in status bar)
   connect( mMapCanvas, &QgsMapCanvas::xyCoordinates, this, &QgisApp::saveLastMousePosition );
@@ -5558,14 +5565,8 @@ QgsAppDbUtils *QgisApp::dbUtils()
   return mAppDbUtils.get();
 }
 
-void QgisApp::saveWindowState()
+QList<QRect> QgisApp::availableScreenGeometries()
 {
-  // store window and toolbar positions
-  QgsSettings settings;
-  // store the toolbar/dock widget settings using Qt4 settings API
-  settings.setValue( u"UI/state"_s, saveState() );
-
-  // Collect per-monitor work areas (never virtual-desktop union).
   QList<QRect> screens;
   const auto qScreens = QGuiApplication::screens();
   for ( QScreen *screen : qScreens )
@@ -5573,47 +5574,117 @@ void QgisApp::saveWindowState()
     if ( screen && !screen->availableGeometry().isEmpty() )
       screens.append( screen->availableGeometry() );
   }
+  return screens;
+}
 
-  auto geometryIsInvalid = [&screens]( const QRect &rect ) -> bool {
-    if ( rect.width() <= 0 || rect.height() <= 0 )
-      return true;
-    if ( screens.isEmpty() )
+bool QgisApp::isMainWindowGeometryInvalid( const QRect &rect, const QList<QRect> &screens )
+{
+  if ( rect.width() <= 0 || rect.height() <= 0 )
+    return true;
+  if ( screens.isEmpty() )
+    return false; // cannot judge yet; first showEvent will re-check
+
+  // Allow a few pixels of slack for window frames / Windows DWM invisible borders.
+  constexpr int margin = 16;
+
+  // A window larger than the current virtual desktop is stale geometry from a
+  // monitor configuration which no longer exists (e.g. a size spanning several
+  // monitors restored on a single screen). Windows legitimately spanning the
+  // *current* screens stay valid.
+  QRect virtualDesktop;
+  for ( const QRect &screen : screens )
+    virtualDesktop = virtualDesktop.united( screen );
+  if ( rect.width() > virtualDesktop.width() + margin || rect.height() > virtualDesktop.height() + margin )
+    return true;
+
+  // The title bar strip must be reachable on at least one screen, otherwise the
+  // user cannot drag the window back into view. Windows partially dragged off a
+  // screen edge remain valid, exactly like any native application window.
+  constexpr int titleStripHeight = 30;
+  constexpr int minVisibleWidth = 50;
+  constexpr int minVisibleHeight = 10;
+  const QRect titleStrip( rect.x(), rect.y(), rect.width(), std::min( rect.height(), titleStripHeight ) );
+  for ( const QRect &screen : screens )
+  {
+    const QRect visible = titleStrip.intersected( screen );
+    if ( visible.width() >= minVisibleWidth && visible.height() >= minVisibleHeight )
       return false;
+  }
+  return true;
+}
 
-    int maxSingleWidth = 0;
-    int maxSingleHeight = 0;
-    qint64 bestInterArea = 0;
-    QRect bestScreen;
+QRect QgisApp::targetAvailableGeometry( const QRect &reference ) const
+{
+  if ( QWindow *handle = windowHandle() )
+  {
+    if ( QScreen *screen = handle->screen() )
+    {
+      const QRect available = screen->availableGeometry();
+      if ( !available.isEmpty() )
+        return available;
+    }
+  }
+
+  const QList<QRect> screens = availableScreenGeometries();
+  if ( !reference.isEmpty() )
+  {
+    const QPoint center = reference.center();
     for ( const QRect &screen : screens )
     {
-      maxSingleWidth = std::max( maxSingleWidth, screen.width() );
-      maxSingleHeight = std::max( maxSingleHeight, screen.height() );
-      const QRect intersection = rect.intersected( screen );
+      if ( screen.contains( center ) )
+        return screen;
+    }
+
+    qint64 bestInterArea = -1;
+    QRect best;
+    for ( const QRect &screen : screens )
+    {
+      const QRect intersection = reference.intersected( screen );
       const qint64 interArea = static_cast<qint64>( intersection.width() ) * intersection.height();
       if ( interArea > bestInterArea )
       {
         bestInterArea = interArea;
-        bestScreen = screen;
+        best = screen;
       }
     }
+    if ( !best.isEmpty() && bestInterArea > 0 )
+      return best;
+  }
 
-    const qint64 rectArea = static_cast<qint64>( rect.width() ) * rect.height();
-    if ( rectArea <= 0 || bestInterArea * 2 < rectArea )
-      return true;
-    if ( rect.width() > maxSingleWidth * 1.05 )
-      return true;
-    if ( rect.height() > maxSingleHeight * 1.05 )
-      return true;
-    return rect.height() > 0
-           && ( static_cast<double>( rect.width() ) / static_cast<double>( rect.height() ) ) > 3.5
-           && rect.width() > bestScreen.width();
-  };
+  if ( QScreen *primary = QGuiApplication::primaryScreen() )
+  {
+    const QRect available = primary->availableGeometry();
+    if ( !available.isEmpty() )
+      return available;
+  }
 
-  // Do not persist ultra-wide / off-screen geometry (avoids rewriting a bad blob on quit).
-  if ( geometryIsInvalid( frameGeometry() ) || geometryIsInvalid( normalGeometry() ) )
-    settings.remove( u"UI/geometry"_s );
-  else
-    settings.setValue( u"UI/geometry"_s, saveGeometry() );
+  if ( !screens.isEmpty() )
+    return screens.first();
+
+  return QRect();
+}
+
+void QgisApp::applyDefaultMainWindowGeometry( const QRect &available )
+{
+  if ( available.isEmpty() )
+    return;
+
+  // default to 80% of screen size, at 10% from top left corner
+  resize( available.size() * 0.8 );
+  const QSize pos = available.size() * 0.1;
+  move( available.x() + pos.width(), available.y() + pos.height() );
+}
+
+void QgisApp::saveWindowState()
+{
+  // store window and toolbar positions
+  QgsSettings settings;
+  // store the toolbar/dock widget settings using Qt4 settings API
+  settings.setValue( u"UI/state"_s, saveState() );
+
+  // store window geometry; staleness is handled at restore time by
+  // sanitizeMainWindowGeometry() against the then-current screens
+  settings.setValue( u"UI/geometry"_s, saveGeometry() );
 
   QgsPluginRegistry::instance()->unloadAll();
 }
@@ -5656,109 +5727,65 @@ void QgisApp::restoreWindowState()
 
 void QgisApp::sanitizeMainWindowGeometry( bool forceDefault )
 {
-  QList<QRect> screens;
-  const auto qScreens = QGuiApplication::screens();
-  for ( QScreen *screen : qScreens )
-  {
-    if ( screen && !screen->availableGeometry().isEmpty() )
-      screens.append( screen->availableGeometry() );
-  }
-
-  auto geometryIsInvalid = [&screens]( const QRect &rect ) -> bool {
-    if ( rect.width() <= 0 || rect.height() <= 0 )
-      return true;
-    if ( screens.isEmpty() )
-      return false; // cannot judge yet; first showEvent will re-check
-
-    int maxSingleWidth = 0;
-    int maxSingleHeight = 0;
-    qint64 bestInterArea = 0;
-    QRect bestScreen;
-    for ( const QRect &screen : screens )
-    {
-      maxSingleWidth = std::max( maxSingleWidth, screen.width() );
-      maxSingleHeight = std::max( maxSingleHeight, screen.height() );
-      const QRect intersection = rect.intersected( screen );
-      const qint64 interArea = static_cast<qint64>( intersection.width() ) * intersection.height();
-      if ( interArea > bestInterArea )
-      {
-        bestInterArea = interArea;
-        bestScreen = screen;
-      }
-    }
-
-    const qint64 rectArea = static_cast<qint64>( rect.width() ) * rect.height();
-    if ( rectArea <= 0 || bestInterArea * 2 < rectArea )
-      return true;
-    if ( rect.width() > maxSingleWidth * 1.05 )
-      return true;
-    if ( rect.height() > maxSingleHeight * 1.05 )
-      return true;
-    return rect.height() > 0
-           && ( static_cast<double>( rect.width() ) / static_cast<double>( rect.height() ) ) > 3.5
-           && rect.width() > bestScreen.width();
-  };
-
-  const QRect frame = frameGeometry();
-  const QRect normal = normalGeometry();
-
-  if ( !forceDefault && !geometryIsInvalid( frame ) && !geometryIsInvalid( normal ) )
+  // never fight the window manager over full screen windows
+  if ( isFullScreen() )
     return;
 
-  const bool wasMaximized = isMaximized();
-
-  // Pick best screen: center containment, else largest intersection, else primary/fallback.
+  const QList<QRect> screens = availableScreenGeometries();
+  const QRect frame = frameGeometry();
+  const QRect normal = normalGeometry();
   const QRect reference = !normal.isEmpty() ? normal : frame;
-  QRect available;
-  if ( !screens.isEmpty() )
+
+  if ( forceDefault )
   {
-    if ( !reference.isEmpty() )
-    {
-      const QPoint center = reference.center();
-      for ( const QRect &screen : screens )
-      {
-        if ( screen.contains( center ) )
-        {
-          available = screen;
-          break;
-        }
-      }
-      if ( available.isEmpty() )
-      {
-        qint64 bestInterArea = -1;
-        for ( const QRect &screen : screens )
-        {
-          const QRect intersection = reference.intersected( screen );
-          const qint64 interArea = static_cast<qint64>( intersection.width() ) * intersection.height();
-          if ( interArea > bestInterArea )
-          {
-            bestInterArea = interArea;
-            available = screen;
-          }
-        }
-      }
-    }
-    if ( available.isEmpty() )
-      available = screens.first();
+    // no usable previous geometry (first launch / failed restore)
+    applyDefaultMainWindowGeometry( targetAvailableGeometry( reference ) );
+    return;
   }
-  else if ( QScreen *screen = QGuiApplication::primaryScreen() )
-  {
-    available = screen->availableGeometry();
-  }
+
+  // An empty normal geometry just means the window has been maximized since
+  // creation and carries no stale information.
+  const bool frameInvalid = isMainWindowGeometryInvalid( frame, screens );
+  const bool normalInvalid = !normal.isEmpty() && isMainWindowGeometryInvalid( normal, screens );
+  if ( !frameInvalid && !normalInvalid )
+    return;
+
+  const QRect available = targetAvailableGeometry( reference );
   if ( available.isEmpty() )
-    available = QRect( 0, 0, 1280, 800 );
+    return;
 
-  QgsDebugMsgLevel( u"main window geometry is invalid for current screens; applying default size"_s, 1 );
-  showNormal();
-  resize( available.size() * 0.8 );
-  const QSize pos = available.size() * 0.1;
-  move( available.x() + pos.width(), available.y() + pos.height() );
+  QgsDebugMsgLevel( u"main window geometry is invalid for current screens; repairing"_s, 1 );
 
-  QgsSettings settings;
-  settings.remove( u"UI/geometry"_s );
+  // Work in frame coordinates so decorations end up inside the work area, then
+  // convert back to client coordinates for resize(). Before the window is shown
+  // the frame margins are simply zero.
+  const QRect client = geometry();
+  const QMargins frameMargins( client.left() - frame.left(), client.top() - frame.top(), frame.right() - client.right(), frame.bottom() - client.bottom() );
 
-  // Re-apply maximize on the chosen monitor after installing a sane normal size.
-  if ( wasMaximized && !forceDefault )
+  QRect target = reference == normal ? normal.marginsAdded( frameMargins ) : frame;
+  // Clamp the size to the chosen screen's work area, then translate the minimum
+  // distance needed to bring the window (including its title bar) into view.
+  if ( target.width() > available.width() )
+    target.setWidth( available.width() );
+  if ( target.height() > available.height() )
+    target.setHeight( available.height() );
+  if ( target.right() > available.right() )
+    target.moveRight( available.right() );
+  if ( target.bottom() > available.bottom() )
+    target.moveBottom( available.bottom() );
+  if ( target.left() < available.left() )
+    target.moveLeft( available.left() );
+  if ( target.top() < available.top() )
+    target.moveTop( available.top() );
+
+  // For a maximized window only the stored normal geometry is stale; install the
+  // repaired one, then hand control back to the native maximize behavior.
+  const bool needsMaximizeRoundTrip = isMaximized() && isVisible();
+  if ( needsMaximizeRoundTrip )
+    showNormal();
+  resize( target.marginsRemoved( frameMargins ).size() );
+  move( target.topLeft() );
+  if ( needsMaximizeRoundTrip )
     showMaximized();
 }
 ///////////// END OF GUI SETUP ROUTINES ///////////////
@@ -16710,92 +16737,6 @@ void QgisApp::showBrowserFavorites()
   mBrowserWidget->browserWidget()->setActiveIndex( index );
 }
 
-void QgisApp::createAppSidebar()
-{
-  if ( mAppSidebar )
-    return;
-
-  mAppSidebar = new QgsAppSidebar( this );
-  // Use QMainWindow API directly so the rail is not listed under View → Toolbars
-  QMainWindow::addToolBar( Qt::LeftToolBarArea, mAppSidebar );
-  mAppSidebar->show();
-  if ( mAppRibbon )
-    mAppRibbon->refreshOptionalActions();
-
-  auto syncChecked = [this]( const QString &id, QDockWidget *dock ) {
-    if ( !dock || !mAppSidebar )
-      return;
-    mAppSidebar->setItemChecked( id, dock->isVisible() );
-    connect( dock, &QDockWidget::visibilityChanged, mAppSidebar, [this, id]( bool visible ) {
-      if ( mAppSidebar )
-        mAppSidebar->setItemChecked( id, visible );
-    } );
-  };
-
-  syncChecked( u"browser"_s, mBrowserWidget );
-  syncChecked( u"layers"_s, mLayerTreeDock );
-  syncChecked( u"styles"_s, mMapStylingDock );
-
-  QgsDockWidget *processingDock = nullptr;
-  const QList<QDockWidget *> docks = findChildren<QDockWidget *>();
-  for ( QDockWidget *dock : docks )
-  {
-    if ( dock->objectName() == "ProcessingToolbox"_L1 )
-    {
-      processingDock = qobject_cast<QgsDockWidget *>( dock );
-      break;
-    }
-  }
-  if ( processingDock )
-    syncChecked( u"processing"_s, processingDock );
-
-  connect( mAppSidebar, &QgsAppSidebar::itemActivated, this, [this]( const QString &id ) {
-    if ( id == "browser"_L1 )
-    {
-      mBrowserWidget->toggleUserVisible();
-    }
-    else if ( id == "layers"_L1 )
-    {
-      mLayerTreeDock->toggleUserVisible();
-    }
-    else if ( id == "styles"_L1 )
-    {
-      mMapStylingDock->toggleUserVisible();
-    }
-    else if ( id == "processing"_L1 )
-    {
-      QgsDockWidget *dock = nullptr;
-      const QList<QDockWidget *> docks = findChildren<QDockWidget *>();
-      for ( QDockWidget *candidate : docks )
-      {
-        if ( candidate->objectName() == "ProcessingToolbox"_L1 )
-        {
-          dock = qobject_cast<QgsDockWidget *>( candidate );
-          break;
-        }
-      }
-      if ( dock )
-      {
-        dock->toggleUserVisible();
-        if ( mAppSidebar )
-          mAppSidebar->setItemChecked( u"processing"_s, dock->isUserVisible() );
-      }
-      else if ( mAppSidebar )
-      {
-        mAppSidebar->setItemChecked( u"processing"_s, false );
-      }
-    }
-    else if ( id == "plugins"_L1 )
-    {
-      showPluginManager();
-    }
-    else if ( id == "favorites"_L1 )
-    {
-      showBrowserFavorites();
-    }
-  } );
-}
-
 void QgisApp::showBookmarkManager( bool show )
 {
   mBookMarksDockWidget->setUserVisible( show );
@@ -18048,6 +17989,7 @@ void QgisApp::showEvent( QShowEvent *event )
   static std::once_flag firstShow;
   std::call_once( firstShow, [this] {
     QgsSettings settings;
+    const bool hadSavedState = settings.contains( u"UI/state"_s );
     if ( !restoreState( settings.value( u"UI/state"_s, QByteArray::fromRawData( reinterpret_cast<const char *>( defaultUIstate ), sizeof defaultUIstate ) ).toByteArray() ) )
     {
       QgsDebugError( u"restore of UI state failed"_s );
@@ -18055,7 +17997,11 @@ void QgisApp::showEvent( QShowEvent *event )
     // Screen geometry is reliable after first show; catch bad normalGeometry
     // that may have been missed during ctor-time restoreWindowState().
     sanitizeMainWindowGeometry( false );
-    hideClassicToolBars();
+    // The upstream default UI state shows the classic toolbars; on a fresh
+    // profile hide them so the ribbon is the single primary command surface.
+    // A saved state reflects the user's own View > Toolbars choices - keep it.
+    if ( !hadSavedState )
+      hideClassicToolBars();
   } );
 }
 

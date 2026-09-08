@@ -16,6 +16,7 @@
 #ifndef QGSAPPRIBBON_H
 #define QGSAPPRIBBON_H
 
+#include <QStringList>
 #include <QTabWidget>
 
 class QAction;
@@ -43,7 +44,7 @@ class QgsAppRibbon : public QTabWidget
     QHBoxLayout *addGroup( QWidget *page, const QString &title );
     void addActionButton( QHBoxLayout *groupLayout, QAction *action );
     void addNamedAction( QHBoxLayout *groupLayout, const QString &objectName );
-    void addToolbarActions( QHBoxLayout *groupLayout, QToolBar *toolbar );
+    void addToolbarActions( QHBoxLayout *groupLayout, QToolBar *toolbar, const QStringList &excludedObjectNames = QStringList() );
 
     QgisApp *mApp = nullptr;
     QHBoxLayout *mProcessingGroupLayout = nullptr;

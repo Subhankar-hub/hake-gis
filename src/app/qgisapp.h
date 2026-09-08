@@ -38,7 +38,6 @@ class QValidator;
 
 class QgisAppInterface;
 class QgisAppStyleSheet;
-class QgsAppSidebar;
 class QgsAppRibbon;
 class QgsAbout;
 class QgsAppDbUtils;
@@ -1796,12 +1795,6 @@ class APP_EXPORT QgisApp : public QMainWindow, private Ui::MainWindow
     void saveWindowState();
     //! Restore the window and toolbar state
     void restoreWindowState();
-    /**
-     * Clamp or reset main-window geometry that is off-screen or ultra-wide
-     * (e.g. a multi-monitor virtual desktop size stored as normalGeometry).
-     * \param forceDefault when true, always apply the 80% screen fallback
-     */
-    void sanitizeMainWindowGeometry( bool forceDefault = false );
     //! Save project. Returns true if the user selected a file to save to, false if not.
     bool fileSave();
     //! Save project as
@@ -2366,6 +2359,21 @@ class APP_EXPORT QgisApp : public QMainWindow, private Ui::MainWindow
     void pluginUpdatesAvailable( const QStringList &plugins );
 
   private:
+    //! Per-monitor work areas (never the virtual-desktop union).
+    static QList<QRect> availableScreenGeometries();
+    //! True when \a rect is empty, larger than the current virtual desktop, or has no reachable title bar area on any screen.
+    static bool isMainWindowGeometryInvalid( const QRect &rect, const QList<QRect> &screens );
+    //! Screen work area for restore/repair: window screen, saved center, largest overlap, else primary.
+    QRect targetAvailableGeometry( const QRect &reference ) const;
+    //! 80% of \a available, positioned 10% from that screen's top-left.
+    void applyDefaultMainWindowGeometry( const QRect &available );
+    /**
+     * Repair main-window geometry which is stale or unreachable for the current
+     * screens, preserving as much of the previous size/position as possible.
+     * \param forceDefault when true, always apply the 80% screen fallback
+     */
+    void sanitizeMainWindowGeometry( bool forceDefault = false );
+
     void createPreviewImage( const QString &path, const QIcon &overlayIcon = QIcon() );
     void startProfile( const QString &name );
     void endProfile();
@@ -2451,7 +2459,6 @@ class APP_EXPORT QgisApp : public QMainWindow, private Ui::MainWindow
     void createStatusBar();
     void createAppRibbon();
     void hideClassicToolBars();
-    void createAppSidebar();
     void setupConnections();
     void initLayerTreeView();
     void createOverview();
@@ -2653,7 +2660,6 @@ class APP_EXPORT QgisApp : public QMainWindow, private Ui::MainWindow
     QgsDockWidget *mLogDock = nullptr;
     QgsVertexEditor *mVertexEditorDock = nullptr;
 
-    QgsAppSidebar *mAppSidebar = nullptr;
     QgsAppRibbon *mAppRibbon = nullptr;
     QToolBar *mAppRibbonBar = nullptr;
 

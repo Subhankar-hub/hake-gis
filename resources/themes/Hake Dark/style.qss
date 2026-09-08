@@ -1498,38 +1498,6 @@ QgsLocatorResultsView::item:disabled {
     color: @text;
 }
 
-/* Hake left navigation rail */
-QToolBar#HakeAppSidebar {
-    background-color: @background;
-    border: none;
-    border-right: 2px solid @itemdarkbackground;
-    border-bottom: none;
-    spacing: 0.15em;
-    padding: 0.25em 0.1em;
-}
-
-QToolBar#HakeAppSidebar QToolButton {
-    color: @text;
-    background: transparent;
-    border: 1px solid transparent;
-    border-radius: 0.25em;
-    padding: 0.35em 0.15em;
-    margin: 0.1em 0.15em;
-}
-
-QToolBar#HakeAppSidebar QToolButton:hover {
-    background-color: @hover;
-    border-color: @focus;
-    color: @textlight;
-}
-
-QToolBar#HakeAppSidebar QToolButton:checked,
-QToolBar#HakeAppSidebar QToolButton:pressed {
-    background-color: @selection;
-    border-color: @focus;
-    color: @textlight;
-}
-
 /* Hake tabbed ribbon */
 QToolBar#HakeAppRibbon {
     background-color: @background;
@@ -1555,8 +1523,8 @@ QTabWidget#HakeAppRibbon > QTabBar::tab {
     color: @text;
     border: none;
     border-bottom: 2px solid transparent;
-    padding: 0.4em 0.9em;
-    margin: 0 0.1em;
+    padding: 0.25em 0.7em;
+    margin: 0 0.05em;
 }
 
 QTabWidget#HakeAppRibbon > QTabBar::tab:selected {
@@ -1576,7 +1544,7 @@ QTabWidget#HakeAppRibbon QToolButton {
     background: transparent;
     border: 1px solid transparent;
     border-radius: 0.25em;
-    padding: 0.25em 0.35em;
+    padding: 0.2em;
     margin: 0.05em;
 }
 
@@ -1596,9 +1564,11 @@ QTabWidget#HakeAppRibbon QToolButton:pressed {
     color: @textlight;
 }
 
-QTabWidget#HakeAppRibbon QLabel#HakeAppRibbonGroupLabel {
-    color: @text;
-    font-size: 0.85em;
+QToolBar#HakeAppRibbon QToolButton:disabled,
+QTabWidget#HakeAppRibbon QToolButton:disabled {
+    color: #b7d6f7;
+    background: transparent;
+    border-color: transparent;
 }
 
 QTabWidget#HakeAppRibbon QFrame#HakeAppRibbonSeparator {

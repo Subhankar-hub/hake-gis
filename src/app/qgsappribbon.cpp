@@ -25,12 +25,10 @@
 #include <QAction>
 #include <QFrame>
 #include <QHBoxLayout>
-#include <QLabel>
 #include <QSizePolicy>
 #include <QTabBar>
 #include <QToolBar>
 #include <QToolButton>
-#include <QVBoxLayout>
 #include <QWidget>
 #include <QWidgetAction>
 
@@ -61,9 +59,9 @@ QgsAppRibbon::QgsAppRibbon( QWidget *parent, QgisApp *app )
     addNamedAction( project, u"mActionOpenProject"_s );
     addNamedAction( project, u"mActionSaveProject"_s );
 
-    QHBoxLayout *clipboard = addGroup( page, tr( "Clipboard" ) );
-    addNamedAction( clipboard, u"mActionUndo"_s );
-    addNamedAction( clipboard, u"mActionRedo"_s );
+    QHBoxLayout *edit = addGroup( page, tr( "Edit" ) );
+    addNamedAction( edit, u"mActionUndo"_s );
+    addNamedAction( edit, u"mActionRedo"_s );
 
     QHBoxLayout *map = addGroup( page, tr( "Map" ) );
     addNamedAction( map, u"mActionPan"_s );
@@ -77,9 +75,9 @@ QgsAppRibbon::QgsAppRibbon( QWidget *parent, QgisApp *app )
     addNamedAction( identify, u"mActionOpenTable"_s );
   }
 
-  // Insert
+  // Data: layer sources, layouts, database and web services
   {
-    QWidget *page = addPage( tr( "Insert" ) );
+    QWidget *page = addPage( tr( "Data" ) );
     QHBoxLayout *layers = addGroup( page, tr( "Layers" ) );
     addNamedAction( layers, u"mActionDataSourceManager"_s );
     addNamedAction( layers, u"mActionAddOgrLayer"_s );
@@ -94,6 +92,12 @@ QgsAppRibbon::QgsAppRibbon( QWidget *parent, QgisApp *app )
     QHBoxLayout *layout = addGroup( page, tr( "Layout" ) );
     addNamedAction( layout, u"mActionNewPrintLayout"_s );
     addNamedAction( layout, u"mActionShowLayoutManager"_s );
+
+    QHBoxLayout *database = addGroup( page, tr( "Database" ) );
+    addToolbarActions( database, mApp->databaseToolBar() );
+
+    QHBoxLayout *web = addGroup( page, tr( "Web" ) );
+    addToolbarActions( web, mApp->webToolBar() );
   }
 
   // Analysis
@@ -114,7 +118,7 @@ QgsAppRibbon::QgsAppRibbon( QWidget *parent, QgisApp *app )
     refreshOptionalActions();
   }
 
-  // View
+  // View: navigation, bookmarks and 3D views
   {
     QWidget *page = addPage( tr( "View" ) );
     QHBoxLayout *navigate = addGroup( page, tr( "Navigate" ) );
@@ -129,16 +133,19 @@ QgsAppRibbon::QgsAppRibbon( QWidget *parent, QgisApp *app )
     addNamedAction( navigate, u"mActionShowBookmarks"_s );
     addNamedAction( navigate, u"mActionTemporalController"_s );
 
-    QHBoxLayout *windows = addGroup( page, tr( "Windows" ) );
-    addNamedAction( windows, u"mActionHelpContents"_s );
+    QHBoxLayout *views3d = addGroup( page, tr( "3D" ) );
+    addNamedAction( views3d, u"mActionNew3DMapCanvas"_s );
+    addNamedAction( views3d, u"mActionNew3DMapCanvasGlobe"_s );
   }
 
   // Vector
   {
     QWidget *page = addPage( tr( "Vector" ) );
     QHBoxLayout *digitize = addGroup( page, tr( "Digitizing" ) );
-    addToolbarActions( digitize, mApp->digitizeToolBar() );
-    addToolbarActions( digitize, mApp->advancedDigitizeToolBar() );
+    // Undo/Redo already live on Home > Edit; don't surface them twice
+    const QStringList homeActions { u"mActionUndo"_s, u"mActionRedo"_s };
+    addToolbarActions( digitize, mApp->digitizeToolBar(), homeActions );
+    addToolbarActions( digitize, mApp->advancedDigitizeToolBar(), homeActions );
 
     QHBoxLayout *selection = addGroup( page, tr( "Selection" ) );
     addToolbarActions( selection, mApp->selectionToolBar() );
@@ -152,28 +159,6 @@ QgsAppRibbon::QgsAppRibbon( QWidget *parent, QgisApp *app )
     QWidget *page = addPage( tr( "Raster" ) );
     QHBoxLayout *stretch = addGroup( page, tr( "Stretch" ) );
     addToolbarActions( stretch, mApp->rasterToolBar() );
-  }
-
-  // Database
-  {
-    QWidget *page = addPage( tr( "Database" ) );
-    QHBoxLayout *layers = addGroup( page, tr( "Layers" ) );
-    addToolbarActions( layers, mApp->databaseToolBar() );
-  }
-
-  // Web
-  {
-    QWidget *page = addPage( tr( "Web" ) );
-    QHBoxLayout *services = addGroup( page, tr( "Services" ) );
-    addToolbarActions( services, mApp->webToolBar() );
-  }
-
-  // 3D
-  {
-    QWidget *page = addPage( tr( "3D" ) );
-    QHBoxLayout *views = addGroup( page, tr( "Views" ) );
-    addNamedAction( views, u"mActionNew3DMapCanvas"_s );
-    addNamedAction( views, u"mActionNew3DMapCanvasGlobe"_s );
   }
 }
 
@@ -201,8 +186,8 @@ QWidget *QgsAppRibbon::addPage( const QString &title )
 {
   QWidget *page = new QWidget( this );
   QHBoxLayout *layout = new QHBoxLayout( page );
-  layout->setContentsMargins( 6, 4, 6, 4 );
-  layout->setSpacing( 8 );
+  layout->setContentsMargins( 4, 2, 4, 2 );
+  layout->setSpacing( 4 );
   layout->addStretch( 1 );
   addTab( page, title );
   return page;
@@ -212,23 +197,14 @@ QHBoxLayout *QgsAppRibbon::addGroup( QWidget *page, const QString &title )
 {
   auto *pageLayout = qobject_cast<QHBoxLayout *>( page->layout() );
 
+  // Single compact row of buttons; the group title stays available to
+  // accessibility tools but is no longer rendered as a caption.
   QWidget *group = new QWidget( page );
-  QVBoxLayout *outer = new QVBoxLayout( group );
-  outer->setContentsMargins( 4, 0, 4, 0 );
-  outer->setSpacing( 2 );
-
-  QWidget *buttons = new QWidget( group );
-  auto *buttonLayout = new QHBoxLayout( buttons );
+  group->setAccessibleName( title );
+  auto *buttonLayout = new QHBoxLayout( group );
   buttonLayout->setContentsMargins( 0, 0, 0, 0 );
   buttonLayout->setSpacing( 2 );
   buttonLayout->addStretch( 1 );
-
-  QLabel *caption = new QLabel( title, group );
-  caption->setAlignment( Qt::AlignHCenter | Qt::AlignVCenter );
-  caption->setObjectName( u"HakeAppRibbonGroupLabel"_s );
-
-  outer->addWidget( buttons, 1 );
-  outer->addWidget( caption );
 
   // Insert before the trailing stretch
   const int stretchIndex = std::max( 0, pageLayout->count() - 1 );
@@ -253,8 +229,8 @@ void QgsAppRibbon::addActionButton( QHBoxLayout *groupLayout, QAction *action )
   auto *button = new QToolButton( groupLayout->parentWidget() );
   button->setDefaultAction( action );
   button->setAutoRaise( true );
-  button->setToolButtonStyle( Qt::ToolButtonTextUnderIcon );
-  button->setIconSize( QSize( QgsGuiUtils::scaleIconSize( 24 ), QgsGuiUtils::scaleIconSize( 24 ) ) );
+  button->setToolButtonStyle( Qt::ToolButtonIconOnly );
+  button->setIconSize( QSize( QgsGuiUtils::scaleIconSize( 20 ), QgsGuiUtils::scaleIconSize( 20 ) ) );
   button->setFocusPolicy( Qt::NoFocus );
 
   const int stretchIndex = std::max( 0, groupLayout->count() - 1 );
@@ -268,13 +244,15 @@ void QgsAppRibbon::addNamedAction( QHBoxLayout *groupLayout, const QString &obje
   addActionButton( groupLayout, mApp->findChild<QAction *>( objectName ) );
 }
 
-void QgsAppRibbon::addToolbarActions( QHBoxLayout *groupLayout, QToolBar *toolbar )
+void QgsAppRibbon::addToolbarActions( QHBoxLayout *groupLayout, QToolBar *toolbar, const QStringList &excludedObjectNames )
 {
   if ( !toolbar )
     return;
   const QList<QAction *> actions = toolbar->actions();
   for ( QAction *action : actions )
   {
+    if ( action && excludedObjectNames.contains( action->objectName() ) )
+      continue;
     addActionButton( groupLayout, action );
   }
 }
