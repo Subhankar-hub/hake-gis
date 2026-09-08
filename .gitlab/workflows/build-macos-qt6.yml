@@ -19,10 +19,6 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: macos-15-intel
-            triplet: x64-osx-dynamic-release
-            deployment-target: "10.15"
-            osx-architecture: "x86_64"
           - os: macos-15
             triplet: arm64-osx-dynamic-release
             deployment-target: "11.0"
@@ -62,7 +58,6 @@ jobs:
           echo $(brew --prefix libtool)/bin >> $GITHUB_PATH
 
       - name: Symlink gfortran (macOS)
-        if: matrix.os == 'macos-15'
         run: |
           # make sure gfortran is available
           # https://github.com/actions/runner-images/blob/main/images/macos/macos-15-Readme.md
@@ -70,16 +65,6 @@ jobs:
           sudo ln -fs /opt/homebrew/bin/gfortran-${GCC_VERSION} /usr/local/bin/gfortran
           sudo mkdir -p /usr/local/gfortran
           sudo ln -sf /opt/homebrew/Cellar/gcc@${GCC_VERSION}/*/lib/gcc/${GCC_VERSION} /usr/local/gfortran/lib
-
-      - name: Symlink gfortran (macOS-intel)
-        if: matrix.os == 'macos-15-intel'
-        run: |
-          # make sure gfortran is available
-          # https://github.com/actions/runner-images/blob/main/images/macos/macos-15-Readme.md
-          # https://github.com/actions/runner-images/issues/3371
-          sudo ln -fs /usr/local/bin/gfortran-${GCC_VERSION} /usr/local/bin/gfortran
-          sudo mkdir -p /usr/local/gfortran
-          sudo ln -sf /usr/local/Cellar/gcc@${GCC_VERSION}/*/lib/gcc/${GCC_VERSION} /usr/local/gfortran/lib
 
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
@@ -216,15 +201,10 @@ jobs:
           path: |
             artifacts
 
-      - name: Create universal app
+      - name: Extract app
         run: |
-          mkdir -p x64
-          gtar --strip-components=5 -zxf ./artifacts/hake-gis-app-${STEPS_WORKFLOW_ARTIFACT_IDS_OUTPUTS_FILENAME}-x64-osx-dynamic-release/hake-gis-app-${STEPS_WORKFLOW_ARTIFACT_IDS_OUTPUTS_FILENAME}-x64-osx-dynamic-release.tar.gz -C x64
           mkdir -p arm64
           gtar --strip-components=5 -zxf ./artifacts/hake-gis-app-${STEPS_WORKFLOW_ARTIFACT_IDS_OUTPUTS_FILENAME}-arm64-osx-dynamic-release/hake-gis-app-${STEPS_WORKFLOW_ARTIFACT_IDS_OUTPUTS_FILENAME}-arm64-osx-dynamic-release.tar.gz -C arm64
-
-          pip install lipomerge
-          lipomerge ./x64 ./arm64 universal
         env:
           STEPS_WORKFLOW_ARTIFACT_IDS_OUTPUTS_FILENAME: ${{steps.workflow-artifact-ids.outputs.filename}}
 
@@ -241,7 +221,7 @@ jobs:
             --icon "${HAKE-GIS_APP_NAME}.app" 130 160 \
             --app-drop-link 400 155 \
             ${HAKE-GIS_APP_NAME}-Installer.dmg \
-            universal/*/*.app
+            arm64/*/*.app
         env:
           STEPS_WORKFLOW_ARTIFACT_IDS_OUTPUTS_DISPLAY_NAME: ${{steps.workflow-artifact-ids.outputs.display-name}}
 
