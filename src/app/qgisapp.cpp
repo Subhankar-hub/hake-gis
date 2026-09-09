@@ -12935,7 +12935,7 @@ QMap<QString, QString> QgisApp::projectPropertiesPagesMap()
     sProjectPropertiesPagesMap.insert( QCoreApplication::translate( "QgsProjectPropertiesBase", "Relations" ), u"mTabRelations"_s );
     sProjectPropertiesPagesMap.insert( QCoreApplication::translate( "QgsProjectPropertiesBase", "Variables" ), u"mTab_Variables"_s );
     sProjectPropertiesPagesMap.insert( QCoreApplication::translate( "QgsProjectPropertiesBase", "Macros" ), u"mProjOptsMacros"_s );
-    sProjectPropertiesPagesMap.insert( QCoreApplication::translate( "QgsProjectPropertiesBase", "QGIS Server" ), u"mProjOptsOWS"_s );
+    sProjectPropertiesPagesMap.insert( QCoreApplication::translate( "QgsProjectPropertiesBase", "Hake Geospatial Server" ), u"mProjOptsOWS"_s );
     sProjectPropertiesPagesMap.insert( QCoreApplication::translate( "QgsProjectPropertiesBase", "Temporal" ), u"mTemporalOptions"_s );
   } );
 
@@ -15064,13 +15064,14 @@ void QgisApp::updateCrsStatusBar()
     }
     else
     {
-      mOnTheFlyProjectionStatusButton->setPopupMode( QToolButton::InstantPopup );
+      // DelayedPopup so clicked() still fires when there is no menu (InstantPopup swallows it)
+      mOnTheFlyProjectionStatusButton->setPopupMode( QToolButton::DelayedPopup );
     }
   }
   else
   {
     mOnTheFlyProjectionStatusButton->setMenu( nullptr );
-    mOnTheFlyProjectionStatusButton->setPopupMode( QToolButton::InstantPopup );
+    mOnTheFlyProjectionStatusButton->setPopupMode( QToolButton::DelayedPopup );
 
     mOnTheFlyProjectionStatusButton->setText( QString() );
     mOnTheFlyProjectionStatusButton->setToolTip( tr( "No projection" ) );
