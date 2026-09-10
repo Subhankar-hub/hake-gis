@@ -17,8 +17,11 @@
 
 #include "qgswelcomescreen.h"
 
+#include "qgis.h"
 #include "qgisapp.h"
 #include "qgsapplication.h"
+#include "qgshelp.h"
+#include "qgsmessagelog.h"
 #include "qgspluginmanager.h"
 #include "qgssettings.h"
 #include "qgssettingsentryimpl.h"
@@ -27,6 +30,8 @@
 #include <QAbstractButton>
 #include <QMessageBox>
 #include <QQmlContext>
+#include <QQmlError>
+#include <QQuickItem>
 #include <QString>
 #include <QTimer>
 #include <QUrl>
@@ -97,6 +102,11 @@ void QgsWelcomeScreenController::hideScene()
   }
 }
 
+void QgsWelcomeScreenController::openGettingStarted()
+{
+  QgsHelp::openHelp( u"introduction/getting_started.html"_s );
+}
+
 void QgsWelcomeScreenController::forwardDrop( const QString &text, const QStringList &urls, const QVariantMap &formatsData )
 {
   QMimeData mimeData;
@@ -147,6 +157,8 @@ QgsWelcomeScreen::QgsWelcomeScreen( bool skipVersionCheck, QWidget *parent )
   rootContext()->setContextProperty( u"newsFeedParser"_s, mNewsFeedParser );
   rootContext()->setContextProperty( u"newsFeedModel"_s, mNewsFeedModel );
   rootContext()->setContextProperty( u"welcomeScreenController"_s, mWelcomeScreenController );
+  rootContext()->setContextProperty( u"productDisplayName"_s, Qgis::productDisplayName() );
+  rootContext()->setContextProperty( u"appVersion"_s, Qgis::version() );
 
   setResizeMode( QQuickWidget::ResizeMode::SizeRootObjectToView );
 
@@ -196,11 +208,34 @@ void QgsWelcomeScreen::showScene()
   if ( source().isEmpty() )
   {
     setSource( QUrl( "qrc:/qt/qml/org/hake/app/qml/WelcomeScreen.qml" ) );
-    mOriginalWidth = width();
-    mOriginalHeight = height();
+
+    if ( status() == QQuickWidget::Error )
+    {
+      const QList<QQmlError> qmlErrors = errors();
+      for ( const QQmlError &error : qmlErrors )
+      {
+        QgsMessageLog::logMessage( error.toString(), tr( "Welcome Screen" ), Qgis::MessageLevel::Critical );
+      }
+    }
+
+    // SizeRootObjectToView can leave the widget at 0x0; prefer the QML root's designed size.
+    if ( QQuickItem *root = rootObject() )
+    {
+      mOriginalWidth = qMax( 1, qRound( root->width() ) );
+      mOriginalHeight = qMax( 1, qRound( root->height() ) );
+    }
+    if ( mOriginalWidth < 300 )
+    {
+      mOriginalWidth = 400;
+    }
+    if ( mOriginalHeight < 280 )
+    {
+      mOriginalHeight = 600;
+    }
   }
   refreshGeometry();
   show();
+  raise();
 }
 
 void QgsWelcomeScreen::hideScene()

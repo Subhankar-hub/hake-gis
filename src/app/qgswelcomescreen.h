@@ -52,6 +52,8 @@ class QgsWelcomeScreenController : public QObject
 
     Q_INVOKABLE void hideScene();
 
+    Q_INVOKABLE void openGettingStarted();
+
     Q_INVOKABLE void forwardDrop( const QString &text, const QStringList &urls, const QVariantMap &formatsData );
 
   signals:

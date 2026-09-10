@@ -539,6 +539,7 @@ qt_add_qml_module(qgis_app
         qml/images/basemap.jpg
         qml/images/close.svg
         qml/images/hake-gis.svg
+        qml/images/hake-gis-icon.png
         qml/images/love.svg
 )
 else()
@@ -560,6 +561,7 @@ qt_add_qml_module(qgis_app
         qml/images/basemap.jpg
         qml/images/close.svg
         qml/images/hake-gis.svg
+        qml/images/hake-gis-icon.png
         qml/images/love.svg
     NO_GENERATE_EXTRA_QMLDIRS
 )
