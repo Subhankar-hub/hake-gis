@@ -31,7 +31,6 @@
 #include <QMessageBox>
 #include <QQmlContext>
 #include <QQmlError>
-#include <QQuickItem>
 #include <QString>
 #include <QTimer>
 #include <QUrl>
@@ -107,6 +106,11 @@ void QgsWelcomeScreenController::openGettingStarted()
   QgsHelp::openHelp( u"introduction/getting_started.html"_s );
 }
 
+void QgsWelcomeScreenController::openProjectDialog()
+{
+  QTimer::singleShot( 1, this, []() { QgisApp::instance()->fileOpen(); } );
+}
+
 void QgsWelcomeScreenController::forwardDrop( const QString &text, const QStringList &urls, const QVariantMap &formatsData )
 {
   QMimeData mimeData;
@@ -158,7 +162,7 @@ QgsWelcomeScreen::QgsWelcomeScreen( bool skipVersionCheck, QWidget *parent )
   rootContext()->setContextProperty( u"newsFeedModel"_s, mNewsFeedModel );
   rootContext()->setContextProperty( u"welcomeScreenController"_s, mWelcomeScreenController );
   rootContext()->setContextProperty( u"productDisplayName"_s, Qgis::productDisplayName() );
-  rootContext()->setContextProperty( u"appVersion"_s, Qgis::version() );
+  rootContext()->setContextProperty( u"appVersion"_s, u"2026.0.0"_s );
 
   setResizeMode( QQuickWidget::ResizeMode::SizeRootObjectToView );
 
@@ -195,11 +199,26 @@ void QgsWelcomeScreen::refreshGeometry()
 {
   if ( QWidget *parentWidget = qobject_cast<QWidget *>( parent() ) )
   {
-    const int adjustedWidth = std::min( mOriginalWidth, parentWidget->width() - 10 );
-    const int adjustedHeight = std::min( mOriginalHeight, parentWidget->height() - 60 );
-    const int adjustedX = ( parentWidget->width() - adjustedWidth ) / 2;
-    const int adjustedY = ( parentWidget->height() - adjustedHeight ) / 2;
-    setGeometry( adjustedX, adjustedY, adjustedWidth, adjustedHeight );
+    constexpr int marginX = 32;
+    constexpr int marginY = 28;
+    constexpr int minW = 720;
+    constexpr int minH = 520;
+    constexpr int maxW = 1400;
+    constexpr int maxH = 920;
+
+    const int parentW = parentWidget->width();
+    const int parentH = parentWidget->height();
+    const int availableW = qMax( 1, parentW - ( 2 * marginX ) );
+    const int availableH = qMax( 1, parentH - ( 2 * marginY ) );
+
+    const int adjustedWidth = qBound( minW, availableW, maxW );
+    const int adjustedHeight = qBound( minH, availableH, maxH );
+    // Never exceed the parent even if mins are larger than the window.
+    const int finalWidth = qMin( adjustedWidth, qMax( 1, parentW - 10 ) );
+    const int finalHeight = qMin( adjustedHeight, qMax( 1, parentH - 60 ) );
+    const int adjustedX = ( parentW - finalWidth ) / 2;
+    const int adjustedY = ( parentH - finalHeight ) / 2;
+    setGeometry( adjustedX, adjustedY, finalWidth, finalHeight );
   }
 }
 
@@ -216,21 +235,6 @@ void QgsWelcomeScreen::showScene()
       {
         QgsMessageLog::logMessage( error.toString(), tr( "Welcome Screen" ), Qgis::MessageLevel::Critical );
       }
-    }
-
-    // SizeRootObjectToView can leave the widget at 0x0; prefer the QML root's designed size.
-    if ( QQuickItem *root = rootObject() )
-    {
-      mOriginalWidth = qMax( 1, qRound( root->width() ) );
-      mOriginalHeight = qMax( 1, qRound( root->height() ) );
-    }
-    if ( mOriginalWidth < 300 )
-    {
-      mOriginalWidth = 400;
-    }
-    if ( mOriginalHeight < 280 )
-    {
-      mOriginalHeight = 600;
     }
   }
   refreshGeometry();

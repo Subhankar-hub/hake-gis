@@ -54,6 +54,8 @@ class QgsWelcomeScreenController : public QObject
 
     Q_INVOKABLE void openGettingStarted();
 
+    Q_INVOKABLE void openProjectDialog();
+
     Q_INVOKABLE void forwardDrop( const QString &text, const QStringList &urls, const QVariantMap &formatsData );
 
   signals:
@@ -139,9 +141,6 @@ class QgsWelcomeScreen : public QQuickWidget
     QgsNewsFeedProxyModel *mNewsFeedModel = nullptr;
 
     QgsVersionInfo *mVersionInfo = nullptr;
-
-    int mOriginalWidth = 0;
-    int mOriginalHeight = 0;
 };
 
 #endif // QGSWELCOMESCREEN_H
