@@ -1938,10 +1938,13 @@ int main( int argc, char *argv[] )
   }
 
 #if defined( ANDROID )
-  // fix for Qt Ministro hiding app's menubar in favor of native Android menus
+  // Ministro historically hid the menubar; keep menus visible on Android.
+#endif
+  // Keep the application menu bar in-window on every platform so Hake chrome
+  // (#164A73) is identical on Wayland/X11/Windows/macOS. OS title bars stay native —
+  // do not use FramelessWindowHint or platform decoration APIs for this color.
   qgis->menuBar()->setNativeMenuBar( false );
   qgis->menuBar()->setVisible( true );
-#endif
 
 #if !defined( Q_OS_WIN )
   UnixSignalWatcher sigwatch;

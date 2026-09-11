@@ -15,3 +15,11 @@
 @hover: #D8E7F8
 @focusdark: rgba(27,47,75,80)
 @focus: #4A7EC7
+/* Longer @chrome* names must come before @chrome — setUITheme does plain substring replace. */
+@chromeToolbar: #EAF2F7
+@chromeTextMuted: #D7E6F2
+@chromeHover: #22658F
+@chromeActive: #0E3858
+@chromeBorder: #0F3B5C
+@chromeText: #FFFFFF
+@chrome: #164A73

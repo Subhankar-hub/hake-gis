@@ -25,6 +25,8 @@
 #include <QAction>
 #include <QFrame>
 #include <QHBoxLayout>
+#include <QResizeEvent>
+#include <QShowEvent>
 #include <QSizePolicy>
 #include <QTabBar>
 #include <QToolBar>
@@ -45,8 +47,21 @@ QgsAppRibbon::QgsAppRibbon( QWidget *parent, QgisApp *app )
   setMovable( false );
   setUsesScrollButtons( true );
   setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Preferred );
+  // Fusion leaves the empty region after the last tab unpainted unless QSS backgrounds are forced.
+  // WA_StyledBackground is Qt-portable (Wayland-safe); do not use platform window APIs here.
+  setAttribute( Qt::WA_StyledBackground, true );
+  tabBar()->setAttribute( Qt::WA_StyledBackground, true );
+  tabBar()->setAutoFillBackground( true );
   tabBar()->setExpanding( false );
   tabBar()->setDrawBase( false );
+  tabBar()->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Preferred );
+
+  // Fills any remaining header gap to the right of the last tab with chrome.
+  auto *tabFiller = new QWidget( this );
+  tabFiller->setObjectName( u"HakeAppRibbonTabFiller"_s );
+  tabFiller->setAttribute( Qt::WA_StyledBackground, true );
+  tabFiller->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Preferred );
+  setCornerWidget( tabFiller, Qt::TopRightCorner );
 
   if ( !mApp )
     return;
@@ -159,6 +174,46 @@ QgsAppRibbon::QgsAppRibbon( QWidget *parent, QgisApp *app )
     QWidget *page = addPage( tr( "Raster" ) );
     QHBoxLayout *stretch = addGroup( page, tr( "Stretch" ) );
     addToolbarActions( stretch, mApp->rasterToolBar() );
+  }
+}
+
+void QgsAppRibbon::resizeEvent( QResizeEvent *event )
+{
+  QTabWidget::resizeEvent( event );
+  syncChromeTabBarGeometry();
+}
+
+void QgsAppRibbon::showEvent( QShowEvent *event )
+{
+  QTabWidget::showEvent( event );
+  syncChromeTabBarGeometry();
+}
+
+void QgsAppRibbon::syncChromeTabBarGeometry()
+{
+  QTabBar *bar = tabBar();
+  if ( !bar )
+    return;
+
+  // Portable QWidget geometry only (valid on Wayland/X11/Windows/macOS). Document-mode
+  // tab bars often keep sizeHint width (= tabs only); force the bar to span the full
+  // ribbon so @chrome fills past the last tab without stretching tab labels.
+  const int stripWidth = width();
+  if ( stripWidth <= 0 )
+    return;
+
+  if ( bar->minimumWidth() != stripWidth )
+    bar->setMinimumWidth( stripWidth );
+
+  const int h = std::max( bar->height(), bar->sizeHint().height() );
+  const QRect target( 0, bar->y(), stripWidth, h );
+  if ( bar->geometry() != target )
+    bar->setGeometry( target );
+
+  if ( QWidget *filler = cornerWidget( Qt::TopRightCorner ) )
+  {
+    filler->setMinimumHeight( h );
+    filler->setMaximumHeight( h );
   }
 }
 

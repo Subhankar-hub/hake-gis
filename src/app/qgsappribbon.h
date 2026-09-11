@@ -39,7 +39,12 @@ class QgsAppRibbon : public QTabWidget
     //! Adds Processing Toolbox toggle if the dock exists (may appear after plugins load).
     void refreshOptionalActions();
 
+  protected:
+    void resizeEvent( QResizeEvent *event ) override;
+    void showEvent( QShowEvent *event ) override;
+
   private:
+    void syncChromeTabBarGeometry();
     QWidget *addPage( const QString &title );
     QHBoxLayout *addGroup( QWidget *page, const QString &title );
     void addActionButton( QHBoxLayout *groupLayout, QAction *action );

@@ -42,30 +42,30 @@ QToolTip
 }
 
 QMenuBar {
-    background-color: @background;
-    color: @text;
-    border-bottom: 1px solid @itemdarkbackground;
-    padding: 0.1em 0.2em;
+    background-color: @chrome;
+    color: @chromeText;
+    border-bottom: 1px solid @chromeBorder;
+    padding: 2px 4px;
 }
 
 QMenuBar::item
 {
     background: transparent;
-    padding: 0.25em 0.55em;
-    border-radius: 0.2em;
-    color: @text;
+    padding: 4px 10px;
+    border-radius: 0;
+    color: @chromeText;
 }
 
 QMenuBar::item:selected
 {
-    background: @selection;
-    color: @textlight;
+    background: @chromeHover;
+    color: @chromeText;
 }
 
 QMenuBar::item:pressed
 {
-    background: @focus;
-    color: @textlight;
+    background: @chromeActive;
+    color: @chromeText;
 }
 
 /* ==================================================================================== */
@@ -361,8 +361,9 @@ QToolBox::tab {
 QToolBar QToolButton, QToolButton::menu-button
 {
     border: 1px solid transparent;
-    border-radius: 0.25em;
+    border-radius: 0;
     background-color: none;
+    color: @text;
     padding: 0.2em;
 }
 
@@ -613,9 +614,10 @@ QMainWindow::separator:hover
 }
 
 QToolBar {
-    background: @background;
+    background: @chromeToolbar;
     border: none;
     border-bottom: 1px solid @itemdarkbackground;
+    color: @text;
 }
 
 QToolBar::handle:horizontal
@@ -1451,9 +1453,15 @@ QListWidget#mOptionsListWidget::item:hover
     color: @text;
 }
 
+QListWidget#mOptionsListWidget::item:selected
+{
+    background-color: @selection;
+    color: @text;
+}
+
 QListWidget#mOptionsListWidget::item:selected:hover {
     background-color: @selection;
-    color: @textlight;
+    color: @text;
 }
 
 QWidget#QgsTextFormatWidgetBase QTabWidget#mOptionsTab QTabBar::tab,
@@ -1514,44 +1522,82 @@ QgsLocatorResultsView::item:disabled {
     color: @text;
 }
 
-/* Hake tabbed ribbon */
+/* Hake tabbed ribbon — full-width chrome strip; light tool pane below */
 QToolBar#HakeAppRibbon {
-    background-color: @background;
+    background-color: @chrome;
     border: none;
-    border-bottom: 2px solid @itemdarkbackground;
+    border-bottom: 1px solid @chromeBorder;
     spacing: 0;
     padding: 0;
 }
 
+QWidget#HakeAppRibbonHost {
+    background-color: @chrome;
+    border: none;
+}
+
 QTabWidget#HakeAppRibbon {
-    background-color: @background;
+    background-color: @chrome;
     border: none;
 }
 
 QTabWidget#HakeAppRibbon::pane {
-    background-color: @itembackground;
+    background-color: @chromeToolbar;
     border: none;
     top: 0;
 }
 
-QTabWidget#HakeAppRibbon > QTabBar::tab {
-    background: transparent;
-    color: @text;
+/* Do NOT use "> QWidget" here — it also matches QTabBar and paints the empty
+   strip after the last tab with the light toolbar color. */
+QTabWidget#HakeAppRibbon > QStackedWidget {
+    background-color: @chromeToolbar;
+}
+
+QTabWidget#HakeAppRibbon > QTabBar {
+    background-color: @chrome;
+    border: none;
+    border-bottom: 1px solid @chromeBorder;
+}
+
+QWidget#HakeAppRibbonTabFiller {
+    background-color: @chrome;
+    border: none;
+    border-bottom: 1px solid @chromeBorder;
+}
+
+QTabWidget#HakeAppRibbon > QTabBar::tab,
+QTabWidget#HakeAppRibbon > QTabBar::tab:!selected {
+    background-color: @chrome;
+    color: @chromeText;
     border: none;
     border-bottom: 2px solid transparent;
-    padding: 0.25em 0.7em;
-    margin: 0 0.05em;
+    border-radius: 0;
+    padding: 4px 10px;
+    margin: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-left: 0;
+    margin-right: 0;
 }
 
 QTabWidget#HakeAppRibbon > QTabBar::tab:selected {
-    color: @textlight;
-    border-bottom-color: @focus;
-    background-color: @selection;
+    background-color: @chromeActive;
+    color: @chromeText;
+    border: none;
+    border-bottom: 2px solid @chromeToolbar;
+    border-radius: 0;
+    padding: 4px 10px;
+    margin: 0;
 }
 
 QTabWidget#HakeAppRibbon > QTabBar::tab:hover {
-    background-color: @hover;
-    color: @textlight;
+    background-color: @chromeHover;
+    color: @chromeText;
+    border: none;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    padding: 4px 10px;
+    margin: 0;
 }
 
 QToolBar#HakeAppRibbon QToolButton,
@@ -1559,25 +1605,25 @@ QTabWidget#HakeAppRibbon QToolButton {
     color: @text;
     background: transparent;
     border: 1px solid transparent;
-    border-radius: 0.25em;
-    padding: 0.2em;
-    margin: 0.05em;
+    border-radius: 0;
+    padding: 4px;
+    margin: 0;
 }
 
 QToolBar#HakeAppRibbon QToolButton:hover,
 QTabWidget#HakeAppRibbon QToolButton:hover {
-    background-color: @hover;
-    border-color: @focus;
-    color: @textlight;
+    background-color: @chromeHover;
+    border-color: @chromeActive;
+    color: @chromeText;
 }
 
 QToolBar#HakeAppRibbon QToolButton:checked,
 QToolBar#HakeAppRibbon QToolButton:pressed,
 QTabWidget#HakeAppRibbon QToolButton:checked,
 QTabWidget#HakeAppRibbon QToolButton:pressed {
-    background-color: @selection;
-    border-color: @focus;
-    color: @textlight;
+    background-color: @chromeActive;
+    border-color: @chromeActive;
+    color: @chromeText;
 }
 
 QToolBar#HakeAppRibbon QToolButton:disabled,

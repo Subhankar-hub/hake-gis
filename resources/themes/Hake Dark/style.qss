@@ -45,14 +45,14 @@ QMenuBar {
     background-color: @background;
     color: @text;
     border-bottom: 1px solid @itemdarkbackground;
-    padding: 0.1em 0.2em;
+    padding: 2px 4px;
 }
 
 QMenuBar::item
 {
     background: transparent;
-    padding: 0.25em 0.55em;
-    border-radius: 0.2em;
+    padding: 4px 10px;
+    border-radius: 0;
     color: @text;
 }
 
@@ -361,8 +361,9 @@ QToolBox::tab {
 QToolBar QToolButton, QToolButton::menu-button
 {
     border: 1px solid transparent;
-    border-radius: 0.25em;
+    border-radius: 0;
     background-color: none;
+    color: @text;
     padding: 0.2em;
 }
 
@@ -612,9 +613,10 @@ QMainWindow::separator:hover
 }
 
 QToolBar {
-    background: @background;
+    background: @itembackground;
     border: none;
     border-bottom: 1px solid @itemdarkbackground;
+    color: @text;
 }
 
 QToolBar::handle:horizontal
@@ -1435,6 +1437,12 @@ QListWidget#mOptionsListWidget::item:hover
     color: @text;
 }
 
+QListWidget#mOptionsListWidget::item:selected
+{
+    background-color: @selection;
+    color: @textlight;
+}
+
 QListWidget#mOptionsListWidget::item:selected:hover {
     background-color: @selection;
     color: @textlight;
@@ -1498,13 +1506,18 @@ QgsLocatorResultsView::item:disabled {
     color: @text;
 }
 
-/* Hake tabbed ribbon */
+/* Hake tabbed ribbon — full-width parent fill; empty tab-bar space must not flash light */
 QToolBar#HakeAppRibbon {
     background-color: @background;
     border: none;
     border-bottom: 2px solid @itemdarkbackground;
     spacing: 0;
     padding: 0;
+}
+
+QWidget#HakeAppRibbonHost {
+    background-color: @background;
+    border: none;
 }
 
 QTabWidget#HakeAppRibbon {
@@ -1518,24 +1531,56 @@ QTabWidget#HakeAppRibbon::pane {
     top: 0;
 }
 
-QTabWidget#HakeAppRibbon > QTabBar::tab {
-    background: transparent;
+/* Do NOT use "> QWidget" — it matches QTabBar and leaves a light gap after tabs. */
+QTabWidget#HakeAppRibbon > QStackedWidget {
+    background-color: @itembackground;
+}
+
+QTabWidget#HakeAppRibbon > QTabBar {
+    background-color: @background;
+    border: none;
+    border-bottom: 1px solid @itemdarkbackground;
+}
+
+QWidget#HakeAppRibbonTabFiller {
+    background-color: @background;
+    border: none;
+    border-bottom: 1px solid @itemdarkbackground;
+}
+
+QTabWidget#HakeAppRibbon > QTabBar::tab,
+QTabWidget#HakeAppRibbon > QTabBar::tab:!selected {
+    background-color: @background;
     color: @text;
     border: none;
     border-bottom: 2px solid transparent;
-    padding: 0.25em 0.7em;
-    margin: 0 0.05em;
+    border-radius: 0;
+    padding: 4px 10px;
+    margin: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-left: 0;
+    margin-right: 0;
 }
 
 QTabWidget#HakeAppRibbon > QTabBar::tab:selected {
-    color: @textlight;
-    border-bottom-color: @focus;
     background-color: @selection;
+    color: @textlight;
+    border: none;
+    border-bottom: 2px solid @focus;
+    border-radius: 0;
+    padding: 4px 10px;
+    margin: 0;
 }
 
 QTabWidget#HakeAppRibbon > QTabBar::tab:hover {
     background-color: @hover;
     color: @textlight;
+    border: none;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    padding: 4px 10px;
+    margin: 0;
 }
 
 QToolBar#HakeAppRibbon QToolButton,
@@ -1543,9 +1588,9 @@ QTabWidget#HakeAppRibbon QToolButton {
     color: @text;
     background: transparent;
     border: 1px solid transparent;
-    border-radius: 0.25em;
-    padding: 0.2em;
-    margin: 0.05em;
+    border-radius: 0;
+    padding: 4px;
+    margin: 0;
 }
 
 QToolBar#HakeAppRibbon QToolButton:hover,

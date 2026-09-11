@@ -129,6 +129,8 @@
 
 #include "moc_qgsapplication.cpp"
 
+#include <algorithm>
+
 using namespace Qt::StringLiterals;
 
 const QgsSettingsEntryString *QgsApplication::settingsApplicationFullName = new QgsSettingsEntryString( u"full-name"_s, QgsSettingsTree::sTreeApp, QString() );
@@ -1278,20 +1280,27 @@ void QgsApplication::setUITheme( const QString &themeName )
 
   if ( variableInfo.exists() )
   {
+    // Collect first, then replace longest names first. Plain QString::replace is a
+    // substring match, so "@chrome" would otherwise corrupt "@chromeHover" / "@chromeText".
+    QList<QPair<QString, QString>> variables;
     QTextStream in( &variablesfile );
     while ( !in.atEnd() )
     {
       QString line = in.readLine();
-      // This is a variable
       if ( line.startsWith( '@' ) )
       {
-        int index = line.indexOf( ':' );
-        QString name = line.mid( 0, index );
-        QString value = line.mid( index + 1, line.length() );
-        styledata.replace( name, value );
+        const int index = line.indexOf( ':' );
+        if ( index > 0 )
+          variables.append( qMakePair( line.mid( 0, index ), line.mid( index + 1 ) ) );
       }
     }
     variablesfile.close();
+
+    std::sort( variables.begin(), variables.end(), []( const QPair<QString, QString> &a, const QPair<QString, QString> &b ) {
+      return a.first.size() > b.first.size();
+    } );
+    for ( const QPair<QString, QString> &variable : std::as_const( variables ) )
+      styledata.replace( variable.first, variable.second );
   }
   file.close();
 

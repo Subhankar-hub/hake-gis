@@ -73,6 +73,8 @@ using namespace Qt::StringLiterals;
 #include <QTimer>
 #include <QToolButton>
 #include <QUuid>
+#include <QHBoxLayout>
+#include <QSizePolicy>
 #include <QVBoxLayout>
 #include <QWhatsThis>
 #include <QWidgetAction>
@@ -4056,6 +4058,8 @@ void QgisApp::createAppRibbon()
   if ( mAppRibbonBar )
     return;
 
+  // Cross-platform app chrome only (QToolBar + QSS). Native OS title bars are untouched;
+  // no Wayland/X11 decoration APIs and no FramelessWindowHint for this strip.
   mAppRibbonBar = new QToolBar( this );
   mAppRibbonBar->setObjectName( u"HakeAppRibbon"_s );
   mAppRibbonBar->setWindowTitle( tr( "Ribbon" ) );
@@ -4063,9 +4067,24 @@ void QgisApp::createAppRibbon()
   mAppRibbonBar->setFloatable( false );
   mAppRibbonBar->setAllowedAreas( Qt::TopToolBarArea );
   mAppRibbonBar->setContextMenuPolicy( Qt::PreventContextMenu );
+  mAppRibbonBar->setAttribute( Qt::WA_StyledBackground, true );
 
-  mAppRibbon = new QgsAppRibbon( mAppRibbonBar, this );
-  mAppRibbonBar->addWidget( mAppRibbon );
+  // Stretch host so the ribbon (and its chrome tab strip) consume the full toolbar width.
+  QWidget *ribbonHost = new QWidget( mAppRibbonBar );
+  ribbonHost->setObjectName( u"HakeAppRibbonHost"_s );
+  ribbonHost->setAttribute( Qt::WA_StyledBackground, true );
+  ribbonHost->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Preferred );
+  auto *ribbonHostLayout = new QHBoxLayout( ribbonHost );
+  ribbonHostLayout->setContentsMargins( 0, 0, 0, 0 );
+  ribbonHostLayout->setSpacing( 0 );
+
+  mAppRibbon = new QgsAppRibbon( ribbonHost, this );
+  ribbonHostLayout->addWidget( mAppRibbon, 1 );
+  mAppRibbonBar->addWidget( ribbonHost );
+
+  // Continuously paint the classic menu row chrome end-to-end (same as ribbon strip).
+  if ( QMenuBar *bar = menuBar() )
+    bar->setAttribute( Qt::WA_StyledBackground, true );
 
   // Host at the top without listing the ribbon under View → Toolbars
   if ( mFileToolBar )
