@@ -1173,7 +1173,7 @@ QTreeView#viewRules::item:hover, QTreeView#viewRules::branch:hover,
 QTreeView#mSubDiagramsView::item:hover, QTreeView#mSubDiagramsView::branch:hover
 {
     background-color: @hover;
-    color: @itembackground;
+    color: @text;
 }
 
 QgsLayerTreeView::item:selected:hover, QgsLayerTreeView::branch:selected:hover,
@@ -1387,7 +1387,7 @@ QgsColorButton, QgsColorRampButton, QgsSymbolButton, QgsFontButton {
 
 QgsColorButton:hover, QgsColorRampButton:hover, QgsSymbolButton:hover, QgsFontButton:hover {
     background-color: @darkalternativegradient;
-    color:@itembackground;
+    color: @text;
 }
 
 QgsColorButton:focus, QgsColorRampButton:focus, QgsSymbolButton:focus, QgsFontButton:focus {
@@ -1448,7 +1448,7 @@ QListWidget#mOptionsListWidget::item {
 QListWidget#mOptionsListWidget::item:hover
 {
     background-color: @hover;
-    color: @itembackground;
+    color: @text;
 }
 
 QListWidget#mOptionsListWidget::item:selected:hover {
