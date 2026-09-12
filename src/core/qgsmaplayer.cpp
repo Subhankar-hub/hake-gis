@@ -1647,7 +1647,7 @@ QString QgsMapLayer::loadNamedProperty( const QString &uri, QgsMapLayer::Propert
     {
       case QgsMapLayer::Style:
       {
-        if ( loadNamedStyleFromDatabase( QDir( QgsApplication::qgisSettingsDirPath() ).absoluteFilePath( u"qgis.qmldb"_s ), uri, xml )
+        if ( loadNamedStyleFromDatabase( QgsApplication::userQmlDatabaseFilePath(), uri, xml )
              || ( project.exists() && loadNamedStyleFromDatabase( project.absoluteDir().absoluteFilePath( project.baseName() + ".qmldb" ), uri, xml ) )
              || loadNamedStyleFromDatabase( QDir( QgsApplication::pkgDataPath() ).absoluteFilePath( u"resources/qgis.qmldb"_s ), uri, xml ) )
         {
@@ -1669,7 +1669,7 @@ QString QgsMapLayer::loadNamedProperty( const QString &uri, QgsMapLayer::Propert
       }
       case QgsMapLayer::Metadata:
       {
-        if ( loadNamedMetadataFromDatabase( QDir( QgsApplication::qgisSettingsDirPath() ).absoluteFilePath( u"qgis.qmldb"_s ), uri, xml )
+        if ( loadNamedMetadataFromDatabase( QgsApplication::userQmlDatabaseFilePath(), uri, xml )
              || ( project.exists() && loadNamedMetadataFromDatabase( project.absoluteDir().absoluteFilePath( project.baseName() + ".qmldb" ), uri, xml ) )
              || loadNamedMetadataFromDatabase( QDir( QgsApplication::pkgDataPath() ).absoluteFilePath( u"resources/qgis.qmldb"_s ), uri, xml ) )
         {
@@ -1961,7 +1961,7 @@ QString QgsMapLayer::saveNamedProperty( const QString &uri, QgsMapLayer::Propert
     sqlite3_database_unique_ptr database;
     sqlite3_statement_unique_ptr statement;
 
-    int myResult = database.open( QDir( QgsApplication::qgisSettingsDirPath() ).absoluteFilePath( u"qgis.qmldb"_s ) );
+    int myResult = database.open( QgsApplication::userQmlDatabaseFilePath() );
     if ( myResult != SQLITE_OK )
     {
       return tr( "User database could not be opened." );

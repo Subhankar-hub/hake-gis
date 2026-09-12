@@ -56,7 +56,7 @@ class TestQgsAuthManager(QgisTestCase):
         cls.mpass = "pass"  # master password
 
         db1 = QFileInfo(cls.authm.authenticationDatabasePath()).canonicalFilePath()
-        db2 = QFileInfo(AUTHDBDIR + "/qgis-auth.db").canonicalFilePath()
+        db2 = QFileInfo(AUTHDBDIR + "/hake-auth.db").canonicalFilePath()
         msg = "Auth db temp path does not match db path of manager"
         assert db1 == db2, msg
 

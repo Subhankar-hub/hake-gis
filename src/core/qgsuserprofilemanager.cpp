@@ -180,9 +180,10 @@ QgsError QgsUserProfileManager::createUserProfile( const QString &name )
     }
   }
 
-  QFile qgisPrivateDbFile( folder.absolutePath() + QDir::separator() + "qgis.db" );
+  const QString userDbPath = QgsApplication::resolveProfileDatabasePath( folder.absolutePath(), QgsApplication::userDatabaseFileName(), u"qgis.db"_s );
+  QFile qgisPrivateDbFile( userDbPath );
 
-  // first we look for ~/.qgis/qgis.db
+  // first we look for an existing profile database (migrating a legacy qgis.db if present)
   if ( !qgisPrivateDbFile.exists() )
   {
     // if it doesn't exist we copy it from the global resources dir

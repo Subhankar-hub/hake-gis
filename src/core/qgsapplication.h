@@ -356,11 +356,35 @@ class CORE_EXPORT QgsApplication : public QApplication
    */
   static QString qgisSettingsDirPath();
 
-  //! Returns the path to the user qgis.db file.
+  //! Returns the path to the user settings database file.
   static QString qgisUserDatabaseFilePath();
 
+#ifndef SIP_RUN
+  //! Filename of the user settings database in a profile (not the shipped master database).
+  static QString userDatabaseFileName();
+
+  //! Filename of the user authentication database in a profile.
+  static QString authDatabaseFileName();
+
+  //! Filename of the user symbology database in a profile.
+  static QString symbologyDatabaseFileName();
+
+  //! Filename of the on-demand user style/metadata database in a profile.
+  static QString userQmlDatabaseFileName();
+
   /**
-   *  Returns the path to the user authentication database file: qgis-auth.db.
+   * Joins \a directory with \a fileName.
+   * If that file is missing and \a legacyFileName exists, renames (or copies) the legacy file first.
+   * Never overwrites an existing \a fileName.
+   */
+  static QString resolveProfileDatabasePath( const QString &directory, const QString &fileName, const QString &legacyFileName );
+
+  //! Path to the on-demand user style/metadata database, migrating a legacy filename if needed.
+  static QString userQmlDatabaseFilePath();
+#endif
+
+  /**
+   *  Returns the path to the user authentication database file: hake-auth.db.
    *  \deprecated QGIS 3.30. Use qgisAuthDatabaseUri() instead.
    */
   Q_DECL_DEPRECATED static QString qgisAuthDatabaseFilePath() SIP_DEPRECATED;

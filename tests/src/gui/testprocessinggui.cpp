@@ -362,7 +362,7 @@ void TestProcessingGui::initTestCase()
   Q_NOWARN_DEPRECATED_PUSH
   QString db1( QFileInfo( QgsApplication::authManager()->authenticationDatabasePath() ).canonicalFilePath() );
   Q_NOWARN_DEPRECATED_POP
-  QString db2( QFileInfo( mTempDir + "/qgis-auth.db" ).canonicalFilePath() );
+  QString db2( QFileInfo( mTempDir + "/hake-auth.db" ).canonicalFilePath() );
   QVERIFY2( db1 == db2, "Auth db temp path does not match db path of manager" );
 
   // verify master pass can be set manually

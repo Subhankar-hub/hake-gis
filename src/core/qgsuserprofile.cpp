@@ -105,7 +105,7 @@ QgsError QgsUserProfile::setAlias( const QString &alias ) const
   // If it's not there we can just return name.
   if ( !QFile::exists( dbFile ) )
   {
-    error.append( QObject::tr( "qgis.db doesn't exist in the user's profile folder" ) );
+    error.append( QObject::tr( "%1 doesn't exist in the user's profile folder" ).arg( QgsApplication::userDatabaseFileName() ) );
     return error;
   }
 
@@ -115,7 +115,7 @@ QgsError QgsUserProfile::setAlias( const QString &alias ) const
   int result = database.open( dbFile );
   if ( result != SQLITE_OK )
   {
-    error.append( QObject::tr( "Unable to open qgis.db for update." ) );
+    error.append( QObject::tr( "Unable to open %1 for update." ).arg( QgsApplication::userDatabaseFileName() ) );
     return error;
   }
 
@@ -146,5 +146,5 @@ const QIcon QgsUserProfile::icon() const
 
 QString QgsUserProfile::qgisDB() const
 {
-  return mProfileFolder + QDir::separator() + "qgis.db";
+  return QgsApplication::resolveProfileDatabasePath( mProfileFolder, QgsApplication::userDatabaseFileName(), u"qgis.db"_s );
 }

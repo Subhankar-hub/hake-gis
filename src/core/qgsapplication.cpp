@@ -476,8 +476,8 @@ void QgsApplication::init( QString profileFolder )
 
   // Determine the auth DB URI, the first match wins:
   // 1 - get it from QGIS_AUTH_DB_URI environment variable
-  // 2 - get it from QGIS_AUTH_DB_DIR_PATH environment variable, assume QSQLITE driver and add "qgis-auth.db"
-  // 3 - use the default path from settings dir path, assume QSQLITE and add "qgis-auth.db"
+  // 2 - get it from QGIS_AUTH_DB_DIR_PATH environment variable, assume QSQLITE driver and add the profile auth database
+  // 3 - use the default path from settings dir path, assume QSQLITE and add the profile auth database
   *sAuthDbDirPath() = qgisSettingsDirPath();
 
   if ( getenv( "QGIS_AUTH_DB_DIR_PATH" ) )
@@ -491,10 +491,10 @@ void QgsApplication::init( QString profileFolder )
     *sAuthDbUri() = getenv( "QGIS_AUTH_DB_URI" );
   }
 
-  // Default to sAuthDbDirPath
+  // Default to sAuthDbDirPath. Filename is the Hake profile name; a legacy qgis-auth.db is migrated inside the path helper.
   if ( sAuthDbUri->isEmpty() )
   {
-    *sAuthDbUri() = u"QSQLITE://"_s + *sAuthDbDirPath() + u"qgis-auth.db"_s;
+    *sAuthDbUri() = u"QSQLITE://"_s + qgisAuthDatabaseFilePath();
   }
 
   // force use of OpenGL renderer for Qt3d.
@@ -1387,14 +1387,70 @@ QString QgsApplication::qgisSettingsDirPath()
   return *sConfigPath();
 }
 
+QString QgsApplication::userDatabaseFileName()
+{
+  return u"hake-gis.db"_s;
+}
+
+QString QgsApplication::authDatabaseFileName()
+{
+  return u"hake-auth.db"_s;
+}
+
+QString QgsApplication::symbologyDatabaseFileName()
+{
+  return u"hake-symbology-style.db"_s;
+}
+
+QString QgsApplication::userQmlDatabaseFileName()
+{
+  return u"hake-gis.qmldb"_s;
+}
+
+QString QgsApplication::resolveProfileDatabasePath( const QString &directory, const QString &fileName, const QString &legacyFileName )
+{
+  const QString newPath = QDir( directory ).filePath( fileName );
+  if ( QFile::exists( newPath ) || legacyFileName.isEmpty() || fileName == legacyFileName )
+    return newPath;
+
+  const QString legacyPath = QDir( directory ).filePath( legacyFileName );
+  if ( !QFile::exists( legacyPath ) )
+    return newPath;
+
+  if ( QFile::rename( legacyPath, newPath ) )
+    return newPath;
+
+  if ( !QFile::copy( legacyPath, newPath ) )
+    return legacyPath;
+
+  sqlite3 *database = nullptr;
+  const int result = sqlite3_open_v2( newPath.toUtf8().constData(), &database, SQLITE_OPEN_READONLY, nullptr );
+  if ( database )
+    sqlite3_close( database );
+
+  if ( result != SQLITE_OK )
+  {
+    QFile::remove( newPath );
+    return legacyPath;
+  }
+
+  QFile::remove( legacyPath );
+  return newPath;
+}
+
 QString QgsApplication::qgisUserDatabaseFilePath()
 {
-  return qgisSettingsDirPath() + u"qgis.db"_s;
+  return resolveProfileDatabasePath( qgisSettingsDirPath(), userDatabaseFileName(), u"qgis.db"_s );
 }
 
 QString QgsApplication::qgisAuthDatabaseFilePath()
 {
-  return *sAuthDbDirPath() + u"qgis-auth.db"_s;
+  return resolveProfileDatabasePath( *sAuthDbDirPath(), authDatabaseFileName(), u"qgis-auth.db"_s );
+}
+
+QString QgsApplication::userQmlDatabaseFilePath()
+{
+  return resolveProfileDatabasePath( qgisSettingsDirPath(), userQmlDatabaseFileName(), u"qgis.qmldb"_s );
 }
 
 QString QgsApplication::qgisAuthDatabaseUri()
@@ -1490,7 +1546,7 @@ QMap<QString, QString> QgsApplication::systemEnvVars()
 
 QString QgsApplication::userStylePath()
 {
-  return qgisSettingsDirPath() + u"symbology-style.db"_s;
+  return resolveProfileDatabasePath( qgisSettingsDirPath(), symbologyDatabaseFileName(), u"symbology-style.db"_s );
 }
 
 QRegularExpression QgsApplication::shortNameRegularExpression()
@@ -2358,7 +2414,7 @@ bool QgsApplication::createDatabase( QString *errorMessage )
     {
       if ( errorMessage )
       {
-        *errorMessage = tr( "[ERROR] Can not make qgis.db private copy" );
+        *errorMessage = tr( "[ERROR] Can not make %1 private copy" ).arg( userDatabaseFileName() );
       }
       return false;
     }
@@ -2384,7 +2440,7 @@ bool QgsApplication::createDatabase( QString *errorMessage )
     {
       if ( errorMessage )
       {
-        *errorMessage = tr( "Could not open qgis.db" );
+        *errorMessage = tr( "Could not open %1" ).arg( userDatabaseFileName() );
       }
       return false;
     }
@@ -2420,7 +2476,7 @@ bool QgsApplication::createDatabase( QString *errorMessage )
       {
         if ( errorMessage )
         {
-          *errorMessage = tr( "Creation of missing tbl_srs in the private qgis.db failed.\n%1" ).arg( QString::fromUtf8( errmsg ) );
+          *errorMessage = tr( "Creation of missing tbl_srs in the private %1 failed.\n%2" ).arg( userDatabaseFileName(), QString::fromUtf8( errmsg ) );
         }
         sqlite3_free( errmsg );
         return false;
@@ -2463,7 +2519,7 @@ bool QgsApplication::createDatabase( QString *errorMessage )
         {
           if ( errorMessage )
           {
-            *errorMessage = tr( "Migration of private qgis.db failed.\n%1" ).arg( QString::fromUtf8( errmsg ) );
+            *errorMessage = tr( "Migration of private %1 failed.\n%2" ).arg( userDatabaseFileName(), QString::fromUtf8( errmsg ) );
           }
           sqlite3_free( errmsg );
           return false;
@@ -2493,7 +2549,7 @@ bool QgsApplication::createDatabase( QString *errorMessage )
       {
         if ( errorMessage )
         {
-          *errorMessage = tr( "Creation of missing tbl_projection in the private qgis.db failed.\n%1" ).arg( QString::fromUtf8( errmsg ) );
+          *errorMessage = tr( "Creation of missing tbl_projection in the private %1 failed.\n%2" ).arg( userDatabaseFileName(), QString::fromUtf8( errmsg ) );
         }
         sqlite3_free( errmsg );
         return false;
@@ -2533,7 +2589,7 @@ bool QgsApplication::createDatabase( QString *errorMessage )
       {
         if ( errorMessage )
         {
-          *errorMessage = tr( "Migration of private qgis.db failed.\n%1" ).arg( QString::fromUtf8( errmsg ) );
+          *errorMessage = tr( "Migration of private %1 failed.\n%2" ).arg( userDatabaseFileName(), QString::fromUtf8( errmsg ) );
         }
         sqlite3_free( errmsg );
         return false;
@@ -2572,7 +2628,7 @@ bool QgsApplication::createDatabase( QString *errorMessage )
     {
       if ( errorMessage )
       {
-        *errorMessage = tr( "Update of view in private qgis.db failed.\n%1" ).arg( QString::fromUtf8( errmsg ) );
+        *errorMessage = tr( "Update of view in private %1 failed.\n%2" ).arg( userDatabaseFileName(), QString::fromUtf8( errmsg ) );
       }
       sqlite3_free( errmsg );
       return false;

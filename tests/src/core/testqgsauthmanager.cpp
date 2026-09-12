@@ -96,7 +96,7 @@ void TestQgsAuthManager::initTestCase()
   Q_NOWARN_DEPRECATED_PUSH
   const QString db1( QFileInfo( QgsApplication::authManager()->authenticationDatabasePath() ).canonicalFilePath() );
   Q_NOWARN_DEPRECATED_POP
-  const QString db2( QFileInfo( mTempDir + "/qgis-auth.db" ).canonicalFilePath() );
+  const QString db2( QFileInfo( mTempDir + "/hake-auth.db" ).canonicalFilePath() );
   QCOMPARE( db1, db2 );
 
   // verify master pass can be set manually

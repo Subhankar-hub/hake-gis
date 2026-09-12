@@ -1081,7 +1081,7 @@ QgisApp::QgisApp(
   QString dbError;
   if ( !QgsApplication::createDatabase( &dbError ) )
   {
-    QMessageBox::critical( this, tr( "Private qgis.db" ), dbError );
+    QMessageBox::critical( this, tr( "Private %1" ).arg( QgsApplication::userDatabaseFileName() ), dbError );
   }
   endProfile();
 

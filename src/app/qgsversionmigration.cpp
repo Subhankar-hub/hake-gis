@@ -272,7 +272,7 @@ QgsError Qgs2To3Migration::migrateAuthDb()
   // Try to retrieve the current profile folder (I didn't find an QgsApplication API for it)
   QDir settingsDir = QFileInfo( QgsSettings().fileName() ).absoluteDir();
   settingsDir.cdUp();
-  const QString newAuthDbFilePath = u"%1/qgis-auth.db"_s.arg( settingsDir.absolutePath() );
+  const QString newAuthDbFilePath = u"%1/%2"_s.arg( settingsDir.absolutePath(), QgsApplication::authDatabaseFileName() );
   // Do not overwrite!
   if ( QFile( newAuthDbFilePath ).exists() )
   {
@@ -374,7 +374,11 @@ QgsError Qgs3To4Migration::runMigration( const QString &oldProfilePath, const QS
   QDir newProfileDir( newProfilePath );
   newProfileDir.remove( u"bookmarks.xml"_s );
   newProfileDir.remove( u"qgis.db"_s );
+  newProfileDir.remove( QgsApplication::userDatabaseFileName() );
   newProfileDir.remove( u"symbology-style.db"_s );
+  newProfileDir.remove( QgsApplication::symbologyDatabaseFileName() );
+  newProfileDir.remove( u"qgis-auth.db"_s );
+  newProfileDir.remove( QgsApplication::authDatabaseFileName() );
 
   QgsError errors;
 
@@ -382,6 +386,12 @@ QgsError Qgs3To4Migration::runMigration( const QString &oldProfilePath, const QS
   // - compiled pycache or pyc files!
   // - any plugin folders -- require users to reinstall those, so that we don't copy broken, non-updated 3.x plugins
   QgsFileUtils::copyDirectory( oldProfilePath, newProfilePath, QgsFileUtils::CopyFlag::NoSymLinks, { u".*\\b__pycache__$"_s, u".*\\.[pP][yY][cC]$"_s, u".*[\\/]python[\\/]plugins$"_s } );
+
+  // Rename copied legacy databases so the migrated profile does not keep QGIS filenames.
+  QgsApplication::resolveProfileDatabasePath( newProfilePath, QgsApplication::userDatabaseFileName(), u"qgis.db"_s );
+  QgsApplication::resolveProfileDatabasePath( newProfilePath, QgsApplication::authDatabaseFileName(), u"qgis-auth.db"_s );
+  QgsApplication::resolveProfileDatabasePath( newProfilePath, QgsApplication::symbologyDatabaseFileName(), u"symbology-style.db"_s );
+  QgsApplication::resolveProfileDatabasePath( newProfilePath, QgsApplication::userQmlDatabaseFileName(), u"qgis.qmldb"_s );
 
   newProfileDir.remove( u"QGIS/QGIS4.ini"_s );
   newProfileDir.rename( u"QGIS/QGIS3.ini"_s, u"QGIS/QGIS4.ini"_s );

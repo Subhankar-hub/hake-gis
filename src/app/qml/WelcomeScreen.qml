@@ -62,21 +62,21 @@ Item {
         }
         Label {
           Layout.fillWidth: true
-          text: productDisplayName
+          text: qsTr("Hake Geospatial: Desktop GIS 2026")
           color: welcomeScreen.textColor
           font.family: welcomeScreen.uiFont
           font.pixelSize: 22
           font.weight: Font.Bold
-          elide: Text.ElideRight
+          wrapMode: Text.WordWrap
         }
         Label {
           Layout.fillWidth: true
-          text: qsTr("Welcome back  ·  Version %1").arg(appVersion)
+          text: qsTr("Version: %1").arg(appVersion)
           color: welcomeScreen.mutedTextColor
           font.family: welcomeScreen.uiFont
           font.pixelSize: 13
           font.weight: Font.Medium
-          elide: Text.ElideRight
+          wrapMode: Text.WordWrap
         }
       }
 
@@ -143,7 +143,7 @@ Item {
 
             Label {
               Layout.fillWidth: true
-              text: qsTr("Welcome to Hake-GIS Desktop 2026")
+              text: qsTr("Welcome to Hake Geospatial: Desktop GIS 2026")
               color: welcomeScreen.textColor
               font.family: welcomeScreen.uiFont
               font.pixelSize: 26
@@ -152,7 +152,7 @@ Item {
             }
             Label {
               Layout.fillWidth: true
-              text: qsTr("Turn spatial information into knowledge. Open a project, start something new, or catch up on the latest updates.")
+              text: qsTr("Professional GIS for Mapping, Analysis & Spatial Intelligence")
               color: welcomeScreen.mutedTextColor
               font.family: welcomeScreen.uiFont
               font.pixelSize: 14
@@ -661,6 +661,16 @@ Item {
       color: "#0f265c"
       onInstallClicked: Qt.openUrlExternally("https://haketech.com")
     }
+
+    Label {
+      Layout.fillWidth: true
+      text: qsTr("© 2026 Hake Technologies Private Limited")
+      color: welcomeScreen.mutedTextColor
+      font.family: welcomeScreen.uiFont
+      font.pixelSize: 12
+      font.weight: Font.Medium
+      wrapMode: Text.WordWrap
+    }
   }
 
   DropArea {
@@ -677,7 +687,7 @@ Item {
   Connections {
     target: welcomeScreenController
     function onNewVersionAvailable(versionString) {
-      qgisUpdateBar.message = qsTr("Hake Geospatial - Desktop %1 is out!").arg(versionString)
+      qgisUpdateBar.message = qsTr("Hake Geospatial: Desktop GIS 2026 %1 is out!").arg(versionString)
       qgisUpdateBar.visible = true
     }
     function onPluginUpdatesAvailable(plugins) {
