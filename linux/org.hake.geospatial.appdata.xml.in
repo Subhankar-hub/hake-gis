@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop">
   <id>org.hake.geospatial.desktop</id>
-  <name>Hake Geospatial</name>
+  <name>Hake GeoDesk – Desktop GIS</name>
   <summary>A Geographic Information System</summary>
   <screenshots>
     <screenshot type="default"><caption>QGIS</caption><image type="source">https://docs.qgis.org/testing/en/_images/answer_symbology2.png</image></screenshot>

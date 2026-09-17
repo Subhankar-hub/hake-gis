@@ -162,7 +162,7 @@ QgsWelcomeScreen::QgsWelcomeScreen( bool skipVersionCheck, QWidget *parent )
   rootContext()->setContextProperty( u"newsFeedModel"_s, mNewsFeedModel );
   rootContext()->setContextProperty( u"welcomeScreenController"_s, mWelcomeScreenController );
   rootContext()->setContextProperty( u"productDisplayName"_s, Qgis::productDisplayName() );
-  rootContext()->setContextProperty( u"appVersion"_s, u"2026.0.0"_s );
+  rootContext()->setContextProperty( u"appVersion"_s, Qgis::productVersionLabel() );
 
   setResizeMode( QQuickWidget::ResizeMode::SizeRootObjectToView );
 

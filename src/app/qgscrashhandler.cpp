@@ -81,7 +81,7 @@ void QgsCrashHandler::handleCrash( int processID, int threadID, const QString &s
 
   QStringList reportData;
   reportData.append( u"Product: %1"_s.arg( Qgis::productDisplayName() ) );
-  reportData.append( u"Build version: %1"_s.arg( Qgis::version() ) );
+  reportData.append( u"Build version: %1"_s.arg( Qgis::productVersionLabel() ) );
 
   if ( QString( Qgis::devVersion() ) == "exported"_L1 )
   {

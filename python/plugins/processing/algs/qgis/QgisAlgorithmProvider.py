@@ -112,7 +112,7 @@ class QgisAlgorithmProvider(QgsProcessingProvider):
         return "qgis"
 
     def name(self):
-        return "Hake Geospatial - Desktop"
+        return "Hake GeoDesk – Desktop GIS"
 
     def icon(self):
         return QgsApplication.getThemeIcon("/providerHakeGis.svg")

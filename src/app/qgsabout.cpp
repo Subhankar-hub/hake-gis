@@ -17,6 +17,7 @@
 
 #include "qgsabout.h"
 
+#include "qgis.h"
 #include "qgsapplication.h"
 #include "qgslogger.h"
 
@@ -43,6 +44,7 @@ QgsAbout::QgsAbout( QWidget *parent )
   : QgsOptionsDialogBase( u"about"_s, parent, kAboutWindowFlags )
 {
   setupUi( this );
+  setWindowTitle( tr( "About %1" ).arg( Qgis::productDisplayName() ) );
   connect( btnQgisUser, &QPushButton::clicked, this, &QgsAbout::btnQgisUser_clicked );
   connect( btnQgisHome, &QPushButton::clicked, this, &QgsAbout::btnQgisHome_clicked );
   connect( btnCopyToClipboard, &QPushButton::clicked, this, &QgsAbout::btnCopyToClipboard_clicked );
@@ -62,6 +64,24 @@ void QgsAbout::init()
 {
   setWhatsNew();
   setLicence();
+}
+
+void QgsAbout::updateWindowTitle()
+{
+  // QgsOptionsDialogBase appends the current sidebar page (e.g. " — About").
+  // The dialog title already starts with "About …", so skip that page to avoid
+  // "About … — About". Still append What's New / License.
+  const QString itemText = mOptListWidget && mOptListWidget->currentItem()
+                             ? mOptListWidget->currentItem()->text()
+                             : QString();
+  if ( !itemText.isEmpty() && itemText.compare( tr( "About" ), Qt::CaseInsensitive ) != 0 )
+  {
+    setWindowTitle( u"%1 %2 %3"_s.arg( mDialogTitle, QChar( 0x2014 ), itemText ) );
+  }
+  else
+  {
+    setWindowTitle( mDialogTitle );
+  }
 }
 
 void QgsAbout::setLicence()

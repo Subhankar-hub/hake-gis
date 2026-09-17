@@ -36,10 +36,10 @@ if (UNIX AND NOT APPLE AND PYQT_FOUND)
   add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/org.hake.geospatial.desktop ${CMAKE_BINARY_DIR}/org.hake.geospatial.appdata.xml
     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-    COMMAND ${Python_EXECUTABLE}
-    ARGS ${CMAKE_BINARY_DIR}/ts2appinfo.py "${CMAKE_BINARY_DIR}"
+    COMMAND ${CMAKE_COMMAND} -E env PYTHONUTF8=1 LC_ALL=C.UTF-8 ${Python_EXECUTABLE}
+      ${CMAKE_BINARY_DIR}/ts2appinfo.py "${CMAKE_BINARY_DIR}"
     COMMENT "Updating appinfo files..."
-    DEPENDS ${QM_FILES} ${CMAKE_SOURCE_DIR}/linux/org.hake.geospatial.desktop.in ${CMAKE_SOURCE_DIR}/linux/org.hake.geospatial.appdata.xml.in
+    DEPENDS ${QM_FILES} ${CMAKE_SOURCE_DIR}/linux/org.hake.geospatial.desktop.in ${CMAKE_SOURCE_DIR}/linux/org.hake.geospatial.appdata.xml.in ${CMAKE_SOURCE_DIR}/scripts/ts2appinfo.py.in
   )
 
   set(MD_FILES ${CMAKE_BINARY_DIR}/org.hake.geospatial.desktop ${CMAKE_BINARY_DIR}/org.hake.geospatial.appdata.xml)

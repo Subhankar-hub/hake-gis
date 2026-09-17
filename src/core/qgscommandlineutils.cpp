@@ -46,7 +46,7 @@ using namespace Qt::StringLiterals;
 QString QgsCommandLineUtils::allVersions()
 {
   // Product and build version
-  QString versionString = u"%1\nBuild version: %2 '%3' (%4)\n"_s.arg( Qgis::productDisplayName(), VERSION, RELEASE_NAME, QGSVERSION );
+  QString versionString = u"%1\nBuild version: %2 (%3)\n"_s.arg( Qgis::productDisplayName(), Qgis::productVersionLabel(), QGSVERSION );
 
   // QGIS code revision
   if ( QString( Qgis::devVersion() ) == "exported"_L1 )

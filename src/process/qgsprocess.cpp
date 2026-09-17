@@ -534,14 +534,14 @@ void QgsProcessingExec::showUsage( const QString &appName )
   msg
     << Qgis::productDisplayName().toLocal8Bit().constData()
     << " (build "
-    << Qgis::version().toLocal8Bit().constData()
+    << Qgis::productVersionLabel().toLocal8Bit().constData()
     << ")\n"
     << "Usage: "
     << appName
     << " [--help] [--version] [--json] [--verbose] [--no-python] [--skip-loading-plugins] [command] [algorithm id, path to model file, or path to Python script] [parameters]\n"
     << "\nOptions:\n"
     << "\t--help or -h\t\tOutput the help\n"
-    << "\t--version or -v\t\tOutput all versions related to Hake Geospatial - Desktop Process\n"
+    << "\t--version or -v\t\tOutput all versions related to Hake GeoDesk – Desktop GIS Process\n"
     << "\t--json\t\t\tOutput results as JSON objects\n"
     << "\t--verbose\t\tOutput verbose logs\n"
     << "\t--no-python\t\tDisable Python support (results in faster startup)\n"
@@ -557,7 +557,7 @@ void QgsProcessingExec::showUsage( const QString &appName )
     << "\t\t\tAlternatively, a '-' character in place of the parameters argument indicates that the parameters should be read from STDIN as a JSON object. The JSON should be structured as a map "
        "containing at least the \"inputs\" key specifying a map of input parameter values. This implies the --json option for output as a JSON object.\n"
     << "\t\t\tIf required, the ellipsoid to use for distance and area calculations can be specified via the \"--ELLIPSOID=name\" argument.\n"
-    << "\t\t\tIf required, an existing Hake Geospatial - Desktop project to use during the algorithm execution can be specified via the \"--PROJECT_PATH=path\" argument.\n"
+    << "\t\t\tIf required, an existing Hake GeoDesk – Desktop GIS project to use during the algorithm execution can be specified via the \"--PROJECT_PATH=path\" argument.\n"
     << "\t\t\tWhen passing parameters as a JSON object from STDIN, these extra arguments can be provided as an \"ellipsoid\" and a \"project_path\" key respectively.\n";
 
   std::cout << msg.join( QString() ).toLocal8Bit().constData();
@@ -839,7 +839,7 @@ int QgsProcessingExec::showAlgorithmHelp( const QString &inputId )
 
   if ( alg->flags() & Qgis::ProcessingAlgorithmFlag::NotAvailableInStandaloneTool )
   {
-    std::cerr << u"The \"%1\" algorithm is not available for use outside of the Hake Geospatial - Desktop application\n"_s.arg( id ).toLocal8Bit().constData();
+    std::cerr << u"The \"%1\" algorithm is not available for use outside of the Hake GeoDesk – Desktop GIS application\n"_s.arg( id ).toLocal8Bit().constData();
     return 1;
   }
 
@@ -1115,7 +1115,7 @@ int QgsProcessingExec::execute(
 
     if ( alg->flags() & Qgis::ProcessingAlgorithmFlag::NotAvailableInStandaloneTool )
     {
-      std::cerr << u"The \"%1\" algorithm is not available for use outside of the Hake Geospatial - Desktop application\n"_s.arg( id ).toLocal8Bit().constData();
+      std::cerr << u"The \"%1\" algorithm is not available for use outside of the Hake GeoDesk – Desktop GIS application\n"_s.arg( id ).toLocal8Bit().constData();
       return 1;
     }
 
@@ -1129,13 +1129,13 @@ int QgsProcessingExec::execute(
     if ( !( mFlags & Flag::UseJson ) && alg->flags() & Qgis::ProcessingAlgorithmFlag::Deprecated )
     {
       std::cout << "\n****************\n";
-      std::cout << "Warning: this algorithm is deprecated and may be removed in a future Hake Geospatial - Desktop version!\n";
+      std::cout << "Warning: this algorithm is deprecated and may be removed in a future Hake GeoDesk – Desktop GIS version!\n";
       std::cout << "****************\n\n";
     }
 
     if ( alg->flags() & Qgis::ProcessingAlgorithmFlag::RequiresProject && projectPath.isEmpty() )
     {
-      std::cerr << u"The \"%1\" algorithm requires a Hake Geospatial - Desktop project to execute. Specify a path to an existing project with the \"--PROJECT_PATH=xxx\" argument.\n"_s.arg( id ).toLocal8Bit().constData();
+      std::cerr << u"The \"%1\" algorithm requires a Hake GeoDesk – Desktop GIS project to execute. Specify a path to an existing project with the \"--PROJECT_PATH=xxx\" argument.\n"_s.arg( id ).toLocal8Bit().constData();
       return 1;
     }
   }
@@ -1161,7 +1161,7 @@ int QgsProcessingExec::execute(
     project = QgsProject::instance();
     if ( !project->read( projectPath ) )
     {
-      std::cerr << u"Could not load the Hake Geospatial - Desktop project \"%1\"\n"_s.arg( projectPath ).toLocal8Bit().constData();
+      std::cerr << u"Could not load the Hake GeoDesk – Desktop GIS project \"%1\"\n"_s.arg( projectPath ).toLocal8Bit().constData();
       return 1;
     }
     json.insert( u"project_path"_s, projectPath );

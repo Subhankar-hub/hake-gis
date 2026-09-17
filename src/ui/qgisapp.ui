@@ -915,7 +915,7 @@
      <normaloff>:/images/themes/default/mActionFileExit.svg</normaloff>:/images/themes/default/mActionFileExit.svg</iconset>
    </property>
    <property name="text">
-    <string>Exit Hake Geospatial - Desktop</string>
+    <string>Exit Hake GeoDesk – Desktop GIS</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Q</string>
@@ -1976,7 +1976,7 @@ Shift+O to turn segments into straight or curve lines.</string>
      <normaloff>:/images/themes/default/mActionQgisHomePage.png</normaloff>:/images/themes/default/mActionQgisHomePage.png</iconset>
    </property>
    <property name="text">
-    <string>Hake Geospatial - Desktop Home Page</string>
+    <string>Hake GeoDesk – Desktop GIS Home Page</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+H</string>
@@ -1988,10 +1988,10 @@ Shift+O to turn segments into straight or curve lines.</string>
      <normaloff>:/images/themes/default/mIconSuccess.svg</normaloff>:/images/themes/default/mIconSuccess.svg</iconset>
    </property>
    <property name="text">
-    <string>Check Hake Geospatial - Desktop Version</string>
+    <string>Check Hake GeoDesk – Desktop GIS Version</string>
    </property>
    <property name="statusTip">
-    <string>Check if your Hake Geospatial - Desktop version is up to date (requires internet access)</string>
+    <string>Check if your Hake GeoDesk – Desktop GIS version is up to date (requires internet access)</string>
    </property>
   </action>
   <action name="mActionAbout">
@@ -3435,7 +3435,7 @@ Shows placeholders for labels which could not be placed, e.g. due to overlaps wi
   </action>
   <action name="mActionDonate">
    <property name="text">
-    <string>Donate to Hake Geospatial - Desktop</string>
+    <string>Donate to Hake GeoDesk – Desktop GIS</string>
    </property>
   </action>
   <action name="mActionGetInvolved">

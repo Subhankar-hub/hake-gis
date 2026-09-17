@@ -5836,7 +5836,7 @@ QString QgisApp::getVersionString()
   const QString runLabel = tr( "Running" );
 
   versionString += u"<tr><td>%1</td><td>%2</td>"_s.arg( tr( "Product" ), Qgis::productDisplayName() );
-  versionString += u"<tr><td>%1</td><td>%2</td>"_s.arg( tr( "Build version" ), Qgis::version() );
+  versionString += u"<tr><td>%1</td><td>%2</td>"_s.arg( tr( "Build version" ), Qgis::productVersionLabel() );
   versionString += "</tr><tr>"_L1;
   if ( QString( Qgis::devVersion() ) == "exported"_L1 )
   {
@@ -16577,7 +16577,7 @@ void QgisApp::keyReleaseEvent( QKeyEvent *event )
   if ( event->key() == Qt::Key_Close )
   {
     // do something useful here
-    int ret = QMessageBox::question( this, tr( "Exit Hake Geospatial - Desktop" ), tr( "Do you really want to quit Hake Geospatial - Desktop?" ), QMessageBox::Yes | QMessageBox::No );
+    int ret = QMessageBox::question( this, tr( "Exit Hake GeoDesk – Desktop GIS" ), tr( "Do you really want to quit Hake GeoDesk – Desktop GIS?" ), QMessageBox::Yes | QMessageBox::No );
     switch ( ret )
     {
       case QMessageBox::Yes:

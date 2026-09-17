@@ -77,7 +77,7 @@ set(QGIS_PYTHON_DIR ${QGIS_PYTHON_INSTALL_DIR}/qgis)
 # core module
 file(GLOB_RECURSE sip_files_core ${BINDING_FILES_ROOT_DIR}/core/*.sip ${BINDING_FILES_ROOT_DIR}/core/*.sip.in)
 set(SIP_EXTRA_FILES_DEPEND ${sip_files_core})
-install(FILES ${CMAKE_BINARY_DIR}/python/core/build/_core/_core.pyi DESTINATION ${QGIS_PYTHON_DIR})
+install(FILES ${CMAKE_BINARY_DIR}/python/core/out/_core/_core.pyi DESTINATION ${QGIS_PYTHON_DIR})
 
 set(SIP_DISABLE_FEATURES ${SIP_DISABLE_FEATURES} VECTOR_MAPPED_TYPE)
 
@@ -239,7 +239,7 @@ if (WITH_GUI)
 
   file(GLOB_RECURSE sip_files_gui ${BINDING_FILES_ROOT_DIR}/gui/*.sip ${BINDING_FILES_ROOT_DIR}/gui/*.sip.in)
   set(SIP_EXTRA_FILES_DEPEND ${sip_files_core} ${sip_files_gui})
-  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/gui/build/_gui/_gui.pyi DESTINATION ${QGIS_PYTHON_DIR})
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/gui/out/_gui/_gui.pyi DESTINATION ${QGIS_PYTHON_DIR})
   if(QSCI_SIP_DIR)
     set(SIP_BUILD_EXTRA_OPTIONS ${SIP_BUILD_EXTRA_OPTIONS} --include-dir=${QSCI_SIP_DIR})
   else()
@@ -265,7 +265,7 @@ if (WITH_3D)
 
   file(GLOB_RECURSE sip_files_3d ${BINDING_FILES_ROOT_DIR}/3d/*.sip ${BINDING_FILES_ROOT_DIR}/3d/*.sip.in)
   set(SIP_EXTRA_FILES_DEPEND ${sip_files_core} ${sip_files_3d})
-  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/3d/build/_3d_p/_3d_p.pyi DESTINATION ${QGIS_PYTHON_DIR})
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/3d/out/_3d_p/_3d_p.pyi DESTINATION ${QGIS_PYTHON_DIR})
 
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/PyQt6/3d/project.py.in ${CMAKE_CURRENT_BINARY_DIR}/3d/project.py @ONLY)
   file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/3d/pyproject.toml.temp" "${toml}")
@@ -286,7 +286,7 @@ if (WITH_SERVER AND WITH_SERVER_PLUGINS)
 
   file(GLOB_RECURSE sip_files_server ${BINDING_FILES_ROOT_DIR}/server/*.sip ${BINDING_FILES_ROOT_DIR}/server/*.sip.in)
   set(SIP_EXTRA_FILES_DEPEND ${sip_files_core} ${sip_files_server})
-  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/server/build/_server/_server.pyi DESTINATION ${QGIS_PYTHON_DIR})
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/server/out/_server/_server.pyi DESTINATION ${QGIS_PYTHON_DIR})
 
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/PyQt6/server/project.py.in ${CMAKE_CURRENT_BINARY_DIR}/server/project.py @ONLY)
   file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/server/pyproject.toml.temp" "${toml}")
@@ -313,7 +313,7 @@ if(WITH_ANALYSIS)
   file(GLOB_RECURSE sip_files_analysis ${BINDING_FILES_ROOT_DIR}/analysis/*.sip ${BINDING_FILES_ROOT_DIR}/analysis/*.sip.in)
 
   set(SIP_EXTRA_FILES_DEPEND ${sip_files_core} ${sip_files_analysis})
-  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/analysis/build/_analysis/_analysis.pyi DESTINATION ${QGIS_PYTHON_DIR})
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/analysis/out/_analysis/_analysis.pyi DESTINATION ${QGIS_PYTHON_DIR})
 
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/PyQt6/analysis/project.py.in ${CMAKE_CURRENT_BINARY_DIR}/analysis/project.py @ONLY)
   file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/analysis/pyproject.toml.temp" "${toml}")
@@ -458,7 +458,7 @@ foreach(module ${PY_MODULES})
   if(SIP_BUILD_EXECUTABLE)
     add_custom_command(TARGET py${module}
       POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/${module}/build/_${module_out}/_${module_out}.pyi" "${QGIS_PYTHON_OUTPUT_DIRECTORY}"
+      COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/${module}/out/_${module_out}/_${module_out}.pyi" "${QGIS_PYTHON_OUTPUT_DIRECTORY}"
     )
   endif()
 endforeach(module)

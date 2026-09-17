@@ -17,7 +17,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>About Hake-GIS Desktop 2026</string>
+   <string>About Hake GeoDesk – Desktop GIS</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -202,7 +202,7 @@
            <item>
             <widget class="QLabel" name="label_3">
              <property name="text">
-              <string>Hake Geospatial - Desktop is licensed under the GNU General Public License</string>
+              <string>Hake GeoDesk – Desktop GIS is licensed under the GNU General Public License</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignCenter</set>
@@ -224,7 +224,7 @@
              <item>
               <widget class="QPushButton" name="btnQgisHome">
                <property name="text">
-                <string>Hake Geospatial - Desktop Home Page</string>
+                <string>Hake GeoDesk – Desktop GIS Home Page</string>
                </property>
                <property name="flat">
                 <bool>false</bool>

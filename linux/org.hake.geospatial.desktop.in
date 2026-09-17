@@ -1,6 +1,6 @@
 [Desktop Entry]
 Type=Application
-Name=Hake Geospatial
+Name=Hake GeoDesk – Desktop GIS
 GenericName=Geographic Information System
 Icon=hake-gis
 TryExec=hake-gis

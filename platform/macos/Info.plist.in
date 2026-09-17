@@ -15,7 +15,7 @@
 	<key>CFBundleSignature</key>
 	<string>HAKE-GIS</string>
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright © HAKE-GIS contributors</string>
+	<string>Copyright © 2026 Hake Technologies Private Limited</string>
 	<key>CFBundleShortVersionString</key>
 	<string>@HAKE_PRODUCT_VERSION_LABEL@</string>
 	<key>CFBundleVersion</key>

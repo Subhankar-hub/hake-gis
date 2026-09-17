@@ -86,14 +86,14 @@ int QgisEvent = QEvent::User + 1;
     static QString releaseName();
 
     /**
-     * User-facing product display name (e.g. "Hake-GIS Desktop 2026").
+     * User-facing product display name (e.g. "Hake GeoDesk – Desktop GIS").
      *
      * \since QGIS 4.0
      */
     static QString productDisplayName();
 
     /**
-     * User-facing product version label (e.g. "2026").
+     * User-facing product version label (e.g. "2026.0.0").
      *
      * \since QGIS 4.0
      */

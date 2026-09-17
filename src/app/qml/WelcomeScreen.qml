@@ -7,15 +7,17 @@ import "components"
 Item {
   id: welcomeScreen
 
-  property color pageColor: "#EFF4F9"
+  property color pageColor: "#F7F9FB"
   property color panelColor: "#FCFDFE"
-  property color surfaceColor: "#F0F6FA"
-  property color primaryColor: "#205C8D"
-  property color accentColor: "#1687AD"
-  property color accentSoftColor: "#DCEEF5"
-  property color textColor: "#25384B"
-  property color mutedTextColor: "#6B7E8F"
-  property color borderColor: "#CAD9E5"
+  property color surfaceColor: "#EAF2F7"
+  property color primaryColor: "#164A73"
+  property color hoverColor: "#22658F"
+  property color activeColor: "#0E3858"
+  property color accentColor: "#164A73"
+  property color accentSoftColor: "#EAF2F7"
+  property color textColor: "#243B53"
+  property color mutedTextColor: "#607D94"
+  property color borderColor: "#C7D8E5"
   property color statusColor: "#25875F"
 
   readonly property string uiFont: Qt.platform.os === "osx" ? ".AppleSystemUIFont" : Application.font.family
@@ -55,14 +57,14 @@ Item {
 
         Label {
           text: qsTr("HAKE GEOSPATIAL")
-          color: welcomeScreen.accentColor
+          color: welcomeScreen.primaryColor
           font.family: welcomeScreen.uiFont
           font.pixelSize: 11
           font.weight: Font.Bold
         }
         Label {
           Layout.fillWidth: true
-          text: qsTr("Hake Geospatial: Desktop GIS 2026")
+          text: productDisplayName
           color: welcomeScreen.textColor
           font.family: welcomeScreen.uiFont
           font.pixelSize: 22
@@ -74,7 +76,7 @@ Item {
           text: qsTr("Version: %1").arg(appVersion)
           color: welcomeScreen.mutedTextColor
           font.family: welcomeScreen.uiFont
-          font.pixelSize: 13
+          font.pixelSize: 12
           font.weight: Font.Medium
           wrapMode: Text.WordWrap
         }
@@ -143,7 +145,7 @@ Item {
 
             Label {
               Layout.fillWidth: true
-              text: qsTr("Welcome to Hake Geospatial: Desktop GIS 2026")
+              text: qsTr("Welcome to Hake GeoDesk")
               color: welcomeScreen.textColor
               font.family: welcomeScreen.uiFont
               font.pixelSize: 26
@@ -185,7 +187,7 @@ Item {
                 }
                 background: Rectangle {
                   radius: 10
-                  color: gettingStartedButton.hovered ? "#CFE6EF" : welcomeScreen.accentSoftColor
+                  color: gettingStartedButton.hovered ? "#D4E4EF" : welcomeScreen.accentSoftColor
                 }
               }
 
@@ -209,7 +211,9 @@ Item {
                 }
                 background: Rectangle {
                   radius: 10
-                  color: openProjectButton.hovered ? "#174C77" : welcomeScreen.primaryColor
+                  color: openProjectButton.pressed ? welcomeScreen.activeColor
+                       : openProjectButton.hovered ? welcomeScreen.hoverColor
+                       : welcomeScreen.primaryColor
                 }
               }
 
@@ -620,7 +624,7 @@ Item {
               }
               background: Rectangle {
                 radius: 10
-                color: enableNewsButton.hovered ? "#CFE6EF" : welcomeScreen.accentSoftColor
+                color: enableNewsButton.hovered ? "#D4E4EF" : welcomeScreen.accentSoftColor
                 border.width: 1
                 border.color: welcomeScreen.borderColor
               }
@@ -664,6 +668,16 @@ Item {
 
     Label {
       Layout.fillWidth: true
+      text: qsTr("Powered by Hake Technologies")
+      color: welcomeScreen.mutedTextColor
+      font.family: welcomeScreen.uiFont
+      font.pixelSize: 12
+      font.weight: Font.Normal
+      wrapMode: Text.WordWrap
+    }
+
+    Label {
+      Layout.fillWidth: true
       text: qsTr("© 2026 Hake Technologies Private Limited")
       color: welcomeScreen.mutedTextColor
       font.family: welcomeScreen.uiFont
@@ -687,7 +701,7 @@ Item {
   Connections {
     target: welcomeScreenController
     function onNewVersionAvailable(versionString) {
-      qgisUpdateBar.message = qsTr("Hake Geospatial: Desktop GIS 2026 %1 is out!").arg(versionString)
+      qgisUpdateBar.message = qsTr("%1 %2 is out!").arg(productDisplayName).arg(versionString)
       qgisUpdateBar.visible = true
     }
     function onPluginUpdatesAvailable(plugins) {

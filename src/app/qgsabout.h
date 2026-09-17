@@ -41,6 +41,7 @@ class APP_EXPORT QgsAbout : public QgsOptionsDialogBase, private Ui::QgsAbout
     void setWhatsNew();
     void setLicence();
     void init();
+    void updateWindowTitle() override;
 
     QString mVersionString;
 };
