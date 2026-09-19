@@ -391,9 +391,9 @@ void QgsApplication::init( QString profileFolder )
 
   if ( profileFolder.isEmpty() )
   {
-    if ( getenv( "QGIS_CUSTOM_CONFIG_PATH" ) )
+    if ( qEnvironmentVariableIsSet( "QGIS_CUSTOM_CONFIG_PATH" ) )
     {
-      profileFolder = getenv( "QGIS_CUSTOM_CONFIG_PATH" );
+      profileFolder = qEnvironmentVariable( "QGIS_CUSTOM_CONFIG_PATH" );
     }
     else
     {
@@ -436,8 +436,8 @@ void QgsApplication::init( QString profileFolder )
   }
   else
   {
-    char *prefixPath = getenv( "QGIS_PREFIX_PATH" );
-    if ( !prefixPath )
+    const QString prefixPath = qEnvironmentVariable( "QGIS_PREFIX_PATH" );
+    if ( prefixPath.isEmpty() )
     {
       if ( sPrefixPath()->isNull() )
       {
@@ -480,15 +480,15 @@ void QgsApplication::init( QString profileFolder )
   // 3 - use the default path from settings dir path, assume QSQLITE and add the profile auth database
   *sAuthDbDirPath() = qgisSettingsDirPath();
 
-  if ( getenv( "QGIS_AUTH_DB_DIR_PATH" ) )
+  if ( qEnvironmentVariableIsSet( "QGIS_AUTH_DB_DIR_PATH" ) )
   {
-    setAuthDatabaseDirPath( getenv( "QGIS_AUTH_DB_DIR_PATH" ) );
+    setAuthDatabaseDirPath( qEnvironmentVariable( "QGIS_AUTH_DB_DIR_PATH" ) );
     sAuthDbUri()->clear();
   }
 
-  if ( getenv( "QGIS_AUTH_DB_URI" ) )
+  if ( qEnvironmentVariableIsSet( "QGIS_AUTH_DB_URI" ) )
   {
-    *sAuthDbUri() = getenv( "QGIS_AUTH_DB_URI" );
+    *sAuthDbUri() = qEnvironmentVariable( "QGIS_AUTH_DB_URI" );
   }
 
   // Default to sAuthDbDirPath. Filename is the Hake profile name; a legacy qgis-auth.db is migrated inside the path helper.
@@ -1155,9 +1155,9 @@ QString QgsApplication::resolvePkgPath()
     }
   }
 
-  if ( !appPath.isNull() || getenv( "QGIS_PREFIX_PATH" ) )
+  if ( !appPath.isNull() || qEnvironmentVariableIsSet( "QGIS_PREFIX_PATH" ) )
   {
-    QString prefix = getenv( "QGIS_PREFIX_PATH" ) ? getenv( "QGIS_PREFIX_PATH" ) : appPath;
+    QString prefix = qEnvironmentVariableIsSet( "QGIS_PREFIX_PATH" ) ? qEnvironmentVariable( "QGIS_PREFIX_PATH" ) : appPath;
 
     // check if QGIS is run from build directory (not the install directory)
     QFile f;
@@ -1185,8 +1185,8 @@ QString QgsApplication::resolvePkgPath()
   }
 
   QString prefixPath;
-  if ( getenv( "QGIS_PREFIX_PATH" ) )
-    prefixPath = getenv( "QGIS_PREFIX_PATH" );
+  if ( qEnvironmentVariableIsSet( "QGIS_PREFIX_PATH" ) )
+    prefixPath = qEnvironmentVariable( "QGIS_PREFIX_PATH" );
   else
   {
 #if defined( ANDROID )
@@ -1845,7 +1845,7 @@ void QgsApplication::exitQgis()
 
 QString QgsApplication::showSettings()
 {
-  QString myEnvironmentVar( getenv( "QGIS_PREFIX_PATH" ) );
+  QString myEnvironmentVar( qEnvironmentVariable( "QGIS_PREFIX_PATH" ) );
   QString myState
     = tr(
         "QgsApplication state:\n"
@@ -2446,14 +2446,20 @@ bool QgsApplication::createDatabase( QString *errorMessage )
     }
 
     char *errmsg = nullptr;
-    int res = sqlite3_exec( database.get(), "SELECT srs_id FROM tbl_srs LIMIT 0", nullptr, nullptr, &errmsg );
+    auto clearErr = [&errmsg]() {
+      sqlite3_free( errmsg );
+      errmsg = nullptr;
+    };
+    auto execSql = [&]( const char *sql ) -> int {
+      clearErr();
+      return sqlite3_exec( database.get(), sql, nullptr, nullptr, &errmsg );
+    };
+
+    int res = execSql( "SELECT srs_id FROM tbl_srs LIMIT 0" );
     if ( res != SQLITE_OK )
     {
-      sqlite3_free( errmsg );
-
       // qgis.db is missing tbl_srs, create it
-      if ( sqlite3_exec(
-             database.get(),
+      if ( execSql(
              "DROP INDEX IF EXISTS idx_srsauthid;"
              "CREATE TABLE tbl_srs ("
              "srs_id INTEGER PRIMARY KEY,"
@@ -2467,10 +2473,7 @@ bool QgsApplication::createDatabase( QString *errorMessage )
              "is_geo integer NOT NULL,"
              "deprecated boolean,"
              "wkt text);"
-             "CREATE INDEX idx_srsauthid on tbl_srs(auth_name,auth_id);",
-             nullptr,
-             nullptr,
-             &errmsg
+             "CREATE INDEX idx_srsauthid on tbl_srs(auth_name,auth_id);"
            )
            != SQLITE_OK )
       {
@@ -2478,20 +2481,18 @@ bool QgsApplication::createDatabase( QString *errorMessage )
         {
           *errorMessage = tr( "Creation of missing tbl_srs in the private %1 failed.\n%2" ).arg( userDatabaseFileName(), QString::fromUtf8( errmsg ) );
         }
-        sqlite3_free( errmsg );
+        clearErr();
         return false;
       }
     }
     else
     {
       // test if wkt column exists in database
-      res = sqlite3_exec( database.get(), "SELECT wkt FROM tbl_srs LIMIT 0", nullptr, nullptr, &errmsg );
+      res = execSql( "SELECT wkt FROM tbl_srs LIMIT 0" );
       if ( res != SQLITE_OK )
       {
         // need to add wkt column
-        sqlite3_free( errmsg );
-        if ( sqlite3_exec(
-               database.get(),
+        if ( execSql(
                "DROP INDEX IF EXISTS idx_srsauthid;"
                "DROP TABLE IF EXISTS tbl_srs_bak;"
                "ALTER TABLE tbl_srs RENAME TO tbl_srs_bak;"
@@ -2510,10 +2511,7 @@ bool QgsApplication::createDatabase( QString *errorMessage )
                "CREATE INDEX idx_srsauthid on tbl_srs(auth_name,auth_id);"
                "INSERT INTO tbl_srs(srs_id,description,projection_acronym,ellipsoid_acronym,parameters,srid,auth_name,auth_id,is_geo,deprecated) SELECT "
                "srs_id,description,projection_acronym,ellipsoid_acronym,parameters,srid,'','',is_geo,0 FROM tbl_srs_bak;"
-               "DROP TABLE tbl_srs_bak",
-               nullptr,
-               nullptr,
-               &errmsg
+               "DROP TABLE tbl_srs_bak"
              )
              != SQLITE_OK )
         {
@@ -2521,29 +2519,23 @@ bool QgsApplication::createDatabase( QString *errorMessage )
           {
             *errorMessage = tr( "Migration of private %1 failed.\n%2" ).arg( userDatabaseFileName(), QString::fromUtf8( errmsg ) );
           }
-          sqlite3_free( errmsg );
+          clearErr();
           return false;
         }
       }
     }
 
-    res = sqlite3_exec( database.get(), "SELECT acronym FROM tbl_projection LIMIT 0", nullptr, nullptr, &errmsg );
+    res = execSql( "SELECT acronym FROM tbl_projection LIMIT 0" );
     if ( res != SQLITE_OK )
     {
-      sqlite3_free( errmsg );
-
       // qgis.db is missing tbl_projection, create it
-      if ( sqlite3_exec(
-             database.get(),
+      if ( execSql(
              "CREATE TABLE tbl_projection ("
              "acronym varchar(20) NOT NULL PRIMARY KEY,"
              "name varchar(255) NOT NULL default '',"
              "notes varchar(255) NOT NULL default '',"
              "parameters varchar(255) NOT NULL default ''"
-             ")",
-             nullptr,
-             nullptr,
-             &errmsg
+             ")"
            )
            != SQLITE_OK )
       {
@@ -2551,17 +2543,16 @@ bool QgsApplication::createDatabase( QString *errorMessage )
         {
           *errorMessage = tr( "Creation of missing tbl_projection in the private %1 failed.\n%2" ).arg( userDatabaseFileName(), QString::fromUtf8( errmsg ) );
         }
-        sqlite3_free( errmsg );
+        clearErr();
         return false;
       }
     }
 
-    res = sqlite3_exec( database.get(), "SELECT epsg FROM tbl_srs LIMIT 0", nullptr, nullptr, &errmsg );
+    res = execSql( "SELECT epsg FROM tbl_srs LIMIT 0" );
     if ( res == SQLITE_OK )
     {
       // epsg column exists => need migration
-      if ( sqlite3_exec(
-             database.get(),
+      if ( execSql(
              "DROP INDEX IF EXISTS idx_srsauthid;"
              "DROP TABLE IF EXISTS tbl_srs_bak;"
              "ALTER TABLE tbl_srs RENAME TO tbl_srs_bak;"
@@ -2580,10 +2571,7 @@ bool QgsApplication::createDatabase( QString *errorMessage )
              "CREATE INDEX idx_srsauthid on tbl_srs(auth_name,auth_id);"
              "INSERT INTO tbl_srs(srs_id,description,projection_acronym,ellipsoid_acronym,parameters,srid,auth_name,auth_id,is_geo,deprecated) SELECT "
              "srs_id,description,projection_acronym,ellipsoid_acronym,parameters,srid,'','',is_geo,0 FROM tbl_srs_bak;"
-             "DROP TABLE tbl_srs_bak",
-             nullptr,
-             nullptr,
-             &errmsg
+             "DROP TABLE tbl_srs_bak"
            )
            != SQLITE_OK )
       {
@@ -2591,22 +2579,22 @@ bool QgsApplication::createDatabase( QString *errorMessage )
         {
           *errorMessage = tr( "Migration of private %1 failed.\n%2" ).arg( userDatabaseFileName(), QString::fromUtf8( errmsg ) );
         }
-        sqlite3_free( errmsg );
+        clearErr();
         return false;
       }
     }
-    else
+
+    if ( execSql( "DROP VIEW IF EXISTS vw_srs" ) != SQLITE_OK )
     {
-      sqlite3_free( errmsg );
+      if ( errorMessage )
+      {
+        *errorMessage = tr( "Update of view in private %1 failed.\n%2" ).arg( userDatabaseFileName(), QString::fromUtf8( errmsg ) );
+      }
+      clearErr();
+      return false;
     }
 
-    if ( sqlite3_exec( database.get(), "DROP VIEW vw_srs", nullptr, nullptr, &errmsg ) != SQLITE_OK )
-    {
-      QgsDebugError( u"vw_srs didn't exists in private qgis.db: %1"_s.arg( errmsg ) );
-    }
-
-    if ( sqlite3_exec(
-           database.get(),
+    if ( execSql(
            "CREATE VIEW vw_srs AS"
            " SELECT"
            " a.description AS description"
@@ -2619,10 +2607,7 @@ bool QgsApplication::createDatabase( QString *errorMessage )
            ",a.deprecated AS deprecated"
            " FROM tbl_srs a"
            " LEFT OUTER JOIN tbl_projection b ON a.projection_acronym=b.acronym"
-           " ORDER BY coalesce(b.name,a.projection_acronym),a.description",
-           nullptr,
-           nullptr,
-           &errmsg
+           " ORDER BY coalesce(b.name,a.projection_acronym),a.description"
          )
          != SQLITE_OK )
     {
@@ -2630,9 +2615,10 @@ bool QgsApplication::createDatabase( QString *errorMessage )
       {
         *errorMessage = tr( "Update of view in private %1 failed.\n%2" ).arg( userDatabaseFileName(), QString::fromUtf8( errmsg ) );
       }
-      sqlite3_free( errmsg );
+      clearErr();
       return false;
     }
+    clearErr();
   }
   return true;
 }

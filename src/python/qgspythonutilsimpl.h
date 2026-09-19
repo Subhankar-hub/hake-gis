@@ -139,6 +139,9 @@ class QgsPythonUtilsImpl : public QgsPythonUtils
   private:
     bool mErrorHookInstalled = false;
     QString mFaultHandlerLogPath;
+
+    bool setMainDictString( const char *name, const QString &value );
+    bool setMainDictStringList( const char *name, const QStringList &values );
 };
 
 #endif

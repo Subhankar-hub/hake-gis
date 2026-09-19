@@ -48,11 +48,70 @@ QgsPythonUtilsImpl::~QgsPythonUtilsImpl()
   exitPython();
 }
 
+bool QgsPythonUtilsImpl::setMainDictString( const char *name, const QString &value )
+{
+  PyGILState_STATE gstate = PyGILState_Ensure();
+  PyObject *obj = PyUnicode_FromString( value.toUtf8().constData() );
+  const int rc = obj ? PyDict_SetItemString( mMainDict, name, obj ) : -1;
+  Py_XDECREF( obj );
+  PyGILState_Release( gstate );
+  return rc == 0;
+}
+
+bool QgsPythonUtilsImpl::setMainDictStringList( const char *name, const QStringList &values )
+{
+  PyGILState_STATE gstate = PyGILState_Ensure();
+  PyObject *list = PyList_New( values.size() );
+  if ( !list )
+  {
+    PyGILState_Release( gstate );
+    return false;
+  }
+
+  for ( int i = 0; i < values.size(); ++i )
+  {
+    PyObject *item = PyUnicode_FromString( values.at( i ).toUtf8().constData() );
+    if ( !item )
+    {
+      Py_DECREF( list );
+      PyGILState_Release( gstate );
+      return false;
+    }
+    PyList_SET_ITEM( list, i, item ); // steals reference
+  }
+
+  const int rc = PyDict_SetItemString( mMainDict, name, list );
+  Py_DECREF( list );
+  PyGILState_Release( gstate );
+  return rc == 0;
+}
+
 bool QgsPythonUtilsImpl::checkSystemImports()
 {
   runString( u"import sys"_s );     // import sys module (for display / exception hooks)
   runString( u"import os"_s );      // import os module (for environ variables)
   runString( u"import pathlib"_s ); // import pathlib module (for path manipulation)
+
+  const QString pyPath = pythonPath();
+  const QString plugPath = pluginsPath();
+  QString homePyPath = QgsApplication::qgisSettingsDirPath();
+  if ( QDir::cleanPath( homePyPath ) == QDir::homePath() + u"/.qgis3"_s )
+    homePyPath = QDir::homePath() + u"/.qgis3/python"_s;
+  else
+    homePyPath += u"python"_s;
+  const QString homePlugPath = homePyPath + u"/plugins"_s;
+  const QString expectedQgisDir = QDir::cleanPath( pyPath + u"/qgis"_s );
+  const QStringList extraPaths = extraPluginsPaths();
+
+  if ( !setMainDictString( "_hake_python_path", pyPath )
+       || !setMainDictString( "_hake_plugins_path", plugPath )
+       || !setMainDictString( "_hake_home_python_path", homePyPath )
+       || !setMainDictString( "_hake_home_plugins_path", homePlugPath )
+       || !setMainDictString( "_hake_expected_qgis_dir", expectedQgisDir )
+       || !setMainDictStringList( "_hake_extra_plugin_paths", extraPaths ) )
+  {
+    return false;
+  }
 
   // support for PYTHONSTARTUP-like environment variable: PYQGIS_STARTUP
   // (unlike PYTHONHOME and PYTHONPATH, PYTHONSTARTUP is not supported for embedded interpreter by default)
@@ -82,7 +141,7 @@ class StartupScriptRunner:
             exec(code, globals())
             script_executed = True
 
-        p2 = pathlib.Path('%1') / script_path
+        p2 = pathlib.Path(_hake_python_path) / script_path
         if p2.exists() and p2 != p1:
             self.info_messages.append(f"Executed startup script: {p2}")
             code = compile(p2.read_text(), p2, 'exec')
@@ -112,8 +171,7 @@ _ssr = StartupScriptRunner()
     ),
     globals(),
 )
-)"""" )
-      .arg( pythonPath() ),
+)"""" ),
     QObject::tr( "Couldn't create run_startup_script." ),
     true
   );
@@ -125,53 +183,32 @@ _ssr = StartupScriptRunner()
   runString( "os.environ['HOME']=os.environ['USERPROFILE']\n" );
 #endif
 
-  // construct a list of plugin paths
-  // plugin dirs passed in QGIS_PLUGINPATH env. variable have highest priority (usually empty)
-  // locally installed plugins have priority over the system plugins
-  // use os.path.expanduser to support usernames with special characters (see #2512)
-  QStringList pluginpaths;
-  const QStringList extraPaths = extraPluginsPaths();
   for ( const QString &path : extraPaths )
   {
-    QString p = path;
-    if ( !QDir( p ).exists() )
+    if ( !QDir( path ).exists() )
     {
       QgsMessageOutput *msg = QgsMessageOutput::createMessageOutput();
       msg->setTitle( QObject::tr( "Python error" ) );
-      msg->setMessage( QObject::tr( "The extra plugin path '%1' does not exist!" ).arg( p ), Qgis::StringFormat::PlainText );
+      msg->setMessage( QObject::tr( "The extra plugin path '%1' does not exist!" ).arg( path ), Qgis::StringFormat::PlainText );
       msg->showMessage();
     }
-#ifdef Q_OS_WIN
-    p.replace( '\\', "\\\\" );
-#endif
-    // we store here paths in unicode strings
-    // the str constant will contain utf8 code (through runString)
-    // so we call '...'.decode('utf-8') to make a unicode string
-    pluginpaths << '"' + p + '"';
   }
-  pluginpaths << homePluginsPath();
-  pluginpaths << '"' + pluginsPath() + '"';
 
   // expect that bindings are installed locally, so add the path to modules
-  // also add path to plugins
-  QStringList newpaths;
-  newpaths << '"' + pythonPath() + '"';
-  newpaths << homePythonPath();
-  newpaths << pluginpaths;
-  runString( "sys.path = [" + newpaths.join( ','_L1 ) + "] + sys.path" );
+  // also add path to plugins. Paths are Unicode objects, not interpolated source.
+  runString(
+    u"sys.path = [_hake_python_path, _hake_home_python_path] + _hake_extra_plugin_paths + "
+    "[_hake_home_plugins_path, _hake_plugins_path] + sys.path"_s
+  );
 
   // Ensure `import qgis` resolves to this build/install (not a system Qt5 package).
   // Must run before any qgis.* import to avoid loading mismatched native modules.
   {
-    QString expectedQgisDir = QDir::cleanPath( pythonPath() + u"/qgis"_s );
-#ifdef Q_OS_WIN
-    expectedQgisDir.replace( '\\', "\\\\"_L1 );
-#endif
     const QString pathCheckError = QObject::tr( "Couldn't load PyHake Geospatial." ) + '\n'
                                    + QObject::tr( "Python support will be disabled." );
     if ( !runString(
            u"import importlib.util, os\n"
-           "_exp = os.path.realpath(r'%1')\n"
+           "_exp = os.path.realpath(_hake_expected_qgis_dir)\n"
            "_spec = importlib.util.find_spec('qgis')\n"
            "if _spec is None:\n"
            "    raise ImportError('qgis package not found')\n"
@@ -182,8 +219,7 @@ _ssr = StartupScriptRunner()
            "    _loc = os.path.dirname(_spec.origin)\n"
            "_loc = os.path.realpath(_loc) if _loc else ''\n"
            "if not _loc or os.path.commonpath([_loc, _exp]) != _exp:\n"
-           "    raise ImportError('Wrong qgis package: %r (expected under %r)' % (_loc, _exp))\n"_s
-             .arg( expectedQgisDir ),
+           "    raise ImportError('Wrong qgis package: %r (expected under %r)' % (_loc, _exp))\n"_s,
            pathCheckError,
            false
          ) )
@@ -224,9 +260,9 @@ _ssr = StartupScriptRunner()
   }
 
   // tell the utils script where to look for the plugins
-  runString( u"qgis.utils.plugin_paths = [%1]"_s.arg( pluginpaths.join( ',' ) ) );
-  runString( u"qgis.utils.sys_plugin_path = \"%1\""_s.arg( pluginsPath() ) );
-  runString( u"qgis.utils.HOME_PLUGIN_PATH = %1"_s.arg( homePluginsPath() ) ); // note - homePluginsPath() returns a python expression, not a string literal
+  runString( u"qgis.utils.plugin_paths = _hake_extra_plugin_paths + [_hake_home_plugins_path, _hake_plugins_path]"_s );
+  runString( u"qgis.utils.sys_plugin_path = _hake_plugins_path"_s );
+  runString( u"qgis.utils.HOME_PLUGIN_PATH = _hake_home_plugins_path"_s );
 
 #ifdef Q_OS_WIN
   runString( "if oldhome: os.environ['HOME']=oldhome\n" );
@@ -509,7 +545,7 @@ bool QgsPythonUtilsImpl::runString( const QString &command, QString msgOnError, 
                 + "<br><br>"
                 + QObject::tr( "Build version:" )
                 + "<br>"
-                + u"%1 '%2', %3"_s.arg( Qgis::version(), Qgis::releaseName(), Qgis::devVersion() )
+                + Qgis::productVersionLabel()
                 + "<br><br>"
                 + QObject::tr( "Python path:" )
                 + "<br>"
@@ -584,7 +620,7 @@ bool QgsPythonUtilsImpl::runFile( const QString &filename, const QString &messag
                 + "<br><br>"
                 + QObject::tr( "Build version:" )
                 + "<br>"
-                + u"%1 '%2', %3"_s.arg( Qgis::version(), Qgis::releaseName(), Qgis::devVersion() )
+                + Qgis::productVersionLabel()
                 + "<br><br>"
                 + QObject::tr( "Python path:" )
                 + "<br>"
@@ -668,7 +704,7 @@ bool QgsPythonUtilsImpl::setArgv( const QStringList &arguments, const QString &m
                 + "<br><br>"
                 + QObject::tr( "Build version:" )
                 + "<br>"
-                + u"%1 '%2', %3"_s.arg( Qgis::version(), Qgis::releaseName(), Qgis::devVersion() )
+                + Qgis::productVersionLabel()
                 + "<br><br>"
                 + QObject::tr( "Python path:" )
                 + "<br>"
@@ -904,11 +940,10 @@ QString QgsPythonUtilsImpl::homePluginsPath() const
 
 QStringList QgsPythonUtilsImpl::extraPluginsPaths() const
 {
-  const char *cpaths = getenv( "QGIS_PLUGINPATH" );
-  if ( !cpaths )
+  if ( !qEnvironmentVariableIsSet( "QGIS_PLUGINPATH" ) )
     return QStringList();
 
-  const QString paths = QString::fromLocal8Bit( cpaths );
+  const QString paths = qEnvironmentVariable( "QGIS_PLUGINPATH" );
 #ifndef Q_OS_WIN
   if ( paths.contains( ':' ) )
     return paths.split( ':', Qt::SkipEmptyParts );

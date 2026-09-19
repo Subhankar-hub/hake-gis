@@ -15,6 +15,8 @@
 #include "qgstest.h"
 
 #include <QApplication>
+#include <QDir>
+#include <QFile>
 #include <QFileInfo>
 #include <QObject>
 #include <QString>
@@ -23,7 +25,10 @@
 using namespace Qt::StringLiterals;
 
 //qgis includes...
+#include "qgsapplication.h"
 #include "qgssqliteutils.h"
+
+#include <sqlite3.h>
 
 
 /**
@@ -55,6 +60,7 @@ class TestQgsSqliteUtils : public QObject
     void testQuotedIdentifier();
     void testQuotedValue_data();
     void testQuotedValue();
+    void testCreateDatabaseVwSrsIdempotent();
 };
 
 
@@ -147,6 +153,38 @@ void TestQgsSqliteUtils::testQuotedValue()
   QFETCH( QString, expected );
 
   QCOMPARE( QgsSqliteUtils::quotedValue( input ), expected );
+}
+
+void TestQgsSqliteUtils::testCreateDatabaseVwSrsIdempotent()
+{
+  const QString dbPath = QgsApplication::qgisUserDatabaseFilePath();
+  QVERIFY( QFile::exists( dbPath ) );
+
+  QString error;
+  QVERIFY2( QgsApplication::createDatabase( &error ), qPrintable( error ) );
+  QVERIFY( error.isEmpty() );
+
+  {
+    sqlite3_database_unique_ptr database;
+    QCOMPARE( database.open( dbPath ), SQLITE_OK );
+    int rc = 0;
+    sqlite3_statement_unique_ptr stmt = database.prepare( u"SELECT sql FROM sqlite_master WHERE type='view' AND name='vw_srs'"_s, rc );
+    QCOMPARE( rc, SQLITE_OK );
+    QCOMPARE( stmt.step(), SQLITE_ROW );
+    QVERIFY( stmt.columnAsText( 0 ).contains( u"tbl_srs"_s ) );
+  }
+
+  QString error2;
+  QVERIFY2( QgsApplication::createDatabase( &error2 ), qPrintable( error2 ) );
+  QVERIFY( error2.isEmpty() );
+
+  sqlite3_database_unique_ptr database;
+  QCOMPARE( database.open( dbPath ), SQLITE_OK );
+  int rc = 0;
+  sqlite3_statement_unique_ptr stmt = database.prepare( u"SELECT sql FROM sqlite_master WHERE type='view' AND name='vw_srs'"_s, rc );
+  QCOMPARE( rc, SQLITE_OK );
+  QCOMPARE( stmt.step(), SQLITE_ROW );
+  QVERIFY( stmt.columnAsText( 0 ).contains( u"tbl_srs"_s ) );
 }
 
 

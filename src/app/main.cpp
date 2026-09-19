@@ -1091,7 +1091,7 @@ int main( int argc, char *argv[] )
   // - use a default location as a fallback
   if ( globalsettingsfile.isEmpty() )
   {
-    globalsettingsfile = getenv( "QGIS_GLOBAL_SETTINGS_FILE" );
+    globalsettingsfile = qEnvironmentVariable( "QGIS_GLOBAL_SETTINGS_FILE" );
   }
 
   if ( globalsettingsfile.isEmpty() )
@@ -1129,9 +1129,9 @@ int main( int argc, char *argv[] )
   if ( configLocalStorageLocation.isEmpty() )
   {
     QSettings globalSettings( globalsettingsfile, QSettings::IniFormat );
-    if ( getenv( "QGIS_CUSTOM_CONFIG_PATH" ) )
+    if ( qEnvironmentVariableIsSet( "QGIS_CUSTOM_CONFIG_PATH" ) )
     {
-      configLocalStorageLocation = getenv( "QGIS_CUSTOM_CONFIG_PATH" );
+      configLocalStorageLocation = qEnvironmentVariable( "QGIS_CUSTOM_CONFIG_PATH" );
       // If an explicit QGIS_CUSTOM_CONFIG_PATH was specified, we don't do ANY settings migration logic.
       // We'll instead leave that up to the system administrator to do.
       preventSettingsMigration = true;
@@ -1905,7 +1905,7 @@ int main( int argc, char *argv[] )
   // - use a default location as a fallback (this is set in QgsApplication initialization)
   if ( openClProgramFolder.isEmpty() )
   {
-    openClProgramFolder = getenv( "QGIS_OPENCL_PROGRAM_FOLDER" );
+    openClProgramFolder = qEnvironmentVariable( "QGIS_OPENCL_PROGRAM_FOLDER" );
   }
 
   if ( !openClProgramFolder.isEmpty() )

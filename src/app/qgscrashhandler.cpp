@@ -24,10 +24,13 @@
 #include "qgslogger.h"
 #include "qgsproject.h"
 
+#include <QApplication>
 #include <QDir>
+#include <QFileInfo>
 #include <QProcess>
 #include <QStandardPaths>
 #include <QString>
+#include <QSysInfo>
 #include <QTextStream>
 #include <QUuid>
 
@@ -44,13 +47,14 @@ LONG WINAPI QgsCrashHandler::handle( LPEXCEPTION_POINTERS exception )
   QString symbolPath;
   if ( !QgsApplication::isRunningFromBuildDir() )
   {
-    symbolPath = u"%1\\pdb;http://msdl.microsoft.com/download/symbols;http://download.osgeo.org/osgeo4w/%2/symstores/%3"_s.arg( getenv( "QGIS_PREFIX_PATH" ) )
+    const QString prefixPath = qEnvironmentVariable( "QGIS_PREFIX_PATH" );
+    symbolPath = u"%1\\pdb;http://msdl.microsoft.com/download/symbols;http://download.osgeo.org/osgeo4w/%2/symstores/%3"_s.arg( prefixPath )
                    .arg( QSysInfo::WordSize == 64 ? u"x86_64"_s : u"x86"_s )
-                   .arg( QFileInfo( getenv( "QGIS_PREFIX_PATH" ) ).baseName() );
+                   .arg( QFileInfo( prefixPath ).baseName() );
   }
   else
   {
-    symbolPath = u"%1;%2;http://msdl.microsoft.com/download/symbols"_s.arg( getenv( "QGIS_PDB_PATH" ) ).arg( QgsApplication::applicationDirPath() );
+    symbolPath = u"%1;%2;http://msdl.microsoft.com/download/symbols"_s.arg( qEnvironmentVariable( "QGIS_PDB_PATH" ), QgsApplication::applicationDirPath() );
   }
 
   QString ptrStr = QString( "0x%1" ).arg( ( quintptr ) exception, QT_POINTER_SIZE * 2, 16, QChar( '0' ) );
@@ -115,7 +119,7 @@ void QgsCrashHandler::handleCrash( int processID, int threadID, const QString &s
   QStringList args;
   args << fileName;
 
-  QString prefixPath( getenv( "QGIS_PREFIX_PATH" ) ? getenv( "QGIS_PREFIX_PATH" ) : QApplication::applicationDirPath() );
+  QString prefixPath( qEnvironmentVariableIsSet( "QGIS_PREFIX_PATH" ) ? qEnvironmentVariable( "QGIS_PREFIX_PATH" ) : QApplication::applicationDirPath() );
 #ifdef _MSC_VER
   QString path = prefixPath + u"/qgiscrashhandler.exe"_s;
 #else

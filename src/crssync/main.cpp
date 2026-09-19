@@ -59,8 +59,8 @@ int main( int argc, char **argv )
 
   if ( !QgsApplication::isRunningFromBuildDir() )
   {
-    char *prefixPath = getenv( "QGIS_PREFIX_PATH" );
-    QgsApplication::setPrefixPath( prefixPath ? prefixPath : CMAKE_INSTALL_PREFIX, TRUE );
+    const QString prefixPath = qEnvironmentVariable( "QGIS_PREFIX_PATH" );
+    QgsApplication::setPrefixPath( prefixPath.isEmpty() ? QStringLiteral( CMAKE_INSTALL_PREFIX ) : prefixPath, TRUE );
   }
 
   if ( verbose )

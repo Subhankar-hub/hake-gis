@@ -12,12 +12,12 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-#include <fstream>
+#include <cstdio>
+#include <cstdlib>
 #include <io.h>
 #include <iostream>
 #include <list>
 #include <memory>
-#include <sstream>
 #include <string>
 #include <vector>
 #include <windows.h>
@@ -25,64 +25,67 @@
 namespace
 {
 
-void showError( std::string message, std::string title )
+void showError( const std::wstring &message, const std::wstring &title )
 {
-  std::string newmessage = "Oops, looks like an error loading Hake GIS \n\n Details: \n\n" + message;
-  MessageBoxA( nullptr, newmessage.c_str(), title.c_str(), MB_ICONERROR | MB_OK );
-  std::cerr << message << std::endl;
+  const std::wstring newmessage = L"Oops, looks like an error loading Hake GIS \n\n Details: \n\n" + message;
+  MessageBoxW( nullptr, newmessage.c_str(), title.c_str(), MB_ICONERROR | MB_OK );
+  std::wcerr << message << std::endl;
 }
 
-std::string moduleExePath()
+std::wstring moduleExePath()
 {
   DWORD l = MAX_PATH;
-  std::unique_ptr<char[]> filepath;
+  std::unique_ptr<wchar_t[]> filepath;
   for ( ;; )
   {
-    filepath.reset( new char[l] );
-    if ( GetModuleFileNameA( nullptr, filepath.get(), l ) < l )
+    filepath.reset( new wchar_t[l] );
+    const DWORD copied = GetModuleFileNameW( nullptr, filepath.get(), l );
+    if ( copied == 0 )
+      return std::wstring();
+    if ( copied < l )
       break;
 
     l += MAX_PATH;
   }
-  return std::string( filepath.get() );
+  return std::wstring( filepath.get() );
 }
 
-std::string dirnameOf( const std::string &path )
+std::wstring dirnameOf( const std::wstring &path )
 {
-  const size_t pos = path.find_last_of( "\\/" );
-  if ( pos == std::string::npos )
-    return std::string( "." );
+  const size_t pos = path.find_last_of( L"\\/" );
+  if ( pos == std::wstring::npos )
+    return std::wstring( L"." );
   if ( pos == 0 )
     return path.substr( 0, 1 );
   return path.substr( 0, pos );
 }
 
-std::string parentDir( const std::string &path )
+std::wstring parentDir( const std::wstring &path )
 {
   return dirnameOf( path );
 }
 
-void replaceAll( std::string &haystack, const std::string &from, const std::string &to )
+void replaceAll( std::wstring &haystack, const std::wstring &from, const std::wstring &to )
 {
   if ( from.empty() )
     return;
   size_t start = 0;
-  while ( ( start = haystack.find( from, start ) ) != std::string::npos )
+  while ( ( start = haystack.find( from, start ) ) != std::wstring::npos )
   {
     haystack.replace( start, from.length(), to );
     start += to.length();
   }
 }
 
-std::string expandEnvStrings( const std::string &value )
+std::wstring expandEnvStrings( const std::wstring &value )
 {
-  DWORD needed = ExpandEnvironmentStringsA( value.c_str(), nullptr, 0 );
+  DWORD needed = ExpandEnvironmentStringsW( value.c_str(), nullptr, 0 );
   if ( needed == 0 )
     return value;
-  std::vector<char> buf( needed );
-  if ( ExpandEnvironmentStringsA( value.c_str(), buf.data(), needed ) == 0 )
+  std::vector<wchar_t> buf( needed );
+  if ( ExpandEnvironmentStringsW( value.c_str(), buf.data(), needed ) == 0 )
     return value;
-  return std::string( buf.data() );
+  return std::wstring( buf.data() );
 }
 
 std::wstring utf8ToWide( const std::string &s )
@@ -97,134 +100,134 @@ std::wstring utf8ToWide( const std::string &s )
   return out;
 }
 
-bool putEnvVar( const std::string &assignment )
+bool putEnvVar( const std::wstring &name, const std::wstring &value )
 {
-  // _putenv requires "NAME=value". Windows process env block is limited;
+  // _wputenv requires "NAME=value". Windows process env block is limited;
   // a PATH that embeds the full machine PATH often fails here.
-  return _putenv( assignment.c_str() ) == 0;
+  const std::wstring assignment = name + L"=" + value;
+  return _wputenv( assignment.c_str() ) == 0;
 }
 
-bool applyEnvLine( const std::string &rawLine, const std::string &appDir, const std::string &prefixDir )
+bool applyEnvLine( const std::wstring &rawLine, const std::wstring &appDir, const std::wstring &prefixDir )
 {
-  std::string line = rawLine;
+  std::wstring line = rawLine;
   // Trim CR (Windows newlines) and skip blanks / comments
-  if ( !line.empty() && line.back() == '\r' )
+  if ( !line.empty() && line.back() == L'\r' )
     line.pop_back();
-  if ( line.empty() || line[0] == '#' )
+  if ( line.empty() || line[0] == L'#' )
     return true;
 
-  const size_t eq = line.find( '=' );
-  if ( eq == std::string::npos )
+  const size_t eq = line.find( L'=' );
+  if ( eq == std::wstring::npos )
     return true;
 
-  std::string name = line.substr( 0, eq );
-  std::string value = line.substr( eq + 1 );
-  replaceAll( value, "{app}", appDir );
-  replaceAll( value, "{prefix}", prefixDir );
+  std::wstring name = line.substr( 0, eq );
+  std::wstring value = line.substr( eq + 1 );
+  replaceAll( value, L"{app}", appDir );
+  replaceAll( value, L"{prefix}", prefixDir );
   value = expandEnvStrings( value );
 
   // Keep PATH short: prepend our bin dir, do not require shipping the whole system PATH.
-  if ( _stricmp( name.c_str(), "PATH" ) == 0 )
+  if ( _wcsicmp( name.c_str(), L"PATH" ) == 0 )
   {
-    const char *oldPath = getenv( "PATH" );
-    std::string merged = value;
+    const wchar_t *oldPath = _wgetenv( L"PATH" );
+    std::wstring merged = value;
     if ( oldPath && *oldPath )
     {
       // Prefer our directories first so DLL resolution finds install\bin without a huge .env PATH.
-      merged = value + ";" + oldPath;
+      merged = value + L";" + oldPath;
     }
     // If the merged PATH is enormous, fall back to install bin only + system32 essentials.
     if ( merged.size() > 30000 )
     {
-      char windir[MAX_PATH] = {};
-      GetWindowsDirectoryA( windir, MAX_PATH );
-      merged = value + ";" + windir + ";" + std::string( windir ) + "\\system32;" + std::string( windir ) + "\\system32\\WBem";
+      wchar_t windir[MAX_PATH] = {};
+      GetWindowsDirectoryW( windir, MAX_PATH );
+      merged = value + L";" + windir + L";" + std::wstring( windir ) + L"\\system32;" + std::wstring( windir ) + L"\\system32\\WBem";
     }
-    return putEnvVar( name + "=" + merged );
+    return putEnvVar( name, merged );
   }
 
-  return putEnvVar( name + "=" + value );
+  return putEnvVar( name, value );
 }
 
-std::vector<std::string> defaultEnvLines( const std::string &appDir, const std::string &prefixDir )
+std::vector<std::wstring> defaultEnvLines( const std::wstring &appDir, const std::wstring &prefixDir )
 {
   return {
-    "PATH=" + appDir,
-    "QGIS_PREFIX_PATH=" + prefixDir,
-    "PROJ_DATA=" + prefixDir + "\\share\\proj",
-    "GDAL_DATA=" + prefixDir + "\\share\\gdal",
-    "QT_PLUGIN_PATH=" + appDir + "\\Qt6\\plugins;" + appDir + "\\Qt6\\plugins\\crypto",
-    "PYTHONHOME=" + appDir,
-    "PYTHONPATH=" + prefixDir + "\\python;" + appDir + "\\Lib;" + appDir + "\\Lib\\site-packages;" + appDir + "\\DLLs",
+    L"PATH=" + appDir,
+    L"QGIS_PREFIX_PATH=" + prefixDir,
+    L"PROJ_DATA=" + prefixDir + L"\\share\\proj",
+    L"GDAL_DATA=" + prefixDir + L"\\share\\gdal",
+    L"QT_PLUGIN_PATH=" + appDir + L"\\Qt6\\plugins;" + appDir + L"\\Qt6\\plugins\\crypto",
+    L"PYTHONHOME=" + appDir,
+    L"PYTHONPATH=" + prefixDir + L"\\python;" + appDir + L"\\Lib;" + appDir + L"\\Lib\\site-packages;" + appDir + L"\\DLLs",
   };
 }
 
-void addDllSearchDir( const std::string &dir,
+void addDllSearchDir( const std::wstring &dir,
                       BOOL ( *SetDefaultDllDirectories )( DWORD ),
                       DLL_DIRECTORY_COOKIE ( *AddDllDirectory )( PCWSTR ) )
 {
   if ( !SetDefaultDllDirectories || !AddDllDirectory )
     return;
-  const std::wstring wdir = utf8ToWide( dir );
-  if ( !wdir.empty() )
-    AddDllDirectory( wdir.c_str() );
+  if ( !dir.empty() )
+    AddDllDirectory( dir.c_str() );
+}
+
+bool readUtf8FileLines( const std::wstring &path, std::list<std::wstring> &lines )
+{
+  FILE *fp = _wfopen( path.c_str(), L"r" );
+  if ( !fp )
+    return false;
+
+  char buf[4096];
+  while ( fgets( buf, sizeof( buf ), fp ) )
+  {
+    std::string line( buf );
+    if ( !line.empty() && line.back() == '\n' )
+      line.pop_back();
+    lines.push_back( utf8ToWide( line ) );
+  }
+  fclose( fp );
+  return true;
 }
 
 } // namespace
 
 int CALLBACK WinMain( HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPSTR /*lpCmdLine*/, int /*nCmdShow*/ )
 {
-  const std::string exename( moduleExePath() );
-  const std::string basename( exename.substr( 0, exename.size() - 4 ) );
-  const std::string appDir = dirnameOf( exename );
-  const std::string prefixDir = parentDir( appDir );
+  const std::wstring exename( moduleExePath() );
+  const std::wstring basename( exename.substr( 0, exename.size() - 4 ) );
+  const std::wstring appDir = dirnameOf( exename );
+  const std::wstring prefixDir = parentDir( appDir );
 
-  if ( getenv( "OSGEO4W_ROOT" ) && __argc == 2 && strcmp( __argv[1], "--postinstall" ) == 0 )
+  if ( _wgetenv( L"OSGEO4W_ROOT" ) && __argc == 2 && strcmp( __argv[1], "--postinstall" ) == 0 )
   {
-    std::string envfile( basename + ".env" );
+    const std::wstring envfile( basename + L".env" );
 
     // write or update environment file
-    if ( _access( envfile.c_str(), 0 ) < 0 || _access( envfile.c_str(), 2 ) == 0 )
+    if ( _waccess( envfile.c_str(), 0 ) < 0 || _waccess( envfile.c_str(), 2 ) == 0 )
     {
-      std::list<std::string> vars;
-
-      try
+      std::list<std::wstring> vars;
+      if ( !readUtf8FileLines( basename + L".vars", vars ) )
       {
-        std::ifstream varfile;
-        varfile.open( basename + ".vars" );
-
-        std::string var;
-        while ( std::getline( varfile, var ) )
-        {
-          vars.push_back( var );
-        }
-
-        varfile.close();
-      }
-      catch ( std::ifstream::failure &e )
-      {
-        std::string message = "Could not read environment variable list " + basename + ".vars" + " [" + e.what() + "]";
-        showError( message, "Error loading Hake GIS" );
+        showError( L"Could not read environment variable list " + basename + L".vars", L"Error loading Hake GIS" );
         return EXIT_FAILURE;
       }
 
-      try
+      FILE *file = _wfopen( envfile.c_str(), L"w" );
+      if ( !file )
       {
-        std::ofstream file;
-        file.open( envfile, std::ifstream::out );
-
-        for ( std::list<std::string>::const_iterator it = vars.begin(); it != vars.end(); ++it )
-        {
-          if ( getenv( it->c_str() ) )
-            file << *it << "=" << getenv( it->c_str() ) << std::endl;
-        }
-      }
-      catch ( std::ifstream::failure &e )
-      {
-        std::string message = "Could not write environment file " + basename + ".env" + " [" + e.what() + "]";
-        showError( message, "Error loading Hake GIS" );
+        showError( L"Could not write environment file " + basename + L".env", L"Error loading Hake GIS" );
         return EXIT_FAILURE;
       }
+
+      for ( const std::wstring &var : vars )
+      {
+        const wchar_t *value = _wgetenv( var.c_str() );
+        if ( value )
+          fwprintf( file, L"%ls=%ls\n", var.c_str(), value );
+      }
+      fclose( file );
     }
 
     return EXIT_SUCCESS;
@@ -232,24 +235,24 @@ int CALLBACK WinMain( HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPST
 
   // Prefer packaged .env; if missing or unreadable, synthesize a short install-local env.
   {
-    std::ifstream file( basename + ".env" );
+    std::list<std::wstring> envLines;
+    const bool haveEnvFile = readUtf8FileLines( basename + L".env", envLines );
     bool appliedAny = false;
-    if ( file )
+    if ( haveEnvFile )
     {
-      std::string var;
-      while ( std::getline( file, var ) )
+      for ( const std::wstring &var : envLines )
       {
         if ( !applyEnvLine( var, appDir, prefixDir ) )
         {
           // PATH overflow / env-block full: fall back to a minimal PATH and continue.
-          if ( var.rfind( "PATH=", 0 ) == 0 || var.rfind( "path=", 0 ) == 0 )
+          if ( var.rfind( L"PATH=", 0 ) == 0 || var.rfind( L"path=", 0 ) == 0 )
           {
-            putEnvVar( "PATH=" + appDir );
+            putEnvVar( L"PATH", appDir );
             continue;
           }
-          std::string message = "Could not set environment variable (environment block may be full):\n" + var
-                                + "\n\nHelp: shorten the Windows system PATH, or edit:\n" + basename + ".env";
-          showError( message, "Error loading Hake GIS" );
+          showError( L"Could not set environment variable (environment block may be full):\n" + var
+                       + L"\n\nHelp: shorten the Windows system PATH, or edit:\n" + basename + L".env",
+                     L"Error loading Hake GIS" );
           return EXIT_FAILURE;
         }
         appliedAny = true;
@@ -258,11 +261,11 @@ int CALLBACK WinMain( HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPST
     if ( !appliedAny )
     {
       const auto defaults = defaultEnvLines( appDir, prefixDir );
-      for ( const std::string &line : defaults )
+      for ( const std::wstring &line : defaults )
       {
         if ( !applyEnvLine( line, appDir, prefixDir ) )
         {
-          putEnvVar( "PATH=" + appDir );
+          putEnvVar( L"PATH", appDir );
         }
       }
     }
@@ -323,14 +326,14 @@ int CALLBACK WinMain( HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPST
   if ( !hGetProcIDDLL )
   {
     DWORD error = GetLastError();
-    LPTSTR errorText = nullptr;
+    LPWSTR errorText = nullptr;
 
-    FormatMessageA( FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS, nullptr, error, MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ), ( LPTSTR ) &errorText, 0, nullptr );
+    FormatMessageW( FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS, nullptr, error, MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ), reinterpret_cast<LPWSTR>( &errorText ), 0, nullptr );
 
-    std::string message = std::string( "Could not load " ) + QGIS_APP_DLL_NAME + " \n Windows Error: " + std::string( errorText ? errorText : "" )
-                          + "\n Help: \n\n Check " + basename + ".env for correct environment paths"
-                          + "\n Ensure " + QGIS_APP_DLL_NAME + " exists in:\n " + appDir;
-    showError( message, "Error loading Hake GIS" );
+    showError( std::wstring( L"Could not load " ) + utf8ToWide( QGIS_APP_DLL_NAME ) + L" \n Windows Error: " + ( errorText ? errorText : L"" )
+                 + L"\n Help: \n\n Check " + basename + L".env for correct environment paths"
+                 + L"\n Ensure " + utf8ToWide( QGIS_APP_DLL_NAME ) + L" exists in:\n " + appDir,
+               L"Error loading Hake GIS" );
 
     LocalFree( errorText );
     return EXIT_FAILURE;
@@ -346,7 +349,7 @@ int CALLBACK WinMain( HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPST
 
   if ( !realmain )
   {
-    showError( std::string( "Could not locate main function in " ) + QGIS_APP_DLL_NAME, "Error loading Hake GIS" );
+    showError( std::wstring( L"Could not locate main function in " ) + utf8ToWide( QGIS_APP_DLL_NAME ), L"Error loading Hake GIS" );
     return EXIT_FAILURE;
   }
 
