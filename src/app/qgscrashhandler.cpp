@@ -121,9 +121,9 @@ void QgsCrashHandler::handleCrash( int processID, int threadID, const QString &s
 
   QString prefixPath( qEnvironmentVariableIsSet( "QGIS_PREFIX_PATH" ) ? qEnvironmentVariable( "QGIS_PREFIX_PATH" ) : QApplication::applicationDirPath() );
 #ifdef _MSC_VER
-  QString path = prefixPath + u"/qgiscrashhandler.exe"_s;
+  QString path = prefixPath + u"/hake-geodesk-crashhandler.exe"_s;
 #else
-  QString path = prefixPath + u"/qgiscrashhandler"_s;
+  QString path = prefixPath + u"/hake-geodesk-crashhandler"_s;
 #endif
   QgsDebugMsgLevel( path, 2 );
   QProcess::execute( path, args );

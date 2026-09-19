@@ -180,7 +180,7 @@ QgsError QgsUserProfileManager::createUserProfile( const QString &name )
     }
   }
 
-  const QString userDbPath = QgsApplication::resolveProfileDatabasePath( folder.absolutePath(), QgsApplication::userDatabaseFileName(), u"qgis.db"_s );
+  const QString userDbPath = QgsApplication::resolveProfileDatabasePath( folder.absolutePath(), QgsApplication::userDatabaseFileName(), { u"hake-gis.db"_s, u"qgis.db"_s } );
   QFile qgisPrivateDbFile( userDbPath );
 
   // first we look for an existing profile database (migrating a legacy qgis.db if present)

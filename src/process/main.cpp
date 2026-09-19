@@ -118,7 +118,7 @@ int main( int argc, char *argv[] )
     return 0;
   }
 
-  QgsApplication app( argc, argv, false, QString(), u"hake-gis-process"_s );
+  QgsApplication app( argc, argv, false, QString(), u"hake-geodesk-process"_s );
 
   // Build a local QCoreApplication from arguments. This way, arguments are correctly parsed from their native locale
   // It will use QString::fromLocal8Bit( argv ) under Unix and GetCommandLine() under Windows.
@@ -165,9 +165,9 @@ int main( int argc, char *argv[] )
   }
 
   // Set up the QSettings environment must be done after qapp is created
-  QgsApplication::setOrganizationName( u"hake-gis"_s );
-  QgsApplication::setOrganizationDomain( u"haketech.com"_s );
-  QgsApplication::setApplicationName( u"hake-gis4"_s );
+  QgsApplication::setOrganizationName( QString::fromUtf8( QgsApplication::QGIS_ORGANIZATION_NAME ) );
+  QgsApplication::setOrganizationDomain( QString::fromUtf8( QgsApplication::QGIS_ORGANIZATION_DOMAIN ) );
+  QgsApplication::setApplicationName( QString::fromUtf8( QgsApplication::QGIS_APPLICATION_NAME ) );
 
   QgsApplication::init();
   QgsApplication::initQgis();

@@ -374,8 +374,13 @@ class CORE_EXPORT QgsApplication : public QApplication
 
   /**
    * Joins \a directory with \a fileName.
-   * If that file is missing and \a legacyFileName exists, renames (or copies) the legacy file first.
+   * If that file is missing, tries each name in \a legacyFileNames in order and renames (or copies) the first existing legacy file.
    * Never overwrites an existing \a fileName.
+   */
+  static QString resolveProfileDatabasePath( const QString &directory, const QString &fileName, const QStringList &legacyFileNames = {} );
+
+  /**
+   * Convenience overload for a single legacy filename.
    */
   static QString resolveProfileDatabasePath( const QString &directory, const QString &fileName, const QString &legacyFileName );
 
@@ -384,7 +389,7 @@ class CORE_EXPORT QgsApplication : public QApplication
 #endif
 
   /**
-   *  Returns the path to the user authentication database file: hake-auth.db.
+   *  Returns the path to the user authentication database file: hake-geodesk-auth.db.
    *  \deprecated QGIS 3.30. Use qgisAuthDatabaseUri() instead.
    */
   Q_DECL_DEPRECATED static QString qgisAuthDatabaseFilePath() SIP_DEPRECATED;

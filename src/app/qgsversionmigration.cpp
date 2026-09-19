@@ -387,11 +387,11 @@ QgsError Qgs3To4Migration::runMigration( const QString &oldProfilePath, const QS
   // - any plugin folders -- require users to reinstall those, so that we don't copy broken, non-updated 3.x plugins
   QgsFileUtils::copyDirectory( oldProfilePath, newProfilePath, QgsFileUtils::CopyFlag::NoSymLinks, { u".*\\b__pycache__$"_s, u".*\\.[pP][yY][cC]$"_s, u".*[\\/]python[\\/]plugins$"_s } );
 
-  // Rename copied legacy databases so the migrated profile does not keep QGIS filenames.
-  QgsApplication::resolveProfileDatabasePath( newProfilePath, QgsApplication::userDatabaseFileName(), u"qgis.db"_s );
-  QgsApplication::resolveProfileDatabasePath( newProfilePath, QgsApplication::authDatabaseFileName(), u"qgis-auth.db"_s );
-  QgsApplication::resolveProfileDatabasePath( newProfilePath, QgsApplication::symbologyDatabaseFileName(), u"symbology-style.db"_s );
-  QgsApplication::resolveProfileDatabasePath( newProfilePath, QgsApplication::userQmlDatabaseFileName(), u"qgis.qmldb"_s );
+  // Rename copied legacy databases so the migrated profile does not keep QGIS/Hake-GIS filenames.
+  QgsApplication::resolveProfileDatabasePath( newProfilePath, QgsApplication::userDatabaseFileName(), { u"hake-gis.db"_s, u"qgis.db"_s } );
+  QgsApplication::resolveProfileDatabasePath( newProfilePath, QgsApplication::authDatabaseFileName(), { u"hake-auth.db"_s, u"qgis-auth.db"_s } );
+  QgsApplication::resolveProfileDatabasePath( newProfilePath, QgsApplication::symbologyDatabaseFileName(), { u"hake-symbology-style.db"_s, u"symbology-style.db"_s } );
+  QgsApplication::resolveProfileDatabasePath( newProfilePath, QgsApplication::userQmlDatabaseFileName(), { u"hake-gis.qmldb"_s, u"qgis.qmldb"_s } );
 
   newProfileDir.remove( u"QGIS/QGIS4.ini"_s );
   newProfileDir.rename( u"QGIS/QGIS3.ini"_s, u"QGIS/QGIS4.ini"_s );

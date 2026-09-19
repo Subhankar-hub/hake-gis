@@ -483,7 +483,7 @@ else()
     qt_disable_unicode_defines(qgis)
   endif()
 
-  # Pin 8MB stack reserve on the stub exe (hake-gis.exe). Global CMAKE_EXE_LINKER_FLAGS
+  # Pin 8MB stack reserve on the stub exe (hake-geodesk.exe). Global CMAKE_EXE_LINKER_FLAGS
   # can miss multi-config MSVC links; Qt6 Project Properties needs this to avoid overflow.
   if(MSVC)
     target_link_options(qgis PRIVATE "/STACK:8388608")

@@ -146,5 +146,5 @@ const QIcon QgsUserProfile::icon() const
 
 QString QgsUserProfile::qgisDB() const
 {
-  return QgsApplication::resolveProfileDatabasePath( mProfileFolder, QgsApplication::userDatabaseFileName(), u"qgis.db"_s );
+  return QgsApplication::resolveProfileDatabasePath( mProfileFolder, QgsApplication::userDatabaseFileName(), { u"hake-gis.db"_s, u"qgis.db"_s } );
 }

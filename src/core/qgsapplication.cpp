@@ -250,9 +250,10 @@ struct QgsApplication::ApplicationMembers
 QObject *ABISYM( QgsApplication::mFileOpenEventReceiver ) = nullptr;
 bool ABISYM( QgsApplication::mInitialized ) = false;
 bool ABISYM( QgsApplication::mRunningFromBuildDir ) = false;
-const char *QgsApplication::QGIS_ORGANIZATION_NAME = "hake-gis";
+// Runtime filesystem slug (AppData, QSettings org/app). Display name is HAKE_PRODUCT_DISPLAY_NAME.
+const char *QgsApplication::QGIS_ORGANIZATION_NAME = "hake-geodesk";
 const char *QgsApplication::QGIS_ORGANIZATION_DOMAIN = "haketech.com";
-const char *QgsApplication::QGIS_APPLICATION_NAME = "hake-gis";
+const char *QgsApplication::QGIS_APPLICATION_NAME = "hake-geodesk";
 QgsApplication::ApplicationMembers *QgsApplication::sApplicationMembers = nullptr;
 QgsAuthManager *QgsApplication::sAuthManager = nullptr;
 int ABISYM( QgsApplication::sMaxThreads ) = -1;
@@ -1389,68 +1390,81 @@ QString QgsApplication::qgisSettingsDirPath()
 
 QString QgsApplication::userDatabaseFileName()
 {
-  return u"hake-gis.db"_s;
+  return u"hake-geodesk.db"_s;
 }
 
 QString QgsApplication::authDatabaseFileName()
 {
-  return u"hake-auth.db"_s;
+  return u"hake-geodesk-auth.db"_s;
 }
 
 QString QgsApplication::symbologyDatabaseFileName()
 {
-  return u"hake-symbology-style.db"_s;
+  return u"hake-geodesk-symbology-style.db"_s;
 }
 
 QString QgsApplication::userQmlDatabaseFileName()
 {
-  return u"hake-gis.qmldb"_s;
+  return u"hake-geodesk.qmldb"_s;
 }
 
 QString QgsApplication::resolveProfileDatabasePath( const QString &directory, const QString &fileName, const QString &legacyFileName )
 {
+  return resolveProfileDatabasePath( directory, fileName, legacyFileName.isEmpty() ? QStringList() : QStringList { legacyFileName } );
+}
+
+QString QgsApplication::resolveProfileDatabasePath( const QString &directory, const QString &fileName, const QStringList &legacyFileNames )
+{
   const QString newPath = QDir( directory ).filePath( fileName );
-  if ( QFile::exists( newPath ) || legacyFileName.isEmpty() || fileName == legacyFileName )
+  if ( QFile::exists( newPath ) || legacyFileNames.isEmpty() )
     return newPath;
 
-  const QString legacyPath = QDir( directory ).filePath( legacyFileName );
-  if ( !QFile::exists( legacyPath ) )
-    return newPath;
-
-  if ( QFile::rename( legacyPath, newPath ) )
-    return newPath;
-
-  if ( !QFile::copy( legacyPath, newPath ) )
-    return legacyPath;
-
-  sqlite3 *database = nullptr;
-  const int result = sqlite3_open_v2( newPath.toUtf8().constData(), &database, SQLITE_OPEN_READONLY, nullptr );
-  if ( database )
-    sqlite3_close( database );
-
-  if ( result != SQLITE_OK )
+  for ( const QString &legacyFileName : legacyFileNames )
   {
-    QFile::remove( newPath );
-    return legacyPath;
+    if ( legacyFileName.isEmpty() || legacyFileName == fileName )
+      continue;
+
+    const QString legacyPath = QDir( directory ).filePath( legacyFileName );
+    if ( !QFile::exists( legacyPath ) )
+      continue;
+
+    if ( QFile::rename( legacyPath, newPath ) )
+      return newPath;
+
+    if ( !QFile::copy( legacyPath, newPath ) )
+      return legacyPath;
+
+    sqlite3 *database = nullptr;
+    const int result = sqlite3_open_v2( newPath.toUtf8().constData(), &database, SQLITE_OPEN_READONLY, nullptr );
+    if ( database )
+      sqlite3_close( database );
+
+    if ( result != SQLITE_OK )
+    {
+      QFile::remove( newPath );
+      return legacyPath;
+    }
+
+    QFile::remove( legacyPath );
+    return newPath;
   }
 
-  QFile::remove( legacyPath );
   return newPath;
 }
 
 QString QgsApplication::qgisUserDatabaseFilePath()
 {
-  return resolveProfileDatabasePath( qgisSettingsDirPath(), userDatabaseFileName(), u"qgis.db"_s );
+  return resolveProfileDatabasePath( qgisSettingsDirPath(), userDatabaseFileName(), { u"hake-gis.db"_s, u"qgis.db"_s } );
 }
 
 QString QgsApplication::qgisAuthDatabaseFilePath()
 {
-  return resolveProfileDatabasePath( *sAuthDbDirPath(), authDatabaseFileName(), u"qgis-auth.db"_s );
+  return resolveProfileDatabasePath( *sAuthDbDirPath(), authDatabaseFileName(), { u"hake-auth.db"_s, u"qgis-auth.db"_s } );
 }
 
 QString QgsApplication::userQmlDatabaseFilePath()
 {
-  return resolveProfileDatabasePath( qgisSettingsDirPath(), userQmlDatabaseFileName(), u"qgis.qmldb"_s );
+  return resolveProfileDatabasePath( qgisSettingsDirPath(), userQmlDatabaseFileName(), { u"hake-gis.qmldb"_s, u"qgis.qmldb"_s } );
 }
 
 QString QgsApplication::qgisAuthDatabaseUri()
@@ -1546,7 +1560,7 @@ QMap<QString, QString> QgsApplication::systemEnvVars()
 
 QString QgsApplication::userStylePath()
 {
-  return resolveProfileDatabasePath( qgisSettingsDirPath(), symbologyDatabaseFileName(), u"symbology-style.db"_s );
+  return resolveProfileDatabasePath( qgisSettingsDirPath(), symbologyDatabaseFileName(), { u"hake-symbology-style.db"_s, u"symbology-style.db"_s } );
 }
 
 QRegularExpression QgsApplication::shortNameRegularExpression()

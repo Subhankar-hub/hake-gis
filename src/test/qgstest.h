@@ -58,9 +58,9 @@ using namespace Qt::StringLiterals;
   QT_END_NAMESPACE                                                     \
   int main( int argc, char *argv[] )                                   \
   {                                                                    \
-    QCoreApplication::setOrganizationName( u"hake-gis"_s );                \
-    QCoreApplication::setOrganizationDomain( u"haketech.com"_s );          \
-    QCoreApplication::setApplicationName( u"hake-gis-TEST"_s );            \
+    QCoreApplication::setOrganizationName( QString::fromUtf8( QgsApplication::QGIS_ORGANIZATION_NAME ) ); \
+    QCoreApplication::setOrganizationDomain( QString::fromUtf8( QgsApplication::QGIS_ORGANIZATION_DOMAIN ) ); \
+    QCoreApplication::setApplicationName( QString::fromUtf8( QgsApplication::QGIS_APPLICATION_NAME ) + u"-TEST"_s ); \
     const QTemporaryDir settingsDir;                                   \
     qputenv( "QGIS_CUSTOM_CONFIG_PATH", settingsDir.path().toUtf8() ); \
     QgsApplication app( argc, argv, false );                           \

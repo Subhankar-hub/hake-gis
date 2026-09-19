@@ -107,6 +107,7 @@ typedef SInt32 SRefCon;
 #include "qgsfirstrundialog.h"
 #include "qgsproxystyle.h"
 #include "qgsmessagebar.h"
+#include "qgsfileutils.h"
 
 #include "qgsuserprofilemanager.h"
 #include "qgsuserprofile.h"
@@ -281,6 +282,113 @@ void copyProfileNamesFromQgis3( const QString &configLocalStorageLocation )
       QgsDebugError( u"Could not copy profiles.ini from %1 to %2, skipping"_s.arg( qgis3ProfilesIniPath, qgis4ProfilesIniPath ) );
     }
   }
+}
+
+/**
+ * Migrates a single profile's QSettings subdirectory from hake-gis to hake-geodesk.
+ * Does not overwrite an existing hake-geodesk.ini.
+ */
+static void migrateHakeGisSettingsDirInProfile( const QString &profileFolder )
+{
+  const QDir profileDir( profileFolder );
+  const QString legacyDirPath = profileDir.filePath( u"hake-gis"_s );
+  const QString newDirPath = profileDir.filePath( u"hake-geodesk"_s );
+  const QString newIniPath = QDir( newDirPath ).filePath( u"hake-geodesk.ini"_s );
+
+  if ( QFile::exists( newIniPath ) )
+    return;
+
+  if ( !QDir( legacyDirPath ).exists() )
+    return;
+
+  if ( !QDir( newDirPath ).exists() )
+  {
+    if ( !QDir().rename( legacyDirPath, newDirPath ) )
+    {
+      if ( !QgsFileUtils::copyDirectory( legacyDirPath, newDirPath, QgsFileUtils::CopyFlag::NoSymLinks ) )
+      {
+        QgsDebugError( u"Could not migrate settings directory from %1 to %2"_s.arg( legacyDirPath, newDirPath ) );
+        return;
+      }
+    }
+  }
+
+  const QString leftoverLegacyIni = QDir( newDirPath ).filePath( u"hake-gis.ini"_s );
+  if ( QFile::exists( leftoverLegacyIni ) && !QFile::exists( newIniPath ) )
+  {
+    if ( !QFile::rename( leftoverLegacyIni, newIniPath ) )
+    {
+      if ( QFile::copy( leftoverLegacyIni, newIniPath ) )
+        QFile::remove( leftoverLegacyIni );
+    }
+  }
+}
+
+/**
+ * One-time copy of the legacy Hake-GIS AppData root into the live Hake GeoDesk root.
+ * Preserves the legacy tree; never overwrites an existing GeoDesk profiles tree.
+ */
+void migrateHakeGisProfileRoot( const QString &newRoot )
+{
+  const QString profilesIniPath = QDir( QgsUserProfileManager::resolveProfilesFolder( newRoot ) ).filePath( u"profiles.ini"_s );
+  {
+    const QSettings migrationSettings( profilesIniPath, QSettings::IniFormat );
+    if ( migrationSettings.value( u"migration/migrated_from_hake_gis"_s, false ).toBool() )
+      return;
+  }
+
+  const QDir genericData( QStandardPaths::writableLocation( QStandardPaths::GenericDataLocation ) );
+  const QString legacyRoot = QDir( genericData.filePath( u"hake-gis"_s ) ).filePath( u"hake-gis"_s );
+  if ( QDir::cleanPath( legacyRoot ) == QDir::cleanPath( newRoot ) )
+    return;
+
+  const QDir legacyProfiles( QgsUserProfileManager::resolveProfilesFolder( legacyRoot ) );
+  if ( !legacyProfiles.exists() )
+    return;
+
+  const QDir newProfiles( QgsUserProfileManager::resolveProfilesFolder( newRoot ) );
+  const QStringList existingProfiles = newProfiles.exists()
+                                         ? newProfiles.entryList( QDir::Dirs | QDir::NoDotAndDotDot )
+                                         : QStringList();
+  if ( !existingProfiles.isEmpty() )
+  {
+    // Target already has profiles — do not overwrite; mark so we do not retry.
+    QSettings migrationSettings( profilesIniPath, QSettings::IniFormat );
+    migrationSettings.setValue( u"migration/migrated_from_hake_gis"_s, true );
+    migrationSettings.sync();
+    for ( const QString &profile : existingProfiles )
+      migrateHakeGisSettingsDirInProfile( newProfiles.filePath( profile ) );
+    return;
+  }
+
+  QgsDebugMsgLevel( u"Migrating Hake-GIS profile root from %1 to %2"_s.arg( legacyRoot, newRoot ), 1 );
+
+  if ( !QDir().mkpath( newRoot ) )
+  {
+    QgsDebugError( u"Cannot create Hake GeoDesk settings path %1"_s.arg( newRoot ) );
+    return;
+  }
+
+  if ( !QgsFileUtils::copyDirectory( legacyRoot, newRoot, QgsFileUtils::CopyFlag::NoSymLinks ) )
+  {
+    QgsDebugError( u"Failed to copy Hake-GIS profile root from %1 to %2"_s.arg( legacyRoot, newRoot ) );
+    return;
+  }
+
+  const QStringList migratedProfiles = newProfiles.entryList( QDir::Dirs | QDir::NoDotAndDotDot );
+  for ( const QString &profile : migratedProfiles )
+  {
+    const QString profilePath = newProfiles.filePath( profile );
+    migrateHakeGisSettingsDirInProfile( profilePath );
+
+    const QString iniPath = QDir( profilePath ).filePath( u"hake-geodesk/hake-geodesk.ini"_s );
+    if ( QFile::exists( iniPath ) )
+      QgsFileUtils::replaceTextInFile( iniPath, legacyRoot, newRoot );
+  }
+
+  QSettings migrationSettings( profilesIniPath, QSettings::IniFormat );
+  migrationSettings.setValue( u"migration/migrated_from_hake_gis"_s, true );
+  migrationSettings.sync();
 }
 
 static void dumpBacktrace( unsigned int depth )
@@ -1171,8 +1279,12 @@ int main( int argc, char *argv[] )
 
   if ( !preventSettingsMigration )
   {
+    // Migrate legacy Hake-GIS AppData (…/hake-gis/hake-gis) into live GeoDesk root before opening profiles.
+    migrateHakeGisProfileRoot( configLocalStorageLocation );
+
     // before doing any profile management, sync the available SET of profiles to an existing QGIS3 set.
     // This doesn't actually COPY any profiles, just makes them available for selection on QGIS 4
+    // (looks for sibling QGIS3/QGIS4 under the org path — unrelated to Hake-GIS → GeoDesk migration).
     copyProfileNamesFromQgis3( configLocalStorageLocation );
   }
 

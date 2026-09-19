@@ -16,13 +16,13 @@ endif()
 # Build
 
 win32_icon(QGIS_PROCESS_SRCS)
-win32_version_info("Hake Geospatial Process Command Tool" "hake-gis-process" QGIS_PROCESS_SRCS)
+win32_version_info("Hake Geospatial Process Command Tool" "hake-geodesk-process" QGIS_PROCESS_SRCS)
 
 add_executable (qgis_process ${QGIS_PROCESS_SRCS})
 if (QGISPOSTFIX)
-  set_target_properties(qgis_process PROPERTIES RUNTIME_OUTPUT_NAME hake-gis-process${QGISPOSTFIX})
+  set_target_properties(qgis_process PROPERTIES RUNTIME_OUTPUT_NAME hake-geodesk-process${QGISPOSTFIX})
 else()
-  set_target_properties(qgis_process PROPERTIES RUNTIME_OUTPUT_NAME hake-gis-process)
+  set_target_properties(qgis_process PROPERTIES RUNTIME_OUTPUT_NAME hake-geodesk-process)
 endif()
 
 target_include_directories(qgis_process PUBLIC

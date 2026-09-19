@@ -34,7 +34,7 @@ set (WITH_EXIV2 TRUE CACHE BOOL "Determines whether exiv2 functionality should b
 set (WITH_GUI TRUE CACHE BOOL "Determines whether QGIS GUI library should be built")
 set (WITH_ORACLE FALSE CACHE BOOL "Determines whether Oracle support should be built")
 set (WITH_PDAL TRUE CACHE BOOL "Determines whether PDAL support should be built")
-set (WITH_HAKE_GIS_PROCESS TRUE CACHE BOOL "Determines whether the standalone \"hake-gis-process\" tool should be built")
+set (WITH_HAKE_GIS_PROCESS TRUE CACHE BOOL "Determines whether the standalone \"hake-geodesk-process\" tool should be built")
 set (WITH_QTPOSITIONING TRUE CACHE BOOL "Determines whether QtPositioning support should be included")
 set (WITH_VCPKG FALSE CACHE BOOL "Use the vcpkg submodule for dependency management.")
 
@@ -82,7 +82,8 @@ set(HAKE_PRODUCT_DISPLAY_NAME "Hake GeoDesk – Desktop GIS" CACHE STRING "User-
 set(HAKE_PRODUCT_VERSION_LABEL "2026.0.0" CACHE STRING "User-facing product version label (e.g. year-based release)")
 project(hake-gis VERSION ${COMPLETE_VERSION})
 
-set(QGIS_APP_NAME "hake-gis" CACHE STRING "The main app name and bundle name")
+# Runtime executable basename / bundle name (filesystem-safe). Display name is HAKE_PRODUCT_DISPLAY_NAME.
+set(QGIS_APP_NAME "hake-geodesk" CACHE STRING "The main app name and bundle name")
 
 # Note the version no is Mmmpp for Major/minor/patch, 0-padded, thus '10100' for 1.1.0
 math(EXPR QGIS_VERSION_INT "${CPACK_PACKAGE_VERSION_MAJOR}*10000+${CPACK_PACKAGE_VERSION_MINOR}*100+${CPACK_PACKAGE_VERSION_PATCH}")
@@ -1151,7 +1152,7 @@ file(WRITE ${QGIS_OUTPUT_DIRECTORY}/${QGIS_BIN_SUBDIR}/hake-gisbuildpath.txt "${
 if(WITH_VCPKG AND NOT VCPKG_APPLOCAL_DEPS AND WIN32)
   # Used in the env.in file to setup the correct paths to the SDK folder
     set(VCPKG_TARGET_PATH "${VCPKG_INSTALL_PREFIX}/${VCPKG_TARGET_TRIPLET}")
-    configure_file("${CMAKE_SOURCE_DIR}/ms-windows/dev/hake-gis.env.in" "${QGIS_OUTPUT_DIRECTORY}/${QGIS_BIN_SUBDIR}/hake-gis.env")
+    configure_file("${CMAKE_SOURCE_DIR}/ms-windows/dev/hake-gis.env.in" "${QGIS_OUTPUT_DIRECTORY}/${QGIS_BIN_SUBDIR}/hake-geodesk.env")
 endif()
 
 # Ship a short install-local env file with the Windows package.
@@ -1159,7 +1160,7 @@ endif()
 if(WIN32)
   install(FILES "${CMAKE_SOURCE_DIR}/ms-windows/installer/hake-gis.env.in"
           DESTINATION "${QGIS_BIN_SUBDIR}"
-          RENAME "hake-gis.env")
+          RENAME "hake-geodesk.env")
 endif()
 
 # manual page - makes sense only on unix systems

@@ -25,20 +25,20 @@ set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${HAKE_PRODUCT_DISPLAY_NAME}")
 set(CPACK_PACKAGE_VENDOR "Hake Technologies")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/COPYING")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "${HAKE_PRODUCT_DISPLAY_NAME}")
-set(CPACK_PACKAGE_EXECUTABLES "hake-gis" "${HAKE_PRODUCT_DISPLAY_NAME}")
+set(CPACK_PACKAGE_EXECUTABLES "hake-geodesk" "${HAKE_PRODUCT_DISPLAY_NAME}")
 set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/README.md")
 
 if(CREATE_NSIS)
   # There is a bug in NSI that does not handle full unix paths properly. Make
   # sure there is at least one set of four (4) backslashes.
-  set(CPACK_NSIS_INSTALLED_ICON_NAME "bin\\\\\\\\hake-gis.exe")
+  set(CPACK_NSIS_INSTALLED_ICON_NAME "bin\\\\\\\\hake-geodesk.exe")
   set(CPACK_NSIS_DISPLAY_NAME "${HAKE_PRODUCT_DISPLAY_NAME}")
   set(CPACK_NSIS_HELP_LINK "https:\\\\\\\\haketech.com")
   set(CPACK_NSIS_URL_INFO_ABOUT "https:\\\\\\\\haketech.com")
   set(CPACK_NSIS_CONTACT "support@haketechnologies.com")
   # Do NOT append install\bin to the Windows system PATH.
   # That frequently hits Windows' PATH length limit ("environment variable is too large")
-  # on developer machines. hake-gis.exe loads DLLs via hake-gis.env + AddDllDirectory.
+  # on developer machines. hake-geodesk.exe loads DLLs via hake-geodesk.env + AddDllDirectory.
   set(CPACK_NSIS_MODIFY_PATH OFF)
   list(APPEND CPACK_GENERATOR "NSIS")
 endif()
