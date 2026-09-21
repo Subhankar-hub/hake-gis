@@ -1,17 +1,11 @@
-name: 🧪 QGIS tests
+name: 🧪 Hake Geospatial tests
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 on:
-  pull_request:
-    branches:
-      - master
-      - release-**
-      - queued_ltr_backports
-    # paths cannot be filtered on this workflow on pull request as it is a required one in the branch protection
-    # feature request and hacks: https://github.community/t/feature-request-conditional-required-checks/16761
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -20,7 +14,7 @@ jobs:
   build:
     env:
       QGIS_WORKSPACE: ${{ github.workspace }} # used in docker compose
-      RUN_FLAKY_TESTS: ${{ contains( github.event.pull_request.labels.*.name, 'run flaky tests') }}
+      RUN_FLAKY_TESTS: false
 
     runs-on: ubuntu-latest
     continue-on-error: ${{ matrix.experimental }}
@@ -101,13 +95,11 @@ jobs:
 
       - name: Set vars
         env:
-          GITHUB_EVENT_NAME: ${{ github.event_name }}
           GITHUB_REF: ${{ github.ref }}
-          GITHUB_PR_NUMBER: ${{github.event.number}}
         run: |
           # Be aware that these instructions are duplicated in run-tests job
-          DOCKER_TAG=$(echo $( [[ ${GITHUB_EVENT_NAME} == pull_request ]] && echo ${GITHUB_BASE_REF} || echo ${GITHUB_REF##*/} ) | sed 's/^master$/latest/')
-          CTEST_BUILD_NAME=$( [[ ${GITHUB_EVENT_NAME} == pull_request ]] && echo "PR${GITHUB_PR_NUMBER}" || echo ${GITHUB_REF##*/} )"_${GITHUB_SHA}"
+          DOCKER_TAG=$(echo ${GITHUB_REF##*/} | sed 's/^master$/latest/')
+          CTEST_BUILD_NAME="${GITHUB_REF##*/}_${GITHUB_SHA}"
           echo "DOCKER_TAG=${DOCKER_TAG}" >> $GITHUB_ENV
           echo "CTEST_BUILD_NAME=${CTEST_BUILD_NAME}" >> $GITHUB_ENV
           echo "QT_VERSION=${{ matrix.qt-version }}" >> $GITHUB_ENV
@@ -131,7 +123,7 @@ jobs:
         with:
           context: .
           file: .docker/qgis3-${{ matrix.distro }}-qt${{ matrix.qt-version }}-build-deps.dockerfile
-          tags: qgis/qgis3-build-deps-${{ matrix.distro }}-qt${{ matrix.qt-version }}:${{ github.event.pull_request.base.ref || github.ref_name }}
+          tags: qgis/qgis3-build-deps-${{ matrix.distro }}-qt${{ matrix.qt-version }}:${{ github.ref_name }}
           push: ${{ github.event_name == 'push' && github.repository == 'qgis/QGIS' }}
           pull: true
           build-args:
@@ -144,7 +136,7 @@ jobs:
         uses: actions/cache/restore@v5
         with:
           path: /home/runner/QGIS/.ccache
-          key: build-ccache-${{ matrix.distro }}-qt${{ matrix.qt-version }}-${{ github.event.pull_request.base.ref || github.ref_name }}
+          key: build-ccache-${{ matrix.distro }}-qt${{ matrix.qt-version }}-${{ github.ref_name }}
           restore-keys: |
             build-ccache-${{ matrix.distro }}-qt${{ matrix.qt-version }}-master
 
@@ -174,14 +166,14 @@ jobs:
                      --env WITH_MSSQL_TEST=${{ matrix.with-mssql-test }} \
                      --env WITH_HANA_TEST=${{ matrix.with-hana-test }} \
                      --env WITH_ORACLE_TEST=${{ matrix.with-oracle-test }} \
-                     --env WITH_QSPATIALITE=${{ matrix.with-qspatialite-test }} \
+                     --env WITH_QSPATIALITE=${{ matrix.with-qspatialite }} \
                      --env WITH_SERVER_LANDINGPAGE_WEBAPP=${{ matrix.with-server-landingpage-webapp }} \
                      qgis3-build-deps \
                      /root/QGIS/.docker/docker-qgis-build.sh
 
-      - name: Save build cache for push only
+      - name: Save build cache
         uses: actions/cache/save@v5
-        if: ${{ github.event_name == 'push' }}
+        if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' }}
         with:
           path: /home/runner/QGIS/.ccache
           key: build-ccache-${{ matrix.distro }}-qt${{ matrix.qt-version }}-${{ github.ref_name }}-${{ github.run_id }}
@@ -311,12 +303,10 @@ jobs:
 
       - name: Set vars
         env:
-          GITHUB_EVENT_NAME: ${{ github.event_name }}
           GITHUB_REF: ${{ github.ref }}
-          GITHUB_PR_NUMBER: ${{github.event.number}}
         run: |
           # Be aware that these instructions are duplicated in build job
-          CTEST_BUILD_NAME=$( [[ ${GITHUB_EVENT_NAME} == pull_request ]] && echo "PR${GITHUB_PR_NUMBER}" || echo ${GITHUB_REF##*/} )"_${GITHUB_SHA}_${{ matrix.test-batch }}"
+          CTEST_BUILD_NAME="${GITHUB_REF##*/}_${GITHUB_SHA}_${{ matrix.test-batch }}"
           echo "CTEST_BUILD_NAME=${CTEST_BUILD_NAME}" >> $GITHUB_ENV
           echo "QT_VERSION=${{ matrix.qt-version }}" >> $GITHUB_ENV
 
@@ -337,7 +327,7 @@ jobs:
         with:
           context: .
           file: .docker/qgis3-${{ matrix.distro }}-qt${{ matrix.qt-version }}-build-deps.dockerfile
-          tags: qgis/qgis3-${{ matrix.distro }}-qt${{ matrix.qt-version }}-build-deps-bin-only:${{ github.event.pull_request.base.ref || github.ref_name }}
+          tags: qgis/qgis3-${{ matrix.distro }}-qt${{ matrix.qt-version }}-build-deps-bin-only:${{ github.ref_name }}
           push: ${{ github.event_name == 'push' && github.repository == 'qgis/QGIS' }}
           pull: true
           target: ${{ matrix.docker-target }}
@@ -400,12 +390,6 @@ jobs:
         run: |
           MD_REPORT_FILE="qgis_test_report/summary.md"; [ -f "$MD_REPORT_FILE" ] && cat "$MD_REPORT_FILE" || true
 
-      - name: Save PR number to test report
-        if: ${{ failure() }}
-        run: |
-          echo ${{ github.event.number }} | tee qgis_test_report/pr_number
-          echo ${{ github.event.pull_request.head.sha }} | tee qgis_test_report/git_commit
-
       - name: Archive test results report
         if: ${{ failure() }}
         uses: actions/upload-artifact@v7
@@ -414,7 +398,6 @@ jobs:
           path: qgis_test_report
 
   clang-tidy:
-    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     needs: build
 
@@ -424,6 +407,7 @@ jobs:
           - distro: ubuntu
             distro-version: '25.10'
             qt-version: 6
+            docker-target: binary-only
 
     steps:
       - name: Free Disk Space (Ubuntu)
@@ -452,7 +436,7 @@ jobs:
         with:
           context: .
           file: .docker/qgis3-${{ matrix.distro }}-qt${{ matrix.qt-version }}-build-deps.dockerfile
-          tags: qgis/qgis3-${{ matrix.distro }}-qt${{ matrix.qt-version }}-build-deps-bin-only:${{ github.event.pull_request.base.ref || github.ref_name }}
+          tags: qgis/qgis3-${{ matrix.distro }}-qt${{ matrix.qt-version }}-build-deps-bin-only:${{ github.ref_name }}
           push: ${{ github.event_name == 'push' && github.repository == 'qgis/QGIS' }}
           pull: true
           target: ${{ matrix.docker-target }}

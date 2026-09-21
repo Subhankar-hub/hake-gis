@@ -1,0 +1,13 @@
+Vendored for Hake GeoDesk – Desktop GIS.
+
+Upstream: https://github.com/qgis/db_manager_plugin
+Package:  DB Manager (community)
+Version:  1.0.1
+Source:   https://plugins.qgis.org/plugins/db_manager_community/version/1.0.1/download/
+Vendored: 2026-09-21
+
+Notes:
+- All PLUGIN_INSTALL(db_manager ...) calls were rewritten to
+  PLUGIN_INSTALL(db_manager_community ...) so install paths match
+  the Python package directory name.
+- metadata.txt description/about use Hake product naming.

@@ -1,0 +1,17 @@
+[general]
+name=DB Manager (community)
+description=Manage your databases within Hake GeoDesk – Desktop GIS.
+about=Manage your databases within Hake GeoDesk – Desktop GIS. This is a copy of the legacy DB manager plugin which used to be installed by default. It is currently unmaintained.
+tracker=https://github.com/qgis/db_manager_plugin
+homepage=https://github.com/qgis/db_manager_plugin
+repository=https://github.com/qgis/db_manager_plugin
+category=Database
+version=1.0.1
+qgisMinimumVersion=4.0
+
+author=Giuseppe Sucameli
+email=brush.tyler@gmail.com
+
+icon=icons/dbmanager.svg
+
+class_name=DBManagerCommunityPlugin

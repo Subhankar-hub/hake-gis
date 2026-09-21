@@ -2,7 +2,7 @@ name: Write test failure comment
 
 on:
   workflow_run:
-    workflows: [🧪 QGIS tests]
+    workflows: [🧪 Hake Geospatial tests]
     types:
       - completed
 

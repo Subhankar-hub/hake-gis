@@ -569,7 +569,7 @@ void QgsPluginRegistry::restoreSessionPlugins( const QString &pluginDirString )
     QgsDebugMsgLevel( u"Python plugins will be loaded in the following order: "_s + pluginList.join( "," ), 2 );
 
     QStringList corePlugins = QStringList();
-    corePlugins << u"db_manager"_s;
+    corePlugins << u"db_manager_community"_s;
     corePlugins << u"processing"_s;
     corePlugins << u"MetaSearch"_s;
     corePlugins << u"grassprovider"_s;
@@ -583,6 +583,11 @@ void QgsPluginRegistry::restoreSessionPlugins( const QString &pluginDirString )
         mySettings.setValue( "/PythonPlugins/" + corePlugin, true );
       }
     }
+
+    // The deprecated core stub "db_manager" was replaced by db_manager_community.
+    // Force-disable any leftover enable bit from older Hake / QGIS profiles so
+    // upgrades never try to load a missing stub or show its deprecation banner.
+    mySettings.setValue( u"/PythonPlugins/db_manager"_s, false );
 
     const auto constPluginList = pluginList;
     for ( const QString &packageName : constPluginList )

@@ -50,7 +50,7 @@ macro (PLUGIN_INSTALL plugin subdir )
 endmacro (PLUGIN_INSTALL)
 
 if (WITH_GUI)
-	add_subdirectory(db_manager)
+	add_subdirectory(db_manager_community)
 endif()
 add_subdirectory(processing)
 add_subdirectory(grassprovider)

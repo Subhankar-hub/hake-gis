@@ -1,4 +1,0 @@
-file(GLOB OTHER_FILES LICENSE README TODO)
-file(GLOB PY_FILES *.py)
-
-PLUGIN_INSTALL(db_manager . ${OTHER_FILES} ${PY_FILES} metadata.txt)

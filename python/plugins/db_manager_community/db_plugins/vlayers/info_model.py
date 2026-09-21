@@ -1,10 +1,9 @@
 """
 /***************************************************************************
-Name                 : DB Manager
-Description          : Database manager plugin for QGIS
-Date                 : May 23, 2011
-copyright            : (C) 2011 by Giuseppe Sucameli
-email                : brush.tyler@gmail.com
+Name                 : Virtual layers plugin for DB Manager
+Date                 : December 2015
+copyright            : (C) 2015 by Hugo Mercier
+email                : hugo dot mercier at oslandia dot com
 
  ***************************************************************************/
 
@@ -18,8 +17,24 @@ email                : brush.tyler@gmail.com
  ***************************************************************************/
 """
 
+from qgis.PyQt.QtWidgets import QApplication
 
-def classFactory(iface):
-    from .db_manager_plugin import DBManagerPlugin
+from ..html_elems import HtmlTable
+from ..info_model import DatabaseInfo
 
-    return DBManagerPlugin(iface)
+
+class LDatabaseInfo(DatabaseInfo):
+    def __init__(self, db):
+        self.db = db
+
+    def connectionDetails(self):
+        tbl = []
+        return HtmlTable(tbl)
+
+    def generalInfo(self):
+        self.db.connector.getInfo()
+        tbl = [(QApplication.translate("DBManagerCommunityPlugin", "SQLite version:"), "3")]
+        return HtmlTable(tbl)
+
+    def privilegesDetails(self):
+        return None
