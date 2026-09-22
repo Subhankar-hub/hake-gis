@@ -24,7 +24,6 @@
 
 import configparser
 import os
-import re
 import sys
 from typing import Any, Optional
 
@@ -120,9 +119,46 @@ translatableAttributes = ["name", "description", "about", "tags"]
 
 reposGroup = "app/plugin_repositories"
 
+# Production default (HTTP until TLS is configured on plugins.haketech.com).
+# Override without source edits via PLUGIN_REPOSITORY_URL
+# (query string is stripped; urlParams() appends ?hake-geodesk=<year>).
+# Development example: PLUGIN_REPOSITORY_URL=http://localhost/plugins.xml
+_DEFAULT_OFFICIAL_REPO_URL = "http://plugins.haketech.com/plugins.xml"
+_OFFICIAL_REPO_URL_ALIASES = frozenset(
+    {
+        _DEFAULT_OFFICIAL_REPO_URL,
+        "https://plugins.haketech.com/plugins.xml",
+    }
+)
+
+
+def _canonical_repo_url(url: str) -> str:
+    return url.split("?", 1)[0].rstrip("/")
+
+
+def _official_repo_url() -> str:
+    env = os.environ.get("PLUGIN_REPOSITORY_URL", "").strip()
+    if env:
+        return _canonical_repo_url(env) or env
+    return _DEFAULT_OFFICIAL_REPO_URL
+
+
+def isOfficialRepositoryUrl(url: str) -> bool:
+    """True if url is the current official repo or a previous production alias."""
+    canonical = _canonical_repo_url(url)
+    current = _canonical_repo_url(officialRepo[1])
+    if canonical == current:
+        return True
+    if current in _OFFICIAL_REPO_URL_ALIASES:
+        return canonical in _OFFICIAL_REPO_URL_ALIASES
+    return False
+
+
 officialRepo = (
-    QCoreApplication.translate("QgsPluginInstaller", "Hake Geospatial Plugin Repository"),
-    "https://plugins.haketech.com/plugins.xml",
+    QCoreApplication.translate(
+        "QgsPluginInstaller", "Hake GeoDesk Plugin Repository"
+    ),
+    _official_repo_url(),
 )
 
 
@@ -256,8 +292,14 @@ class Repositories(QObject):
 
     def urlParams(self) -> str:
         """return GET parameters to be added to every request"""
-        # Strip down the point release segment from the version string
-        return "?hake-gis={}".format(re.sub(r"\.\d*$", "", pyQgisVersion()))
+        # Application selector for the Hake GeoDesk plugin mirror.
+        # Upstream QGIS sync still uses ?qgis=4.0; this is the local/app parameter.
+        try:
+            label = Qgis.productVersionLabel()
+        except AttributeError:
+            label = "2026.0.0"
+        major = label.split(".", 1)[0]
+        return f"?hake-geodesk={major}"
 
     def setRepositoryData(self, reposName: str, key: str, value):
         """write data to the mRepositories dict"""
@@ -320,8 +362,10 @@ class Repositories(QObject):
         officialRepoPresent = False
         for key in settings.childGroups():
             url = settings.value(key + "/url", "", type=str)
-            if url == officialRepo[1]:
+            if isOfficialRepositoryUrl(url):
                 officialRepoPresent = True
+                if url != officialRepo[1]:
+                    settings.setValue(key + "/url", officialRepo[1])
         if not officialRepoPresent:
             settings.setValue(officialRepo[0] + "/url", officialRepo[1])
 

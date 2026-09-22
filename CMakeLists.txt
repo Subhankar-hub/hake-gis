@@ -80,6 +80,8 @@ set(COMPLETE_VERSION ${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINO
 set(RELEASE_NAME "Norrköping")
 set(HAKE_PRODUCT_DISPLAY_NAME "Hake GeoDesk – Desktop GIS" CACHE STRING "User-facing product name shown in UI and installers")
 set(HAKE_PRODUCT_VERSION_LABEL "2026.0.0" CACHE STRING "User-facing product version label (e.g. year-based release)")
+set(HAKE_INSTALLER_NAME "Hake Geodesk Installer" CACHE STRING "User-facing installer package name")
+set(HAKE_INSTALLER_FILE_NAME "Hake-Geodesk-Installer" CACHE STRING "Filesystem-safe installer artifact basename")
 project(hake-gis VERSION ${COMPLETE_VERSION})
 
 # Runtime executable basename / bundle name (filesystem-safe). Display name is HAKE_PRODUCT_DISPLAY_NAME.

@@ -1,0 +1,15 @@
+logs/
+*.log
+*.partial
+*.tmp
+*.part
+nginx-runtime/
+nginx/*.resolved.conf
+__pycache__/
+.pytest_cache/
+.venv/
+venv/
+plugins/*.zip
+plugins/plugins.xml
+plugins/plugins.xml.tmp
+plugins/plugins.xsl

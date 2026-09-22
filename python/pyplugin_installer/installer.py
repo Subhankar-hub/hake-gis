@@ -68,7 +68,13 @@ from qgis.utils import (
     updateAvailablePlugins,
 )
 
-from .installer_data import officialRepo, plugins, removeDir, reposGroup, repositories
+from .installer_data import (
+    isOfficialRepositoryUrl,
+    plugins,
+    removeDir,
+    reposGroup,
+    repositories,
+)
 from .plugindependencies import find_dependencies
 from .qgsplugindependenciesdialog import QgsPluginDependenciesDialog
 from .qgsplugininstallerfetchingdialog import QgsPluginInstallerFetchingDialog
@@ -685,7 +691,7 @@ class QgsPluginInstaller(QObject):
             return
         settings = QgsSettings()
         settings.beginGroup(reposGroup)
-        if settings.value(reposName + "/url", "", type=str) == officialRepo[1]:
+        if isOfficialRepositoryUrl(settings.value(reposName + "/url", "", type=str)):
             iface.pluginManagerInterface().pushMessage(
                 self.tr(
                     "You can't remove the official Hake Geospatial Plugin Repository. You can disable it if needed."

@@ -155,7 +155,7 @@ jobs:
           name: qgis-windows-qt6
           archive: false
           path: |
-            build/*-win64.zip
+            build/*.zip
 
 
       - name: Schedule download comment

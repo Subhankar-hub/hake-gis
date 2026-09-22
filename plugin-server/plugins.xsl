@@ -1,201 +1,340 @@
-<?xml version='1.0' encoding='UTF-8'?>
+<?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
+<xsl:output method="html" encoding="UTF-8" indent="yes"/>
+
 <xsl:template match="plugins">
-
-<html>
+<html lang="en">
 <head>
-<title>Hake Geospatial Plugins - Official Repository</title>
-  
-<style>
-body  {
-  font-family:Verdana, Arial, Helvetica, sans-serif;
-  width: 45em;
-  background-color: #0f265c;
-  color: #04bbef;
-}
-a{
-  color: #04bbef;
-}
-div.head {
-  background-color: #04bbef;
-  border-bottom-width:0;
-  color: #0f265c;
-  display:block;
-  font-size:100%;
-  font-weight:bold;
-  margin:0;
-  padding:0.3em 1em;
-}
-div.plugin {
-  _background-color:#ddfb63;
-  border: solid 1px gray;
-  clear:both;
-  display:block;
-  padding:0 0 0.5em;
-  margin:1em;
-}
-div.menu{
-  display:block;
-  text-align: left;
-  font-size:100%;
-}
-div.description{
-  display: block;
-  float:none;
-  margin:0;
-  text-align: left;
-  padding:0.2em 0.5em 0.4em;
-  color: #04bbef;
-  font-size:85%;
-  font-weight:normal;
-  font-style: italic;
-}
-div.about{
-  display: block;
-  float:none;
-  margin:0;
-  text-align: left;
-  padding:0.2em 0.5em 0.4em;
-  color: #04bbef;
-  font-size:85%;
-  font-weight:normal;
- }
-div.tags{
-  padding:0 0 0 1em;
-  font-size:85%;
-  font-weight:normal;
-}
-div.download, div.author, div.branch{
-  font-size: 80%;
-  padding: 0em 0em 0em 1em;
- }
-td.menu_panel {
-  width: 25%;
-  font-size: 80%;
-}
-</style>
-
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Hake GeoDesk – Plugin Repository</title>
+  <style type="text/css">
+    :root {
+      --primary: #164A73;
+      --hover: #22658F;
+      --active: #0E3858;
+      --text: #243B53;
+      --secondary: #607D94;
+      --bg: #F7F9FB;
+      --surface: #FFFFFF;
+      --light: #EAF2F7;
+      --border: #C7D8E5;
+      --radius: 10px;
+      --space: 8px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    a { color: var(--primary); }
+    a:hover { color: var(--hover); }
+    a:focus-visible {
+      outline: 2px solid var(--hover);
+      outline-offset: 2px;
+    }
+    .page {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: calc(var(--space) * 3);
+    }
+    .header {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: calc(var(--space) * 3);
+      margin-bottom: calc(var(--space) * 3);
+      box-shadow: 0 1px 2px rgba(36, 59, 83, 0.06);
+    }
+    .brand-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: calc(var(--space) * 2);
+      align-items: center;
+    }
+    .brand-row img {
+      max-height: 64px;
+      width: auto;
+    }
+    .eyebrow {
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--secondary);
+      margin: 0 0 var(--space) 0;
+      font-weight: 600;
+    }
+    h1 {
+      margin: 0 0 var(--space) 0;
+      font-size: clamp(1.35rem, 2.5vw, 1.85rem);
+      color: var(--primary);
+    }
+    .subtitle {
+      margin: 0;
+      color: var(--secondary);
+      font-size: 1rem;
+    }
+    .meta {
+      margin-top: calc(var(--space) * 2);
+      padding-top: calc(var(--space) * 2);
+      border-top: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: var(--space);
+      font-size: 0.9rem;
+    }
+    .meta dt {
+      color: var(--secondary);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin: 0;
+    }
+    .meta dd {
+      margin: 2px 0 0 0;
+      font-weight: 600;
+    }
+    .intro {
+      color: var(--secondary);
+      margin: 0 0 calc(var(--space) * 3) 0;
+      max-width: 42rem;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: calc(var(--space) * 2);
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: calc(var(--space) * 2.5);
+      display: flex;
+      flex-direction: column;
+      gap: calc(var(--space) * 1.5);
+      box-shadow: 0 1px 2px rgba(36, 59, 83, 0.05);
+    }
+    .card h2 {
+      margin: 0;
+      font-size: 1.1rem;
+      color: var(--text);
+    }
+    .version {
+      display: inline-block;
+      background: var(--light);
+      color: var(--primary);
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+    }
+    .card p {
+      margin: 0;
+      font-size: 0.92rem;
+      color: var(--text);
+    }
+    .muted { color: var(--secondary); font-size: 0.85rem; }
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .tag {
+      background: var(--light);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 2px 8px;
+      font-size: 0.75rem;
+      color: var(--secondary);
+    }
+    .status {
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    .status.ok { color: var(--primary); }
+    .status.warn { color: #9a5b00; }
+    .links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: calc(var(--space) * 1.5);
+      font-size: 0.85rem;
+    }
+    .filename {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.75rem;
+      color: var(--secondary);
+      word-break: break-all;
+    }
+    .actions { margin-top: auto; padding-top: var(--space); }
+    .btn {
+      display: inline-block;
+      background: var(--primary);
+      color: #fff !important;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: none;
+    }
+    .btn:hover { background: var(--hover); }
+    .btn:active { background: var(--active); }
+    .btn:focus-visible {
+      outline: 2px solid var(--hover);
+      outline-offset: 2px;
+    }
+    .footer {
+      margin-top: calc(var(--space) * 4);
+      padding: calc(var(--space) * 2);
+      text-align: center;
+      color: var(--secondary);
+      font-size: 0.85rem;
+    }
+    @media (max-width: 600px) {
+      .page { padding: calc(var(--space) * 2); }
+      .brand-row { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
 </head>
 <body>
-<img src="logo.png" style="max-height: 80px;" alt="Hake Geospatial Logo"/>
-<h2>Hake Geospatial Python Plugins</h2>
-<p>
-NOTE: The preferred way to install Hake Geospatial plugins is via the <a href="https://docs.qgis.org/testing/en/docs/user_manual/plugins/plugins.html">Plugin Manager</a> in Hake Geospatial itself!
-Hake Geospatial will download this list automatically and make it possible to install a plugin with one click.
-</p>
-<p>
-NOTE: Here you only see a representation of the plugins working for the requested version (defined by the "<code>?hake-gis=x.y</code>" part of the url).
-</p>
-<table>
-<tr>
+  <div class="page">
+    <header class="header">
+      <div class="brand-row">
+        <img src="logo.png" alt="Hake Geospatial logo"/>
+        <div>
+          <p class="eyebrow">HAKE GEOSPATIAL</p>
+          <h1>Hake GeoDesk – Desktop GIS</h1>
+          <p class="subtitle">Python Plugin Repository</p>
+        </div>
+      </div>
+      <dl class="meta">
+        <div>
+          <dt>Version filter</dt>
+          <dd>Hake GeoDesk 2026</dd>
+        </div>
+        <div>
+          <dt>Product version</dt>
+          <dd>2026.0.0</dd>
+        </div>
+        <div>
+          <dt>Company</dt>
+          <dd>Hake Technologies</dd>
+        </div>
+      </dl>
+    </header>
 
-<td valign="top" class="menu_panel">
-<xsl:for-each select="/plugins/pyqgis_plugin">
-  <xsl:sort select="@name" />
-    <div class="menu">
-    <xsl:element name="a">
-    <xsl:attribute name="href">
-    <xsl:value-of select="download_url" />
-    </xsl:attribute>
-    <xsl:value-of select="@name" />
-    </xsl:element>
-    </div>
-</xsl:for-each>
-</td>
-<td class="body_panel">
-<xsl:for-each select="/plugins/pyqgis_plugin">
-<xsl:sort select="@name"/>
-<div class="plugin">
-<div class="head">
-<!--
-<xsl:element name="a">
-<xsl:attribute name="href">
-<xsl:value-of select="homepage" />
-</xsl:attribute>
--->
-<xsl:value-of select="@name" /> : <xsl:value-of select="@version" />
-<!--
-</xsl:element>
--->
-</div>
-<div class="description">
-<xsl:value-of select="description" />
-</div>
-<div class="about">
-<xsl:value-of select="about" />
-</div>
-<div class="tags">
-Tags: <xsl:value-of select="tags" />
-</div>
-<div class="download">
-Download:
-<xsl:element name="a">
- <xsl:attribute name="href">
-  <xsl:value-of select="download_url" />
- </xsl:attribute>
- <xsl:value-of select="file_name" />
-</xsl:element>
-</div>
-<div class="author">
-Author: <xsl:value-of select="author_name" />
-</div>
-<div class="author">
-Trusted: <xsl:value-of select="trusted" />
-</div>
-<div class="branch">
-Experimental: <xsl:value-of select="experimental" />
-</div>
-<div class="branch">
-Deprecated: <xsl:value-of select="deprecated" />
-</div>
-<table>
-  <tr>
-    <td class="key">Minimum Hake Geospatial Version:</td>
-    <td><xsl:value-of select="qgis_minimum_version" /></td>
-  </tr>
-  <tr>
-    <td class="key">Maximum Hake Geospatial Version:</td>
-    <td><xsl:value-of select="qgis_maximum_version" /></td>
-  </tr>
-</table>
-<div class="author">
-Home page:
-<xsl:element name="a">
- <xsl:attribute name="href">
-  <xsl:value-of select="homepage" />
- </xsl:attribute>
- <xsl:value-of select="homepage" />
-</xsl:element>
-</div>
-<div class="author">
-Tracker:
-<xsl:element name="a">
- <xsl:attribute name="href">
-  <xsl:value-of select="tracker" />
- </xsl:attribute>
- <xsl:value-of select="tracker" />
-</xsl:element>
-</div>
-<div class="author">
-Repository:
-<xsl:element name="a">
- <xsl:attribute name="href">
-  <xsl:value-of select="repository" />
- </xsl:attribute>
- <xsl:value-of select="repository" />
-</xsl:element>
-</div>
+    <p class="intro">
+      Plugin repository for Hake GeoDesk – Desktop GIS.
+      Professional GIS for Mapping, Analysis &amp; Spatial Intelligence.
+      Install plugins from Hake GeoDesk via Plugin Manager, or download packages below.
+    </p>
 
+    <main class="grid">
+      <xsl:for-each select="pyqgis_plugin">
+        <xsl:sort select="@name"/>
+        <article class="card">
+          <div>
+            <h2><xsl:value-of select="@name"/></h2>
+            <xsl:if test="@version != ''">
+              <span class="version">v<xsl:value-of select="@version"/></span>
+            </xsl:if>
+          </div>
 
-</div>
-</xsl:for-each>
-</td>
-</tr>
-</table>
+          <xsl:if test="description != ''">
+            <p><xsl:value-of select="description"/></p>
+          </xsl:if>
+          <xsl:if test="about != ''">
+            <p class="muted"><xsl:value-of select="about"/></p>
+          </xsl:if>
+
+          <xsl:if test="tags != ''">
+            <div class="tags">
+              <xsl:call-template name="split-tags">
+                <xsl:with-param name="list" select="tags"/>
+              </xsl:call-template>
+            </div>
+          </xsl:if>
+
+          <xsl:if test="author_name != ''">
+            <p class="muted">Author: <xsl:value-of select="author_name"/></p>
+          </xsl:if>
+
+          <xsl:if test="qgis_minimum_version != '' or qgis_maximum_version != ''">
+            <p class="muted">
+              Compatible version range (upstream metadata):
+              <xsl:value-of select="qgis_minimum_version"/>
+              <xsl:if test="qgis_maximum_version != ''">
+                – <xsl:value-of select="qgis_maximum_version"/>
+              </xsl:if>
+            </p>
+          </xsl:if>
+
+          <div>
+            <xsl:choose>
+              <xsl:when test="deprecated = 'True' or deprecated = 'true'">
+                <span class="status warn">Deprecated</span>
+              </xsl:when>
+              <xsl:when test="experimental = 'True' or experimental = 'true'">
+                <span class="status warn">Experimental</span>
+              </xsl:when>
+              <xsl:when test="trusted = 'True' or trusted = 'true'">
+                <span class="status ok">Trusted</span>
+              </xsl:when>
+            </xsl:choose>
+          </div>
+
+          <div class="links">
+            <xsl:if test="homepage != ''">
+              <a href="{homepage}">Homepage</a>
+            </xsl:if>
+            <xsl:if test="tracker != ''">
+              <a href="{tracker}">Tracker</a>
+            </xsl:if>
+            <xsl:if test="repository != ''">
+              <a href="{repository}">Source</a>
+            </xsl:if>
+          </div>
+
+          <xsl:if test="file_name != ''">
+            <div class="filename"><xsl:value-of select="file_name"/></div>
+          </xsl:if>
+
+          <xsl:if test="download_url != ''">
+            <div class="actions">
+              <a class="btn" href="{download_url}">Download</a>
+            </div>
+          </xsl:if>
+        </article>
+      </xsl:for-each>
+    </main>
+
+    <footer class="footer">
+      Powered by Hake Technologies · HAKE GEOSPATIAL
+    </footer>
+  </div>
 </body>
 </html>
+</xsl:template>
 
+<!-- Simple comma-separated tag splitter -->
+<xsl:template name="split-tags">
+  <xsl:param name="list"/>
+  <xsl:choose>
+    <xsl:when test="contains($list, ',')">
+      <span class="tag"><xsl:value-of select="normalize-space(substring-before($list, ','))"/></span>
+      <xsl:call-template name="split-tags">
+        <xsl:with-param name="list" select="substring-after($list, ',')"/>
+      </xsl:call-template>
+    </xsl:when>
+    <xsl:when test="normalize-space($list) != ''">
+      <span class="tag"><xsl:value-of select="normalize-space($list)"/></span>
+    </xsl:when>
+  </xsl:choose>
 </xsl:template>
 
 </xsl:stylesheet>

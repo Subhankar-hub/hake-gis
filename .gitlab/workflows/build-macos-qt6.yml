@@ -210,26 +210,26 @@ jobs:
 
       - name: Create dmg
         run: |
-          HAKE-GIS_APP_NAME=HAKE-GIS-"${STEPS_WORKFLOW_ARTIFACT_IDS_OUTPUTS_DISPLAY_NAME}"
-          create-dmg --volname "${HAKE-GIS_APP_NAME} Installer" \
-            --hide-extension ${HAKE-GIS_APP_NAME}.app \
+          APP_BUNDLE=$(find arm64 -name '*.app' | head -1)
+          APP_DIR=$(dirname "${APP_BUNDLE}")
+          APP_NAME=$(basename "${APP_BUNDLE}" .app)
+          create-dmg --volname "Hake Geodesk Installer" \
+            --hide-extension "${APP_NAME}.app" \
             --volicon "$(pwd)/images/icons/mac/hake-gis.icns" \
             --background "$(pwd)/platform/macos/installer_background.png" \
             --window-pos 200 120 \
             --window-size 512 320 \
             --icon-size 100 \
-            --icon "${HAKE-GIS_APP_NAME}.app" 130 160 \
+            --icon "${APP_NAME}.app" 130 160 \
             --app-drop-link 400 155 \
-            ${HAKE-GIS_APP_NAME}-Installer.dmg \
-            arm64/*/*.app
-        env:
-          STEPS_WORKFLOW_ARTIFACT_IDS_OUTPUTS_DISPLAY_NAME: ${{steps.workflow-artifact-ids.outputs.display-name}}
+            Hake-Geodesk-Installer.dmg \
+            "${APP_DIR}"
 
       - name: 📤 Upload app
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         id: artifact-mac-qt6
         with:
-          name: hake-gis-${{steps.workflow-artifact-ids.outputs.filename}}-dmg
+          name: hake-geodesk-installer-macos
           path: |
             *.dmg
 
