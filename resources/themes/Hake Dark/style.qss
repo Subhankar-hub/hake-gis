@@ -45,13 +45,16 @@ QMenuBar {
     background-color: @background;
     color: @text;
     border-bottom: 1px solid @itemdarkbackground;
-    padding: 2px 4px;
+    /* Horizontal padding 0 so item padding (4px 10px) matches ribbon tab insets. */
+    padding: 2px 0;
 }
 
 QMenuBar::item
 {
     background: transparent;
     padding: 4px 10px;
+    margin: 0;
+    border: none;
     border-radius: 0;
     color: @text;
 }
@@ -60,12 +63,18 @@ QMenuBar::item:selected
 {
     background: @selection;
     color: @textlight;
+    padding: 4px 10px;
+    margin: 0;
+    border: none;
 }
 
 QMenuBar::item:pressed
 {
     background: @focus;
     color: @textlight;
+    padding: 4px 10px;
+    margin: 0;
+    border: none;
 }
 
 /* ==================================================================================== */
@@ -1510,8 +1519,20 @@ QgsLocatorResultsView::item:disabled {
 QToolBar#HakeAppRibbon {
     background-color: @background;
     border: none;
-    border-bottom: 2px solid @itemdarkbackground;
+    border-bottom: 1px solid @itemdarkbackground;
+    margin: 0;
     spacing: 0;
+    padding: 0;
+}
+
+/* Kill generic QToolBar::handle inset so Rows 2–3 share the menubar left origin. */
+QToolBar#HakeAppRibbon::handle,
+QToolBar#HakeAppRibbon::handle:horizontal,
+QToolBar#HakeAppRibbon::handle:vertical {
+    width: 0;
+    height: 0;
+    image: none;
+    margin: 0;
     padding: 0;
 }
 
@@ -1540,6 +1561,8 @@ QTabWidget#HakeAppRibbon > QTabBar {
     background-color: @background;
     border: none;
     border-bottom: 1px solid @itemdarkbackground;
+    padding: 0;
+    min-height: 0;
 }
 
 QWidget#HakeAppRibbonTabFiller {
@@ -1557,10 +1580,6 @@ QTabWidget#HakeAppRibbon > QTabBar::tab:!selected {
     border-radius: 0;
     padding: 4px 10px;
     margin: 0;
-    margin-top: 0;
-    margin-bottom: 0;
-    margin-left: 0;
-    margin-right: 0;
 }
 
 QTabWidget#HakeAppRibbon > QTabBar::tab:selected {
@@ -1596,8 +1615,10 @@ QTabWidget#HakeAppRibbon QToolButton {
 QToolBar#HakeAppRibbon QToolButton:hover,
 QTabWidget#HakeAppRibbon QToolButton:hover {
     background-color: @hover;
-    border-color: @focus;
+    border: 1px solid @focus;
     color: @textlight;
+    padding: 4px;
+    margin: 0;
 }
 
 QToolBar#HakeAppRibbon QToolButton:checked,
@@ -1605,15 +1626,19 @@ QToolBar#HakeAppRibbon QToolButton:pressed,
 QTabWidget#HakeAppRibbon QToolButton:checked,
 QTabWidget#HakeAppRibbon QToolButton:pressed {
     background-color: @selection;
-    border-color: @focus;
+    border: 1px solid @focus;
     color: @textlight;
+    padding: 4px;
+    margin: 0;
 }
 
 QToolBar#HakeAppRibbon QToolButton:disabled,
 QTabWidget#HakeAppRibbon QToolButton:disabled {
     color: #b7d6f7;
     background: transparent;
-    border-color: transparent;
+    border: 1px solid transparent;
+    padding: 4px;
+    margin: 0;
 }
 
 QTabWidget#HakeAppRibbon QFrame#HakeAppRibbonSeparator {

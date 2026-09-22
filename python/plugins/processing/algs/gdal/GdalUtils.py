@@ -19,12 +19,13 @@ __author__ = "Victor Olaya"
 __date__ = "August 2012"
 __copyright__ = "(C) 2012, Victor Olaya"
 
+import locale
 import math
 import os
 import platform
 import re
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Union
 
 import psycopg2
 from qgis.core import (
@@ -113,6 +114,70 @@ class GdalUtils:
     supportedOutputRasters = None
 
     @staticmethod
+    def _windows_ansi_encoding() -> Optional[str]:
+        """
+        Return the Windows ANSI code page name (e.g. ``cp1252``), or None
+        when not running on Windows / GetACP is unavailable.
+
+        Redirected GDAL/console tools often emit ACP bytes even when Python's
+        preferred encoding is UTF-8 (Windows UTF-8 mode).
+        """
+        if os.name != "nt":
+            return None
+        try:
+            from ctypes import cdll
+
+            return f"cp{cdll.kernel32.GetACP()}"
+        except (AttributeError, OSError, ValueError):
+            return None
+
+    @staticmethod
+    def _decodeProcessOutput(data: Union[bytes, bytearray, memoryview, object]) -> str:
+        """
+        Decode GDAL subprocess stdout/stderr bytes for display.
+
+        Tries UTF-8 first (Linux/macOS and UTF-8 GDAL builds), then the
+        Windows ANSI code page, then the locale preferred encoding, with a
+        final replacement fallback so PyQt callbacks never raise into SIP.
+        """
+        if data is None:
+            return ""
+        if isinstance(data, memoryview):
+            raw = data.tobytes()
+        elif isinstance(data, (bytes, bytearray)):
+            raw = bytes(data)
+        else:
+            # QByteArray and similar buffer-compatible objects
+            try:
+                raw = bytes(data)
+            except TypeError:
+                raw = bytes(data.data())
+
+        if not raw:
+            return ""
+
+        encodings: list[str] = ["utf-8"]
+        windows_ansi = GdalUtils._windows_ansi_encoding()
+        if windows_ansi and windows_ansi.lower() not in {
+            e.lower() for e in encodings
+        }:
+            encodings.append(windows_ansi)
+        try:
+            preferred = locale.getpreferredencoding(False)
+        except (locale.Error, TypeError, ValueError):
+            preferred = None
+        if preferred and preferred.lower() not in {e.lower() for e in encodings}:
+            encodings.append(preferred)
+
+        for encoding in encodings:
+            try:
+                return raw.decode(encoding)
+            except (UnicodeDecodeError, LookupError):
+                continue
+
+        return raw.decode("utf-8", errors="replace")
+
+    @staticmethod
     def runGdal(commands, feedback=None):
         if feedback is None:
             feedback = QgsProcessingFeedback()
@@ -151,7 +216,7 @@ class GdalUtils:
         progress_string_list = [str(a) for a in range(0, 100)]
 
         def on_stdout(ba):
-            val = ba.data().decode("UTF-8")
+            val = GdalUtils._decodeProcessOutput(ba)
             # catch progress reports
             if val == "100 - done.":
                 on_stdout.progress = 100
@@ -182,7 +247,7 @@ class GdalUtils:
         on_stdout.buffer = ""
 
         def on_stderr(ba):
-            val = ba.data().decode("UTF-8")
+            val = GdalUtils._decodeProcessOutput(ba)
             on_stderr.buffer += val
 
             if on_stderr.buffer.endswith("\n") or on_stderr.buffer.endswith("\r"):

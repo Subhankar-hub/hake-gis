@@ -205,15 +205,22 @@ void QgsAppRibbon::syncChromeTabBarGeometry()
   if ( bar->minimumWidth() != stripWidth )
     bar->setMinimumWidth( stripWidth );
 
-  const int h = std::max( bar->height(), bar->sizeHint().height() );
-  const QRect target( 0, bar->y(), stripWidth, h );
-  if ( bar->geometry() != target )
-    bar->setGeometry( target );
+  // Integer height from sizeHint — avoid fighting layout when already full-width.
+  const int h = std::max( bar->sizeHint().height(), 1 );
+  if ( bar->x() != 0 || bar->width() != stripWidth )
+  {
+    const QRect target( 0, bar->y(), stripWidth, std::max( bar->height(), h ) );
+    if ( bar->geometry() != target )
+      bar->setGeometry( target );
+  }
 
   if ( QWidget *filler = cornerWidget( Qt::TopRightCorner ) )
   {
-    filler->setMinimumHeight( h );
-    filler->setMaximumHeight( h );
+    const int fillerH = std::max( bar->height(), h );
+    if ( filler->minimumHeight() != fillerH )
+      filler->setMinimumHeight( fillerH );
+    if ( filler->maximumHeight() != fillerH )
+      filler->setMaximumHeight( fillerH );
   }
 }
 
@@ -241,8 +248,9 @@ QWidget *QgsAppRibbon::addPage( const QString &title )
 {
   QWidget *page = new QWidget( this );
   QHBoxLayout *layout = new QHBoxLayout( page );
-  layout->setContentsMargins( 4, 2, 4, 2 );
+  layout->setContentsMargins( 4, 4, 4, 4 );
   layout->setSpacing( 4 );
+  layout->setAlignment( Qt::AlignVCenter );
   layout->addStretch( 1 );
   addTab( page, title );
   return page;
@@ -259,17 +267,18 @@ QHBoxLayout *QgsAppRibbon::addGroup( QWidget *page, const QString &title )
   auto *buttonLayout = new QHBoxLayout( group );
   buttonLayout->setContentsMargins( 0, 0, 0, 0 );
   buttonLayout->setSpacing( 2 );
+  buttonLayout->setAlignment( Qt::AlignVCenter );
   buttonLayout->addStretch( 1 );
 
   // Insert before the trailing stretch
   const int stretchIndex = std::max( 0, pageLayout->count() - 1 );
-  pageLayout->insertWidget( stretchIndex, group );
+  pageLayout->insertWidget( stretchIndex, group, 0, Qt::AlignVCenter );
 
   QFrame *sep = new QFrame( page );
   sep->setFrameShape( QFrame::VLine );
   sep->setFrameShadow( QFrame::Plain );
   sep->setObjectName( u"HakeAppRibbonSeparator"_s );
-  pageLayout->insertWidget( stretchIndex + 1, sep );
+  pageLayout->insertWidget( stretchIndex + 1, sep, 0, Qt::AlignVCenter );
 
   return buttonLayout;
 }
@@ -287,9 +296,10 @@ void QgsAppRibbon::addActionButton( QHBoxLayout *groupLayout, QAction *action )
   button->setToolButtonStyle( Qt::ToolButtonIconOnly );
   button->setIconSize( QSize( QgsGuiUtils::scaleIconSize( 20 ), QgsGuiUtils::scaleIconSize( 20 ) ) );
   button->setFocusPolicy( Qt::NoFocus );
+  button->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
 
   const int stretchIndex = std::max( 0, groupLayout->count() - 1 );
-  groupLayout->insertWidget( stretchIndex, button );
+  groupLayout->insertWidget( stretchIndex, button, 0, Qt::AlignVCenter );
 }
 
 void QgsAppRibbon::addNamedAction( QHBoxLayout *groupLayout, const QString &objectName )

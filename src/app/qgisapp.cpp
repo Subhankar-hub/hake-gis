@@ -4081,6 +4081,12 @@ void QgisApp::createAppRibbon()
   mAppRibbon = new QgsAppRibbon( ribbonHost, this );
   ribbonHostLayout->addWidget( mAppRibbon, 1 );
   mAppRibbonBar->addWidget( ribbonHost );
+  // QToolBar style metrics can still inset the hosted widget; force flush geometry.
+  if ( QLayout *ribbonBarLayout = mAppRibbonBar->layout() )
+  {
+    ribbonBarLayout->setContentsMargins( 0, 0, 0, 0 );
+    ribbonBarLayout->setSpacing( 0 );
+  }
 
   // Continuously paint the classic menu row chrome end-to-end (same as ribbon strip).
   if ( QMenuBar *bar = menuBar() )

@@ -15,6 +15,7 @@ import os
 import tempfile
 import unittest
 from shutil import rmtree
+from unittest import mock
 
 from processing.algs.gdal.GdalUtils import GdalConnectionDetails, GdalUtils
 from qgis.core import (
@@ -23,6 +24,7 @@ from qgis.core import (
     QgsDataSourceUri,
     QgsRasterLayer,
 )
+from qgis.PyQt.QtCore import QByteArray
 from qgis.testing import QgisTestCase, start_app
 
 QGIS_AUTH_DB_DIR_PATH = tempfile.mkdtemp()
@@ -38,6 +40,64 @@ class TestProcessingAlgsGdalGdalUtils(QgisTestCase):
         rmtree(QGIS_AUTH_DB_DIR_PATH)
         del os.environ["QGIS_AUTH_DB_DIR_PATH"]
         super().tearDownClass()
+
+    def test_decode_process_output_utf8_en_dash(self):
+        """UTF-8 en dash in GDAL process output decodes correctly."""
+        raw = "Hake GeoDesk – Desktop GIS".encode("utf-8")
+        self.assertEqual(
+            GdalUtils._decodeProcessOutput(raw),
+            "Hake GeoDesk – Desktop GIS",
+        )
+
+    def test_decode_process_output_cp1252_en_dash(self):
+        """
+        Windows ACP (CP1252) en dash byte 0x96 must not raise UnicodeDecodeError.
+        This matches the Polygonize crash when the product path contains U+2013.
+        """
+        raw = b"C:\\Program Files\\Hake GeoDesk \x96 Desktop GIS"
+        with mock.patch.object(
+            GdalUtils, "_windows_ansi_encoding", return_value="cp1252"
+        ):
+            decoded = GdalUtils._decodeProcessOutput(raw)
+        self.assertEqual(decoded, "C:\\Program Files\\Hake GeoDesk – Desktop GIS")
+        self.assertNotIn("\ufffd", decoded)
+
+    def test_decode_process_output_qbytearray_cp1252(self):
+        """QByteArray from QgsBlockingProcess handlers uses the same decoder."""
+        ba = QByteArray(b"Creating output \x96 done.\n")
+        with mock.patch.object(
+            GdalUtils, "_windows_ansi_encoding", return_value="cp1252"
+        ):
+            decoded = GdalUtils._decodeProcessOutput(ba)
+        self.assertEqual(decoded, "Creating output – done.\n")
+
+    def test_decode_process_output_ascii_and_empty(self):
+        self.assertEqual(GdalUtils._decodeProcessOutput(b""), "")
+        self.assertEqual(GdalUtils._decodeProcessOutput(None), "")
+        self.assertEqual(
+            GdalUtils._decodeProcessOutput(b"Creating output of format GPKG.\n"),
+            "Creating output of format GPKG.\n",
+        )
+
+    def test_decode_process_output_mixed_ascii_non_ascii(self):
+        raw = "line1\ncréation – ok\nline3\n".encode("utf-8")
+        self.assertEqual(
+            GdalUtils._decodeProcessOutput(raw),
+            "line1\ncréation – ok\nline3\n",
+        )
+
+    def test_decode_process_output_invalid_bytes_never_raises(self):
+        """Final fallback must return a string; callbacks must not raise into SIP."""
+        # 0xFF is invalid in UTF-8; with ACP disabled this hits replace fallback
+        with mock.patch.object(GdalUtils, "_windows_ansi_encoding", return_value=None):
+            with mock.patch(
+                "processing.algs.gdal.GdalUtils.locale.getpreferredencoding",
+                return_value="utf-8",
+            ):
+                decoded = GdalUtils._decodeProcessOutput(b"bad\xffbyte")
+        self.assertIsInstance(decoded, str)
+        self.assertTrue(decoded.startswith("bad"))
+        self.assertIn("\ufffd", decoded)
 
     def test_gdal_connection_details_from_layer_postgresraster(self):
         """
