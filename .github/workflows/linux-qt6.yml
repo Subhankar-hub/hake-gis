@@ -19,8 +19,18 @@ permissions:
 
 jobs:
   build:
-    name: build (linux)
-    runs-on: ubuntu-24.04
+    name: build (${{ matrix.suffix }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # Ubuntu 22.04 is omitted: stock jammy lacks Qt6 QCA, PyQt6, QScintilla,
+        # and qt6-5compat-dev required by this Qt6 codebase.
+        include:
+          - os: ubuntu-24.04
+            suffix: ubuntu2404
+          - os: ubuntu-26.04
+            suffix: ubuntu2604
 
     steps:
       - name: 🗑️ Free up disk space
@@ -98,7 +108,7 @@ jobs:
         uses: hendrikmuhs/ccache-action@63069e3931dedbf3b63792097479563182fe70d1 #v1.2
         with:
           max-size: 1G
-          key: build-ccache-linux-qt6-${{ github.event.pull_request.base.ref || github.ref_name }}
+          key: build-ccache-linux-qt6-${{ matrix.suffix }}-${{ github.event.pull_request.base.ref || github.ref_name }}
           save: ${{ github.event_name == 'push' }}
 
       - name: 🌱 Configure
@@ -125,7 +135,8 @@ jobs:
                 -D WITH_INTERNAL_SPATIALINDEX=ON \
                 -D WITH_SERVER=ON \
                 -D CREATE_ZIP=ON \
-                -D CREATE_DEB=ON
+                -D CREATE_DEB=ON \
+                -D HAKE_INSTALLER_FILE_NAME=Hake-Geodesk-Installer-${{ matrix.suffix }}
 
       - name: 🌋 Build
         run: |
@@ -139,7 +150,7 @@ jobs:
         uses: actions/upload-artifact@v7
         id: artifact-linux-qt6
         with:
-          name: hake-geodesk-installer-linux
+          name: hake-geodesk-installer-linux-${{ matrix.suffix }}
           path: |
             build/*.deb
             build/*.tar.gz
@@ -158,7 +169,7 @@ jobs:
         uses: actions/upload-artifact@v7
         if: failure()
         with:
-          name: build-logs-linux
+          name: build-logs-linux-${{ matrix.suffix }}
           path: |
             build/CMakeFiles/CMakeOutput.log
             build/CMakeFiles/CMakeError.log

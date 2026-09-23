@@ -62,6 +62,31 @@ class TestProcessingAlgsGdalGdalUtils(QgisTestCase):
         self.assertEqual(decoded, "C:\\Program Files\\Hake GeoDesk – Desktop GIS")
         self.assertNotIn("\ufffd", decoded)
 
+    def test_decode_process_output_traceback_en_dash_at_offset_38(self):
+        """
+        A CPython stderr frame for the install path has byte 0x96 at index 38.
+        That is the en dash, written in the Windows ANSI code page.
+        """
+        raw = (
+            b'  File "C:\\Program Files\\Hake GeoDesk \x96'
+            b" Desktop GIS\\bin\\Scripts\\gdal_polygonize.py"
+        )
+        self.assertEqual(raw[38], 0x96)
+        with mock.patch.object(
+            GdalUtils, "_windows_ansi_encoding", return_value="cp1252"
+        ):
+            with mock.patch(
+                "processing.algs.gdal.GdalUtils.QgsMessageLog.logMessage"
+            ) as log:
+                decoded = GdalUtils._decodeProcessOutput(raw)
+        self.assertEqual(decoded[38], "–")
+        self.assertIn("Hake GeoDesk – Desktop GIS", decoded)
+        self.assertNotIn("\ufffd", decoded)
+        messages = [call.args[0] for call in log.call_args_list]
+        self.assertTrue(messages)
+        self.assertIn("offset 38", messages[0])
+        self.assertIn("96", messages[0])
+
     def test_decode_process_output_qbytearray_cp1252(self):
         """QByteArray from QgsBlockingProcess handlers uses the same decoder."""
         ba = QByteArray(b"Creating output \x96 done.\n")

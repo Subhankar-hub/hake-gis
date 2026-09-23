@@ -116,11 +116,13 @@ class GdalUtils:
     @staticmethod
     def _windows_ansi_encoding() -> Optional[str]:
         """
-        Return the Windows ANSI code page name (e.g. ``cp1252``), or None
-        when not running on Windows / GetACP is unavailable.
+        Return the Windows ANSI code page (for example ``cp1252``), or None
+        off Windows or when GetACP is unavailable.
 
-        Redirected GDAL/console tools often emit ACP bytes even when Python's
-        preferred encoding is UTF-8 (Windows UTF-8 mode).
+        QgsBlockingProcess reads the child pipe as raw bytes. Redirected
+        Python 3.12 writes traceback text with this code page, not UTF-8 and
+        not the OEM or console code page. The en dash in the install path is
+        byte 0x96 there.
         """
         if os.name != "nt":
             return None
@@ -132,13 +134,28 @@ class GdalUtils:
             return None
 
     @staticmethod
+    def _log_non_utf8_process_output(raw: bytes, offset: int, encoding: str) -> None:
+        """Log a few bytes around the first non-UTF-8 octet. Do not dump the buffer."""
+        start = max(0, offset - 2)
+        end = min(len(raw), offset + 3)
+        window = " ".join(f"{byte:02X}" for byte in raw[start:end])
+        QgsMessageLog.logMessage(
+            f"GDAL process output is not UTF-8 at offset {offset} ({window}); decoded as {encoding}",
+            "Processing",
+            Qgis.MessageLevel.Info,
+        )
+
+    @staticmethod
     def _decodeProcessOutput(data: Union[bytes, bytearray, memoryview, object]) -> str:
         """
-        Decode GDAL subprocess stdout/stderr bytes for display.
+        Decode GDAL subprocess stdout/stderr.
 
-        Tries UTF-8 first (Linux/macOS and UTF-8 GDAL builds), then the
-        Windows ANSI code page, then the locale preferred encoding, with a
-        final replacement fallback so PyQt callbacks never raise into SIP.
+        Valid UTF-8 is returned as UTF-8. On Windows, ``gdal_polygonize.bat``
+        launches Python with no code-page change, so a traceback path such as
+        ``Hake GeoDesk – Desktop GIS`` arrives in the ANSI code page from
+        GetACP() (0x96 is U+2013). That page is not hardcoded. Replacement
+        is used only when every candidate encoding fails, so the PyQt
+        callback does not raise and the process exit code stays authoritative.
         """
         if data is None:
             return ""
@@ -156,11 +173,14 @@ class GdalUtils:
         if not raw:
             return ""
 
-        encodings: list[str] = ["utf-8"]
+        try:
+            return raw.decode("utf-8")
+        except UnicodeDecodeError as err:
+            utf8_error_offset = err.start
+
+        encodings: list[str] = []
         windows_ansi = GdalUtils._windows_ansi_encoding()
-        if windows_ansi and windows_ansi.lower() not in {
-            e.lower() for e in encodings
-        }:
+        if windows_ansi:
             encodings.append(windows_ansi)
         try:
             preferred = locale.getpreferredencoding(False)
@@ -169,13 +189,22 @@ class GdalUtils:
         if preferred and preferred.lower() not in {e.lower() for e in encodings}:
             encodings.append(preferred)
 
+        decoded = None
+        used = None
         for encoding in encodings:
             try:
-                return raw.decode(encoding)
+                decoded = raw.decode(encoding)
+                used = encoding
+                break
             except (UnicodeDecodeError, LookupError):
                 continue
 
-        return raw.decode("utf-8", errors="replace")
+        if decoded is None:
+            decoded = raw.decode("utf-8", errors="replace")
+            used = "utf-8 with replacement"
+
+        GdalUtils._log_non_utf8_process_output(raw, utf8_error_offset, used)
+        return decoded
 
     @staticmethod
     def runGdal(commands, feedback=None):

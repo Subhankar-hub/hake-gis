@@ -233,6 +233,42 @@ jobs:
         run: |
           cmake --build "${{ github.workspace }}/build" --target bundle --config Release
 
+      - name: Verify packaged GdalUtils decoder
+        shell: bash
+        run: |
+          python - "${{ github.workspace }}/build" <<'PY'
+          import sys
+          import zipfile
+          from pathlib import Path
+
+          build = Path(sys.argv[1])
+          zips = sorted(build.glob("*.zip"))
+          if not zips:
+              sys.exit(f"No CPack zip in {build}")
+
+          needle = "python/plugins/processing/algs/gdal/GdalUtils.py"
+          packaged = None
+          for zpath in zips:
+              with zipfile.ZipFile(zpath) as archive:
+                  matches = [
+                      name
+                      for name in archive.namelist()
+                      if name.replace("\\", "/").endswith(needle)
+                  ]
+                  if matches:
+                      packaged = archive.read(matches[0]).decode("utf-8")
+                      print(f"Found {matches[0]} in {zpath.name}")
+                      break
+
+          if packaged is None:
+              sys.exit("GdalUtils.py was not packaged")
+          if "_decodeProcessOutput" not in packaged:
+              sys.exit("Packaged GdalUtils.py lacks _decodeProcessOutput")
+          if "ba.data().decode" in packaged:
+              sys.exit("Packaged GdalUtils.py still calls ba.data().decode")
+          print("Packaged GdalUtils.py decoder check passed")
+          PY
+
       - name: 📦 Create SDK
 #        if: github.event_name == 'workflow_dispatch' || github.event_name == 'release'
         run: |
