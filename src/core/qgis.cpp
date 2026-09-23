@@ -706,6 +706,11 @@ QString Qgis::productVersionLabel()
   return QString::fromUtf8( HAKE_PRODUCT_VERSION_LABEL );
 }
 
+QString Qgis::whatsNewUrl()
+{
+  return QString::fromUtf8( HAKE_WHATSNEW_URL );
+}
+
 QString Qgis::devVersion()
 {
   return QString::fromUtf8( QGIS_DEV_VERSION );

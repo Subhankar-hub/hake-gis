@@ -234,40 +234,40 @@ jobs:
           cmake --build "${{ github.workspace }}/build" --target bundle --config Release
 
       - name: Verify packaged GdalUtils decoder
-        shell: bash
+        shell: pwsh
         run: |
-          python - "${{ github.workspace }}/build" <<'PY'
-          import sys
-          import zipfile
-          from pathlib import Path
+          $build = "${{ github.workspace }}/build"
+          $zips = Get-ChildItem -Path $build -Filter *.zip | Sort-Object FullName
+          if (-not $zips) { throw "No CPack zip in $build" }
 
-          build = Path(sys.argv[1])
-          zips = sorted(build.glob("*.zip"))
-          if not zips:
-              sys.exit(f"No CPack zip in {build}")
+          $needle = "python/plugins/processing/algs/gdal/GdalUtils.py"
+          $packaged = $null
+          foreach ($zpath in $zips) {
+            Add-Type -AssemblyName System.IO.Compression.FileSystem
+            $archive = [System.IO.Compression.ZipFile]::OpenRead($zpath.FullName)
+            try {
+              $entry = $archive.Entries | Where-Object {
+                ($_.FullName -replace '\\','/') -like "*$needle"
+              } | Select-Object -First 1
+              if ($entry) {
+                $reader = New-Object System.IO.StreamReader($entry.Open())
+                try { $packaged = $reader.ReadToEnd() } finally { $reader.Dispose() }
+                Write-Host "Found $($entry.FullName) in $($zpath.Name)"
+                break
+              }
+            } finally {
+              $archive.Dispose()
+            }
+          }
 
-          needle = "python/plugins/processing/algs/gdal/GdalUtils.py"
-          packaged = None
-          for zpath in zips:
-              with zipfile.ZipFile(zpath) as archive:
-                  matches = [
-                      name
-                      for name in archive.namelist()
-                      if name.replace("\\", "/").endswith(needle)
-                  ]
-                  if matches:
-                      packaged = archive.read(matches[0]).decode("utf-8")
-                      print(f"Found {matches[0]} in {zpath.name}")
-                      break
-
-          if packaged is None:
-              sys.exit("GdalUtils.py was not packaged")
-          if "_decodeProcessOutput" not in packaged:
-              sys.exit("Packaged GdalUtils.py lacks _decodeProcessOutput")
-          if "ba.data().decode" in packaged:
-              sys.exit("Packaged GdalUtils.py still calls ba.data().decode")
-          print("Packaged GdalUtils.py decoder check passed")
-          PY
+          if ($null -eq $packaged) { throw "GdalUtils.py was not packaged" }
+          if ($packaged -notmatch '_decodeProcessOutput') {
+            throw "Packaged GdalUtils.py lacks _decodeProcessOutput"
+          }
+          if ($packaged -match 'ba\.data\(\)\.decode') {
+            throw "Packaged GdalUtils.py still calls ba.data().decode"
+          }
+          Write-Host "Packaged GdalUtils.py decoder check passed"
 
       - name: 📦 Create SDK
 #        if: github.event_name == 'workflow_dispatch' || github.event_name == 'release'

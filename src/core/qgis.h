@@ -99,6 +99,13 @@ int QgisEvent = QEvent::User + 1;
      */
     static QString productVersionLabel();
 
+    /**
+     * Remote What's New URL for the About dialog (Hake GeoDesk release notes).
+     *
+     * \since QGIS 4.0
+     */
+    static QString whatsNewUrl();
+
     //! The development version
     static const char *QGIS_DEV_VERSION;
 

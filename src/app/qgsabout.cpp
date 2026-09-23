@@ -20,10 +20,16 @@
 #include "qgis.h"
 #include "qgsapplication.h"
 #include "qgslogger.h"
+#include "qgsnetworkaccessmanager.h"
 
 #include <QClipboard>
+#include <QDateTime>
 #include <QDesktopServices>
+#include <QDir>
 #include <QFile>
+#include <QFileInfo>
+#include <QNetworkReply>
+#include <QNetworkRequest>
 #include <QRegularExpression>
 #include <QString>
 #include <QUrl>
@@ -31,6 +37,13 @@
 #include "moc_qgsabout.cpp"
 
 using namespace Qt::StringLiterals;
+
+namespace
+{
+  // Avoid re-downloading What's New on every About open within a day.
+  constexpr qint64 WHATSNEW_CACHE_MAX_AGE_SECS = 24 * 60 * 60;
+  constexpr int WHATSNEW_TRANSFER_TIMEOUT_MS = 8000;
+}
 
 #ifdef Q_OS_MACOS
 // Modeless dialog with close button only
@@ -102,14 +115,118 @@ void QgsAbout::setVersion( const QString &v )
   mVersionString = v;
 }
 
-void QgsAbout::setWhatsNew()
+QString QgsAbout::whatsNewCachePath()
+{
+  return QgsApplication::qgisSettingsDirPath() + u"whatsnew/latest.html"_s;
+}
+
+bool QgsAbout::isWhatsNewCacheFresh( const QString &path )
+{
+  const QFileInfo info( path );
+  if ( !info.exists() || info.size() == 0 )
+    return false;
+  return info.lastModified().secsTo( QDateTime::currentDateTime() ) < WHATSNEW_CACHE_MAX_AGE_SECS;
+}
+
+void QgsAbout::writeWhatsNewCache( const QString &path, const QByteArray &data )
+{
+  const QFileInfo info( path );
+  if ( !QDir().mkpath( info.absolutePath() ) )
+  {
+    QgsDebugError( u"Could not create What's New cache directory %1"_s.arg( info.absolutePath() ) );
+    return;
+  }
+  QFile file( path );
+  if ( !file.open( QIODevice::WriteOnly | QIODevice::Truncate ) )
+  {
+    QgsDebugError( u"Could not write What's New cache %1"_s.arg( path ) );
+    return;
+  }
+  file.write( data );
+}
+
+void QgsAbout::showWhatsNewHtml( const QString &html )
 {
   txtWhatsNew->clear();
   txtWhatsNew->document()->setDefaultStyleSheet( QgsApplication::reportStyleSheet() );
-  if ( !QFile::exists( QgsApplication::pkgDataPath() + "/doc/NEWS.html" ) )
+  txtWhatsNew->setHtml( html );
+}
+
+void QgsAbout::showWhatsNewFile( const QString &path )
+{
+  if ( !QFile::exists( path ) )
+    return;
+  txtWhatsNew->clear();
+  txtWhatsNew->document()->setDefaultStyleSheet( QgsApplication::reportStyleSheet() );
+  txtWhatsNew->setSource( QUrl::fromLocalFile( path ) );
+}
+
+void QgsAbout::setWhatsNew()
+{
+  // Hake GeoDesk product What's New — not upstream QGIS NEWS.html.
+  // Prefer remote latest.html; fall back to local disk cache only.
+  if ( mWhatsNewReply )
+  {
+    mWhatsNewReply->abort();
+    mWhatsNewReply->deleteLater();
+    mWhatsNewReply = nullptr;
+  }
+
+  const QString cachePath = whatsNewCachePath();
+
+  if ( isWhatsNewCacheFresh( cachePath ) )
+  {
+    showWhatsNewFile( cachePath );
+    return;
+  }
+
+  // Show stale cache immediately (if any), then refresh from network.
+  if ( QFile::exists( cachePath ) )
+    showWhatsNewFile( cachePath );
+  else
+  {
+    txtWhatsNew->clear();
+    txtWhatsNew->document()->setDefaultStyleSheet( QgsApplication::reportStyleSheet() );
+  }
+
+  QNetworkRequest request( QUrl( Qgis::whatsNewUrl() ) );
+  request.setAttribute( QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy );
+  request.setTransferTimeout( WHATSNEW_TRANSFER_TIMEOUT_MS );
+  request.setRawHeader( "Accept", "text/html,application/xhtml+xml;q=0.9,*/*;q=0.8" );
+
+  mWhatsNewReply = QgsNetworkAccessManager::instance()->get( request );
+  connect( mWhatsNewReply, &QNetworkReply::finished, this, &QgsAbout::whatsNewReplyFinished );
+}
+
+void QgsAbout::whatsNewReplyFinished()
+{
+  QNetworkReply *reply = mWhatsNewReply;
+  mWhatsNewReply = nullptr;
+  if ( !reply )
     return;
 
-  txtWhatsNew->setSource( QString( "file:///" + QgsApplication::pkgDataPath() + "/doc/NEWS.html" ) );
+  reply->deleteLater();
+
+  const QString cachePath = whatsNewCachePath();
+
+  if ( reply->error() != QNetworkReply::NoError )
+  {
+    QgsDebugMsgLevel( u"What's New fetch failed: %1"_s.arg( reply->errorString() ), 2 );
+    if ( txtWhatsNew->toPlainText().trimmed().isEmpty() && QFile::exists( cachePath ) )
+      showWhatsNewFile( cachePath );
+    return;
+  }
+
+  const QByteArray data = reply->readAll();
+  if ( data.isEmpty() )
+  {
+    if ( txtWhatsNew->toPlainText().trimmed().isEmpty() && QFile::exists( cachePath ) )
+      showWhatsNewFile( cachePath );
+    return;
+  }
+
+  writeWhatsNewCache( cachePath, data );
+  showWhatsNewHtml( QString::fromUtf8( data ) );
 }
 
 void QgsAbout::btnCopyToClipboard_clicked()

@@ -22,6 +22,8 @@
 #include "qgis_app.h"
 #include "qgsoptionsdialogbase.h"
 
+class QNetworkReply;
+
 class APP_EXPORT QgsAbout : public QgsOptionsDialogBase, private Ui::QgsAbout
 {
     Q_OBJECT
@@ -36,6 +38,7 @@ class APP_EXPORT QgsAbout : public QgsOptionsDialogBase, private Ui::QgsAbout
     void btnQgisUser_clicked();
     void btnQgisHome_clicked();
     void openUrl( const QUrl &url );
+    void whatsNewReplyFinished();
 
   private:
     void setWhatsNew();
@@ -43,7 +46,14 @@ class APP_EXPORT QgsAbout : public QgsOptionsDialogBase, private Ui::QgsAbout
     void init();
     void updateWindowTitle() override;
 
+    void showWhatsNewHtml( const QString &html );
+    void showWhatsNewFile( const QString &path );
+    static QString whatsNewCachePath();
+    static bool isWhatsNewCacheFresh( const QString &path );
+    static void writeWhatsNewCache( const QString &path, const QByteArray &data );
+
     QString mVersionString;
+    QNetworkReply *mWhatsNewReply = nullptr;
 };
 
 #endif
