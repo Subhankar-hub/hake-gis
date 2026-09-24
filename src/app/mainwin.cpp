@@ -156,6 +156,8 @@ std::vector<std::wstring> defaultEnvLines( const std::wstring &appDir, const std
     L"PATH=" + appDir,
     L"QGIS_PREFIX_PATH=" + prefixDir,
     L"PROJ_DATA=" + prefixDir + L"\\share\\proj",
+    // Override any machine-global PROJ_LIB (PostGIS etc.) — same path as PROJ_DATA.
+    L"PROJ_LIB=" + prefixDir + L"\\share\\proj",
     L"GDAL_DATA=" + prefixDir + L"\\share\\gdal",
     L"QT_PLUGIN_PATH=" + appDir + L"\\Qt6\\plugins;" + appDir + L"\\Qt6\\plugins\\crypto",
     L"PYTHONHOME=" + appDir,

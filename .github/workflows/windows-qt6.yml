@@ -269,6 +269,34 @@ jobs:
           }
           Write-Host "Packaged GdalUtils.py decoder check passed"
 
+      # Issue #10: prove the packaged Windows runtime can locate proj.db and run
+      # GDAL Polygonize without machine-global PROJ_DATA / OSGeo4W.
+      - name: Assert packaged PROJ/GDAL/Python layout
+        shell: pwsh
+        run: |
+          & "${{ github.workspace }}\scripts\ci\windows_runtime_smoke.ps1" `
+            -BuildDir "${{ github.workspace }}\build" `
+            -RepoRoot "${{ github.workspace }}" `
+            -Mode AssertZip
+
+      - name: Install NSIS artifact and run PROJ/GDAL smoke tests
+        shell: pwsh
+        run: |
+          & "${{ github.workspace }}\scripts\ci\windows_runtime_smoke.ps1" `
+            -BuildDir "${{ github.workspace }}\build" `
+            -RepoRoot "${{ github.workspace }}" `
+            -ReportDir "${{ github.workspace }}\build\runtime-smoke" `
+            -Mode Runtime
+
+      - name: 📤 Upload runtime smoke diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-runtime-smoke-diagnostics
+          path: |
+            build/runtime-smoke/**
+          if-no-files-found: ignore
+
       - name: 📦 Create SDK
 #        if: github.event_name == 'workflow_dispatch' || github.event_name == 'release'
         run: |
@@ -304,12 +332,14 @@ jobs:
           commit-sha: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: 📤 Upload EXE installer
+        if: always()
         uses: actions/upload-artifact@v7
         id: artifact-win64-installer
         with:
           name: hake-geodesk-installer-win64
           path: |
             build/*.exe
+          if-no-files-found: ignore
 
       - name: 🚀 Upload Release Asset
         if: github.event_name == 'release'
@@ -320,6 +350,7 @@ jobs:
             build/*.zip
 
       - name: 📤 Upload ZIP bundle
+        if: always()
         uses: actions/upload-artifact@v7
         id: artifact-win64-qt6
         with:
@@ -327,6 +358,7 @@ jobs:
           archive: false
           path: |
             build/*.zip
+          if-no-files-found: ignore
 
       - name: Schedule download comment
         uses: ./.github/actions/post_sticky_comment

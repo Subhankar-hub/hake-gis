@@ -163,6 +163,7 @@ const QgsSettingsEntryInteger *QgsApplication::settingsConnectionPoolMaximumConc
 #include <winsock.h>
 #include <windows.h>
 #include <lmcons.h>
+#include <cstdlib> // _wputenv_s
 #define SECURITY_WIN32
 #include <security.h>
 #ifdef _MSC_VER
@@ -523,15 +524,36 @@ void QgsApplication::init( QString profileFolder )
   // append local user-writable folder as a proj search path
   QStringList currentProjSearchPaths = QgsProjUtils::searchPaths();
   currentProjSearchPaths.append( qgisSettingsDirPath() + u"proj"_s );
-#ifdef Q_OS_MACOS
-  // Set bundled proj data path as env var, so it's also available for pyproj and subprocesses (e.g. processing algorithms)
+#if defined( Q_OS_MACOS ) || defined( Q_OS_WIN )
+  // Point PROJ_DATA (and PROJ_LIB) at the bundled database so Processing child
+  // processes (gdal_polygonize.bat → python → GDAL → PROJ) and pyproj resolve
+  // EPSG codes without a machine-global PROJ_LIB (e.g. PostGIS). On Windows the
+  // vcpkg install layout is {prefix}/share/proj; on macOS bundle it is
+  // {pkgDataPath}/proj. See GitHub issue #10.
+#if defined( Q_OS_WIN )
+  const QString projData( QDir::cleanPath( prefixPath() + u"/share/proj"_s ) );
+  const QString gdalData( QDir::cleanPath( prefixPath() + u"/share/gdal"_s ) );
+#else
   const QString projData( QDir::cleanPath( pkgDataPath().append( "/proj" ) ) );
+  const QString gdalData;
+#endif
   if ( QFile::exists( projData ) )
   {
+#ifdef Q_OS_WIN
+    _wputenv_s( L"PROJ_DATA", projData.toStdWString().c_str() );
+    _wputenv_s( L"PROJ_LIB", projData.toStdWString().c_str() );
+#else
     qputenv( "PROJ_DATA", projData.toUtf8() );
+#endif
     currentProjSearchPaths.append( projData );
   }
-#endif // Q_OS_MACOS
+#ifdef Q_OS_WIN
+  if ( QFile::exists( gdalData ) && qgetenv( "GDAL_DATA" ).isEmpty() )
+  {
+    _wputenv_s( L"GDAL_DATA", gdalData.toStdWString().c_str() );
+  }
+#endif
+#endif // Q_OS_MACOS || Q_OS_WIN
 
   char **newPaths = new char *[currentProjSearchPaths.length()];
   for ( int i = 0; i < currentProjSearchPaths.count(); ++i )
