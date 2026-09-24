@@ -189,7 +189,7 @@ void QgsAbout::setWhatsNew()
     txtWhatsNew->document()->setDefaultStyleSheet( QgsApplication::reportStyleSheet() );
   }
 
-  QNetworkRequest request( QUrl( Qgis::whatsNewUrl() ) );
+  QNetworkRequest request{ QUrl{ Qgis::whatsNewUrl() } };
   request.setAttribute( QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy );
   request.setTransferTimeout( WHATSNEW_TRANSFER_TIMEOUT_MS );
   request.setRawHeader( "Accept", "text/html,application/xhtml+xml;q=0.9,*/*;q=0.8" );
