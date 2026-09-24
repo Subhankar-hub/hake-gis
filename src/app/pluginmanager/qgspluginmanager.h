@@ -26,11 +26,15 @@
 #include "qgsoptionsdialogbase.h"
 #include "qgssettingstree.h"
 
+#include <QHash>
 #include <QHeaderView>
 #include <QMap>
 #include <QStandardItem>
 #include <QStandardItemModel>
 #include <QString>
+
+class QNetworkAccessManager;
+class QNetworkReply;
 
 using namespace Qt::StringLiterals;
 
@@ -219,6 +223,12 @@ class QgsPluginManager : public QgsOptionsDialogBase, private Ui::QgsPluginManag
     //! Load translated descriptions. Source strings implemented in external qgspluginmanager_texts.cpp
     void initTabDescriptions();
 
+    //! Drop in-flight plugin-list icon requests before the model is rebuilt
+    void abortPluginIconFetches();
+
+    //! Replace the generic list pixmap when an http(s) icon returns image bytes
+    void fetchPluginListIcon( QStandardItem *item, const QString &iconUrl );
+
     //! Returns true if given plugin is enabled in QgsSettings
     bool isPluginEnabled( const QString &key );
 
@@ -261,6 +271,10 @@ class QgsPluginManager : public QgsOptionsDialogBase, private Ui::QgsPluginManag
     QgsMessageBar *msgBar = nullptr;
 
     int mCurrentPluginId;
+
+    QNetworkAccessManager *mIconLoader = nullptr;
+
+    QHash<QNetworkReply *, QStandardItem *> mIconReplies;
 };
 
 #endif

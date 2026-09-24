@@ -42,7 +42,10 @@
 #include <QLibrary>
 #include <QLineEdit>
 #include <QMessageBox>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
 #include <QPalette>
+#include <QPixmap>
 #include <QPushButton>
 #include <QRegularExpression>
 #include <QSortFilterProxyModel>
@@ -89,6 +92,7 @@ QgsPluginManager::QgsPluginManager( QWidget *parent, bool pluginsAreEnabled, Qt:
   mPythonUtils = nullptr;
 
   setupUi( this );
+  mIconLoader = new QNetworkAccessManager( this );
   connect( vwPlugins, &QListView::doubleClicked, this, &QgsPluginManager::vwPlugins_doubleClicked );
   connect( wvDetails, &QgsWebView::linkClicked, this, &QgsPluginManager::wvDetails_linkClicked );
   connect( leFilter, &QgsFilterLineEdit::textChanged, this, &QgsPluginManager::leFilter_textChanged );
@@ -180,6 +184,7 @@ QgsPluginManager::QgsPluginManager( QWidget *parent, bool pluginsAreEnabled, Qt:
 
 QgsPluginManager::~QgsPluginManager()
 {
+  abortPluginIconFetches();
   delete mModelProxy;
   delete mModelPlugins;
 
@@ -549,8 +554,52 @@ QStandardItem *QgsPluginManager::createSpacerItem( const QString &text, const QS
 }
 
 
+void QgsPluginManager::abortPluginIconFetches()
+{
+  const QList<QNetworkReply *> replies = mIconReplies.keys();
+  mIconReplies.clear();
+  for ( QNetworkReply *reply : replies )
+  {
+    reply->disconnect( this );
+    reply->abort();
+    reply->deleteLater();
+  }
+}
+
+
+void QgsPluginManager::fetchPluginListIcon( QStandardItem *item, const QString &iconUrl )
+{
+  if ( !mIconLoader || !item )
+    return;
+
+  QNetworkRequest request{ QUrl( iconUrl ) };
+  request.setTransferTimeout( 15000 );
+  request.setAttribute( QNetworkRequest::Attribute::RedirectPolicyAttribute, QNetworkRequest::RedirectPolicy::NoLessSafeRedirectPolicy );
+  QNetworkReply *reply = mIconLoader->get( request );
+  mIconReplies.insert( reply, item );
+  connect( reply, &QNetworkReply::finished, this, [this, reply]()
+  {
+    QStandardItem *iconItem = mIconReplies.take( reply );
+    reply->deleteLater();
+    if ( !iconItem )
+      return;
+
+    const int status = reply->attribute( QNetworkRequest::Attribute::HttpStatusCodeAttribute ).toInt();
+    const QString contentType = reply->header( QNetworkRequest::KnownHeaders::ContentTypeHeader ).toString();
+    if ( reply->error() != QNetworkReply::NetworkError::NoError || status != 200 || contentType.startsWith( u"text/html"_s, Qt::CaseInsensitive ) )
+      return;
+
+    QPixmap pixmap;
+    if ( !pixmap.loadFromData( reply->readAll() ) || pixmap.isNull() )
+      return;
+    iconItem->setData( pixmap, Qt::DecorationRole );
+  } );
+}
+
+
 void QgsPluginManager::reloadModelData()
 {
+  abortPluginIconFetches();
   mModelPlugins->clear();
 
   if ( !mCurrentlyDisplayedPlugin.isEmpty() )
@@ -590,13 +639,16 @@ void QgsPluginManager::reloadModelData()
       mypDetailItem->setData( it->value( u"average_vote"_s ), PLUGIN_VOTE_ROLE );
       mypDetailItem->setData( it->value( u"deprecated"_s ), PLUGIN_ISDEPRECATED_ROLE );
 
+      const QPixmap fallbackIcon( QgsApplication::defaultThemePath() + "/propertyicons/plugin.svg" );
       if ( QFileInfo( iconPath ).isFile() )
       {
         mypDetailItem->setData( QPixmap( iconPath ), Qt::DecorationRole );
       }
       else
       {
-        mypDetailItem->setData( QPixmap( QgsApplication::defaultThemePath() + "/propertyicons/plugin.svg" ), Qt::DecorationRole );
+        mypDetailItem->setData( fallbackIcon, Qt::DecorationRole );
+        if ( iconPath.startsWith( u"http://"_s ) || iconPath.startsWith( u"https://"_s ) )
+          fetchPluginListIcon( mypDetailItem, iconPath );
       }
 
       mypDetailItem->setEditable( false );
