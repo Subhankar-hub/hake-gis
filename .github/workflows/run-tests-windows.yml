@@ -1,0 +1,266 @@
+---
+name: 🧪 Windows tests
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+      - release-**
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  packages: write
+  contents: read
+
+jobs:
+  test:
+    name: ctest (windows)
+    runs-on: windows-2022
+    timeout-minutes: 720
+
+    steps:
+      - name: 🐣 Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+
+      - name: 🗑️ Free up disk space
+        shell: powershell
+        run: |
+          Remove-Item -Recurse -Force "C:\Program Files\Android" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\ProgramData\Docker" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\Program Files\Docker" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\Program Files\dotnet" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\hostedtoolcache\windows\Ruby" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\hostedtoolcache\windows\Python" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\hostedtoolcache\windows\Go" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\hostedtoolcache\windows\Java_Temurin-Hotspot_jdk" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\hostedtoolcache\windows\node" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\Program Files\Microsoft SQL Server" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\Program Files (x86)\Microsoft SQL Server" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\ProgramData\Microsoft SQL Server" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\Program Files\MySQL" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\Program Files\PostgreSQL" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\Program Files\LLVM" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\Program Files (x86)\Seq" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\Program Files\MongoDB" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\Program Files\Azure Cosmos DB Emulator" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\Program Files\Microsoft Service Fabric" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\ProgramData\chocolatey\lib\llvm" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\ProgramData\chocolatey\lib\minikube" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "C:\ProgramData\chocolatey\lib\phantomjs" -ErrorAction SilentlyContinue
+          Get-Volume C | Select-Object -ExpandProperty SizeRemaining | ForEach-Object { Write-Host "Free disk space: $([math]::Round($_ / 1GB, 2)) GB" }
+
+      - name: 🔨 Uninstall system cmake
+        shell: bash
+        run: |
+          choco uninstall cmake.install
+
+      - name: 🐩 Install CMake and Ninja
+        uses: lukka/get-cmake@f176ccd3f28bda569c43aae4894f06b2435a3375
+        with:
+          cmakeVersion: 3.31.6
+
+      - name: 🧽 Developer Command Prompt for Microsoft Visual C++
+        uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 #v1
+
+      - name: 🎡 Setup vcpkg
+        uses: ./.github/actions/setup-vcpkg
+
+      - name: 🦬 Setup flex/bison
+        uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 #v1.12
+        with:
+          repository: 'lexxmark/winflexbison'
+          fileName: '*.zip'
+          tag: 'v2.5.24'
+          extract: true
+
+      - name: 🧮 Setup gfortran (MinGW)
+        shell: powershell
+        run: |
+          # lapack-reference is not always in the vcpkg NuGet cache; source builds need Fortran.
+          function Set-GfortranEnv([string]$GfortranPath) {
+            Write-Host "Using gfortran at $GfortranPath"
+            # Do NOT add MinGW's bin dir to PATH: it ships gcc/c++/ld that hijack
+            # CMake+Ninja away from MSVC. FC is absolute so vcpkg can invoke it.
+            Add-Content -Path $env:GITHUB_ENV -Value "FC=$GfortranPath"
+          }
+
+          $candidates = @(
+            "C:\mingw64\bin\gfortran.exe",
+            "C:\ProgramData\mingw64\mingw64\bin\gfortran.exe"
+          )
+          foreach ($path in $candidates) {
+            if (Test-Path $path) {
+              Set-GfortranEnv $path
+              exit 0
+            }
+          }
+
+          choco install mingw -y --no-progress
+          $searchRoots = @(
+            "${env:ProgramData}\mingw64\mingw64\bin",
+            "${env:ProgramData}\chocolatey\lib\mingw\tools\install"
+          )
+          foreach ($root in $searchRoots) {
+            $gfortran = Get-ChildItem -Path $root -Recurse -Filter gfortran.exe -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($gfortran) {
+              Set-GfortranEnv $gfortran.FullName
+              exit 0
+            }
+          }
+          throw "gfortran.exe not found on runner or after mingw install"
+
+      - name: 🛍️ Setup ccache
+        uses: hendrikmuhs/ccache-action@63069e3931dedbf3b63792097479563182fe70d1 #v1.2
+        with:
+          max-size: 1G
+          key: test-ccache-win64-qt6-${{ github.event.pull_request.base.ref || github.ref_name }}
+          save: ${{ github.event_name == 'push' }}
+
+      - name: 🛍️ Tune ccache configuration
+        shell: bash
+        run: |
+          # To make ccache work properly with precompiled headers
+          ccache --set-config sloppiness=pch_defines,time_macros,include_file_mtime,include_file_ctime
+
+      - name: 🍓 Setup Strawberry Perl for vcpkg/openssl
+        shell: powershell
+        run: |
+          choco install strawberryperl -y --no-progress
+
+          $perl = "C:\Strawberry\perl\bin\perl.exe"
+          if (!(Test-Path $perl)) {
+            $perl = (Get-ChildItem "C:\Strawberry" -Recurse -Filter perl.exe -ErrorAction SilentlyContinue |
+                     Select-Object -First 1).FullName
+          }
+
+          if (!(Test-Path $perl)) {
+            throw "Strawberry Perl was not found after installation"
+          }
+
+          $perlBin = Split-Path $perl
+          Add-Content -Path $env:GITHUB_PATH -Value $perlBin
+          Add-Content -Path $env:GITHUB_ENV -Value "PERL=$perl"
+
+          & $perl -v
+
+      - name: 🌱 Install dependencies and generate project files
+        shell: bash
+        env:
+          X_VCPKG_ASSET_SOURCES: x-azurl,https://assetcache.open-vcpkg.org/assetcache,,read
+          PERL: C:\Strawberry\perl\bin\perl.exe
+          DISTUTILS_USE_SDK: 1
+        run: |
+          export PERL="/c/Strawberry/perl/bin/perl.exe"
+          echo "Using PERL=$PERL"
+
+          # Local vcpkg Python builds invoke vcvarsall via setuptools; trim PATH to avoid
+          # cmd.exe "The input line is too long" (NuGet misses force local py-cython builds).
+          # Capture MSVC + Windows SDK tools before rewriting PATH:
+          # - without cl, CMake+Ninja picks MinGW and cannot link MSVC Qt import libs
+          # - without rc, CMake's MSVC ABI check fails (RC Pass 1 / manifest.rc)
+          CL_BINDIR=$(dirname "$(command -v cl.exe || command -v cl)")
+          RC_BINDIR=$(dirname "$(command -v rc.exe || command -v rc)")
+          if [ -z "${CL_BINDIR}" ] || [ -z "${RC_BINDIR}" ]; then
+            echo "MSVC cl and/or Windows SDK rc not found on PATH before trim" >&2
+            echo "cl=$(command -v cl.exe || command -v cl || true) rc=$(command -v rc.exe || command -v rc || true)" >&2
+            exit 1
+          fi
+          CMAKE_BIN=$(dirname "$(command -v cmake)")
+          NINJA_BIN="/c/Program Files/Microsoft Visual Studio/2022/Enterprise/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja"
+          export PATH="${CL_BINDIR}:${RC_BINDIR}:/c/Strawberry/perl/bin:/c/.vcpkg:${CMAKE_BIN}:${NINJA_BIN}:/c/Windows/system32:/c/Windows"
+          echo "Using MSVC from ${CL_BINDIR}"
+          echo "Using Windows SDK rc from ${RC_BINDIR}"
+          echo "PATH length: ${#PATH}"
+
+          BUILD_DIR=$( "/c/Program Files/Git/usr/bin/cygpath" "${{ github.workspace }}/build" )
+          SOURCE_DIR=$( "/c/Program Files/Git/usr/bin/cygpath" "${{ github.workspace }}" )
+
+          cmake -S "${SOURCE_DIR}" \
+                -B "${BUILD_DIR}" \
+                -G Ninja \
+                -D CMAKE_BUILD_TYPE=Release \
+                -D CMAKE_C_COMPILER=cl \
+                -D CMAKE_CXX_COMPILER=cl \
+                -D WITH_VCPKG=ON \
+                -D CREATE_ZIP=OFF \
+                -D CREATE_NSIS=OFF \
+                -D VCPKG_TARGET_TRIPLET=x64-windows-release \
+                -D VCPKG_HOST_TRIPLET=x64-windows-release \
+                -D WITH_DESKTOP=ON \
+                -D WITH_3D=ON \
+                -D WITH_BINDINGS=ON \
+                -D WITH_PDAL=ON \
+                -D WITH_POSTGRESQL=ON \
+                -D WITH_SPATIALITE=ON \
+                -D WITH_HAKE_GIS_PROCESS=ON \
+                -D WITH_GEOGRAPHICLIB=ON \
+                -D WITH_SFCGAL=ON \
+                -D ENABLE_TESTS=ON \
+                -D USE_CCACHE=ON \
+                -D ENABLE_UNITY_BUILDS=OFF \
+                -D FLEX_EXECUTABLE="${SOURCE_DIR}/win_flex.exe" \
+                -D BISON_EXECUTABLE="${SOURCE_DIR}/win_bison.exe" \
+                -D WITH_QTWEBENGINE=OFF \
+                -D VCPKG_INSTALL_OPTIONS="--x-buildtrees-root=C:/src" \
+                -D NUGET_USERNAME=${{ github.actor }} \
+                -D NUGET_SOURCE="https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
+                -D NUGET_READ_SOURCE="https://nuget.pkg.github.com/qgis/index.json" \
+                -D NUGET_READ_USERNAME=qgis \
+                -D NUGET_TOKEN=${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🌋 Build
+        shell: bash
+        run: |
+          cmake --build "${{ github.workspace }}/build" --config Release
+
+      - name: Verify test env file
+        shell: pwsh
+        run: |
+          $envFile = Join-Path "${{ github.workspace }}" "build\output\bin\hake-geodesk.env"
+          if (-not (Test-Path -LiteralPath $envFile)) {
+            throw "Expected $envFile after ENABLE_TESTS configure (WITH_VCPKG Windows)"
+          }
+          Write-Host "Found $envFile"
+          Get-Content -LiteralPath $envFile
+
+      - name: List CTest tests
+        shell: pwsh
+        run: |
+          & "${{ github.workspace }}\scripts\ci\windows_run_ctest.ps1" `
+            -BuildDir "${{ github.workspace }}\build" `
+            -RepoRoot "${{ github.workspace }}" `
+            -ListOnly
+
+      - name: 🧪 Run CTest
+        shell: pwsh
+        run: |
+          & "${{ github.workspace }}\scripts\ci\windows_run_ctest.ps1" `
+            -BuildDir "${{ github.workspace }}\build" `
+            -RepoRoot "${{ github.workspace }}"
+
+      - name: 📤 Upload CTest log
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-ctest-log
+          path: |
+            build/Testing/Temporary/LastTest.log
+            build/Testing/**
+            qgis_test_report/**
+          if-no-files-found: ignore
+
+      - name: 📑 Upload dep build logs
+        id: upload-build-logs
+        uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: windows-tests-build-logs-x64
+          path: |
+            C:/src/**/*.log
+          if-no-files-found: ignore
