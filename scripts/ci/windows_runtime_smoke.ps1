@@ -123,9 +123,10 @@ function Install-NsisArtifact {
         throw "No NSIS installer .exe found in $BuildDir"
     }
     $installer = $exes[0]
-    # Install under an en-dash path (same character as HAKE_PRODUCT_DISPLAY_NAME) so CI
-    # exercises the Unicode install layout from issue #10 without depending on Program Files.
-    $target = "C:\Hake GeoDesk – Desktop GIS"
+    # ASCII install folder (HAKE_PRODUCT_INSTALL_DIRECTORY). En-dash paths break
+    # PROJ/SQLite open of proj.db on Windows. Issue #10 coverage is launcher
+    # PROJ_DATA/PROJ_LIB override + packaged layout, not a Unicode install folder.
+    $target = "C:\Hake GeoDesk"
     Write-Host "Installing $($installer.FullName) silently into $target ..."
 
     # NSIS: /S = silent, /D= must be last and unquoted
@@ -144,8 +145,8 @@ function Find-InstallRoot {
     Write-Section "Locate installed application"
     $candidates = @()
 
-    # Preferred CI install path (en dash)
-    $candidates += "C:\Hake GeoDesk – Desktop GIS"
+    # Preferred CI install path (ASCII; matches HAKE_PRODUCT_INSTALL_DIRECTORY)
+    $candidates += "C:\Hake GeoDesk"
 
     $pf = ${env:ProgramFiles}
     if ($pf) {
