@@ -7,35 +7,63 @@ import "components"
 Item {
   id: welcomeScreen
 
-  property color pageColor: "#F7F9FB"
-  property color panelColor: "#FCFDFE"
+  property color workspaceColor: "#F7F9FB"
+  property color pageColor: "#F1F6FA"
+  property color panelColor: "#FFFFFF"
   property color surfaceColor: "#EAF2F7"
   property color primaryColor: "#164A73"
   property color hoverColor: "#22658F"
   property color activeColor: "#0E3858"
   property color accentColor: "#164A73"
   property color accentSoftColor: "#EAF2F7"
+  property color newsAccentColor: "#22658F"
   property color textColor: "#243B53"
   property color mutedTextColor: "#607D94"
   property color borderColor: "#C7D8E5"
   property color statusColor: "#25875F"
+  property color shadowColor: Qt.rgba(0.14, 0.29, 0.45, 0.12)
 
   readonly property string uiFont: Qt.platform.os === "osx" ? ".AppleSystemUIFont" : Application.font.family
-  readonly property bool narrowLayout: width < 960
-  readonly property real layoutSizeFactor: width > 1200 && height > 800 ? 1.1 : 1.0
+  readonly property bool narrowLayout: homeSurface.width < 960
+  readonly property real layoutSizeFactor: homeSurface.width > 1200 && homeSurface.height > 800 ? 1.1 : 1.0
 
+  // Full-bleed workspace tint (self-contained; does not rely on map canvas color)
   Rectangle {
     anchors.fill: parent
-    color: welcomeScreen.pageColor
-    radius: 16
-    border.width: 1
-    border.color: welcomeScreen.borderColor
+    color: welcomeScreen.workspaceColor
   }
 
-  ColumnLayout {
+  // Raised Hake home surface
+  Item {
+    id: homeSurface
     anchors.fill: parent
-    anchors.margins: 24
-    spacing: 16
+    anchors.leftMargin: 32
+    anchors.rightMargin: 32
+    anchors.topMargin: 28
+    anchors.bottomMargin: 28
+
+    Rectangle {
+      x: 0
+      y: 3
+      width: parent.width
+      height: parent.height
+      z: -1
+      radius: 16
+      color: welcomeScreen.shadowColor
+    }
+
+    Rectangle {
+      anchors.fill: parent
+      radius: 16
+      color: welcomeScreen.pageColor
+      border.width: 1
+      border.color: welcomeScreen.borderColor
+    }
+
+    ColumnLayout {
+      anchors.fill: parent
+      anchors.margins: 24
+      spacing: 16
 
     // Header
     RowLayout {
@@ -127,148 +155,173 @@ Item {
         Layout.preferredWidth: welcomeScreen.narrowLayout ? -1 : parent.width * 0.58
         spacing: 16
 
-        Rectangle {
+        Item {
           Layout.fillWidth: true
           Layout.preferredHeight: heroColumn.implicitHeight + 40
-          radius: 16
-          color: welcomeScreen.panelColor
-          border.width: 1
-          border.color: welcomeScreen.borderColor
 
-          ColumnLayout {
-            id: heroColumn
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.top: parent.top
-            anchors.margins: 20
-            spacing: 10
+          // Subtle elevation plate (integer offset; no blur filters)
+          Rectangle {
+            x: 0
+            y: 2
+            width: parent.width
+            height: parent.height
+            z: -1
+            radius: 16
+            color: welcomeScreen.shadowColor
+          }
 
-            Label {
-              Layout.fillWidth: true
-              text: qsTr("Welcome to Hake GeoDesk")
-              color: welcomeScreen.textColor
-              font.family: welcomeScreen.uiFont
-              font.pixelSize: 26
-              font.weight: Font.Bold
-              wrapMode: Text.WordWrap
-            }
-            Label {
-              Layout.fillWidth: true
-              text: qsTr("Professional GIS for Mapping, Analysis & Spatial Intelligence")
-              color: welcomeScreen.mutedTextColor
-              font.family: welcomeScreen.uiFont
-              font.pixelSize: 14
-              lineHeight: 1.35
-              wrapMode: Text.WordWrap
+          Rectangle {
+            id: welcomeCard
+            anchors.fill: parent
+            radius: 16
+            color: welcomeScreen.panelColor
+            border.width: 1
+            border.color: welcomeScreen.borderColor
+            clip: true
+
+            Rectangle {
+              width: 4
+              anchors.left: parent.left
+              anchors.top: parent.top
+              anchors.bottom: parent.bottom
+              color: welcomeScreen.primaryColor
             }
 
-            Flow {
-              Layout.fillWidth: true
-              Layout.topMargin: 6
+            ColumnLayout {
+              id: heroColumn
+              anchors.left: parent.left
+              anchors.right: parent.right
+              anchors.top: parent.top
+              anchors.margins: 20
               spacing: 10
 
-              Button {
-                id: gettingStartedButton
-                implicitHeight: 40
-                text: qsTr("Getting started")
-                hoverEnabled: true
-                Accessible.name: text
-                onClicked: welcomeScreenController.openGettingStarted()
-                contentItem: Text {
-                  text: gettingStartedButton.text
-                  color: welcomeScreen.accentColor
-                  font.family: welcomeScreen.uiFont
-                  font.pixelSize: 13
-                  font.weight: Font.Bold
-                  horizontalAlignment: Text.AlignHCenter
-                  verticalAlignment: Text.AlignVCenter
-                  leftPadding: 14
-                  rightPadding: 14
-                }
-                background: Rectangle {
-                  radius: 10
-                  color: gettingStartedButton.hovered ? "#D4E4EF" : welcomeScreen.accentSoftColor
-                }
+              Label {
+                Layout.fillWidth: true
+                text: qsTr("Welcome to Hake GeoDesk")
+                color: welcomeScreen.textColor
+                font.family: welcomeScreen.uiFont
+                font.pixelSize: 26
+                font.weight: Font.Bold
+                wrapMode: Text.WordWrap
+              }
+              Label {
+                Layout.fillWidth: true
+                text: qsTr("Professional GIS for Mapping, Analysis & Spatial Intelligence")
+                color: welcomeScreen.mutedTextColor
+                font.family: welcomeScreen.uiFont
+                font.pixelSize: 14
+                lineHeight: 1.35
+                wrapMode: Text.WordWrap
               }
 
-              Button {
-                id: openProjectButton
-                implicitHeight: 40
-                text: qsTr("Open project")
-                hoverEnabled: true
-                Accessible.name: text
-                onClicked: welcomeScreenController.openProjectDialog()
-                contentItem: Text {
-                  text: openProjectButton.text
-                  color: "#F9FCFE"
-                  font.family: welcomeScreen.uiFont
-                  font.pixelSize: 13
-                  font.weight: Font.Bold
-                  horizontalAlignment: Text.AlignHCenter
-                  verticalAlignment: Text.AlignVCenter
-                  leftPadding: 14
-                  rightPadding: 14
-                }
-                background: Rectangle {
-                  radius: 10
-                  color: openProjectButton.pressed ? welcomeScreen.activeColor
-                       : openProjectButton.hovered ? welcomeScreen.hoverColor
-                       : welcomeScreen.primaryColor
-                }
-              }
+              Flow {
+                Layout.fillWidth: true
+                Layout.topMargin: 6
+                spacing: 10
 
-              Button {
-                id: newProjectButton
-                implicitHeight: 40
-                text: qsTr("New project")
-                hoverEnabled: true
-                Accessible.name: text
-                onClicked: {
-                  welcomeScreenController.createBlankProject()
-                  welcomeScreenController.hideScene()
+                Button {
+                  id: gettingStartedButton
+                  implicitHeight: 40
+                  text: qsTr("Getting started")
+                  hoverEnabled: true
+                  Accessible.name: text
+                  onClicked: welcomeScreenController.openGettingStarted()
+                  contentItem: Text {
+                    text: gettingStartedButton.text
+                    color: welcomeScreen.accentColor
+                    font.family: welcomeScreen.uiFont
+                    font.pixelSize: 13
+                    font.weight: Font.Bold
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                    leftPadding: 14
+                    rightPadding: 14
+                  }
+                  background: Rectangle {
+                    radius: 10
+                    color: gettingStartedButton.hovered ? "#D4E4EF" : welcomeScreen.accentSoftColor
+                  }
                 }
-                contentItem: Text {
-                  text: newProjectButton.text
-                  color: welcomeScreen.textColor
-                  font.family: welcomeScreen.uiFont
-                  font.pixelSize: 13
-                  font.weight: Font.Bold
-                  horizontalAlignment: Text.AlignHCenter
-                  verticalAlignment: Text.AlignVCenter
-                  leftPadding: 14
-                  rightPadding: 14
-                }
-                background: Rectangle {
-                  radius: 10
-                  color: newProjectButton.hovered ? welcomeScreen.accentSoftColor : welcomeScreen.surfaceColor
-                  border.width: 1
-                  border.color: welcomeScreen.borderColor
-                }
-              }
 
-              Button {
-                id: visitButton
-                implicitHeight: 40
-                text: qsTr("Visit Hake")
-                hoverEnabled: true
-                Accessible.name: text
-                onClicked: Qt.openUrlExternally("https://haketech.com")
-                contentItem: Text {
-                  text: visitButton.text
-                  color: welcomeScreen.textColor
-                  font.family: welcomeScreen.uiFont
-                  font.pixelSize: 13
-                  font.weight: Font.Bold
-                  horizontalAlignment: Text.AlignHCenter
-                  verticalAlignment: Text.AlignVCenter
-                  leftPadding: 14
-                  rightPadding: 14
+                Button {
+                  id: openProjectButton
+                  implicitHeight: 40
+                  text: qsTr("Open project")
+                  hoverEnabled: true
+                  Accessible.name: text
+                  onClicked: welcomeScreenController.openProjectDialog()
+                  contentItem: Text {
+                    text: openProjectButton.text
+                    color: "#F9FCFE"
+                    font.family: welcomeScreen.uiFont
+                    font.pixelSize: 13
+                    font.weight: Font.Bold
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                    leftPadding: 14
+                    rightPadding: 14
+                  }
+                  background: Rectangle {
+                    radius: 10
+                    color: openProjectButton.pressed ? welcomeScreen.activeColor
+                         : openProjectButton.hovered ? welcomeScreen.hoverColor
+                         : welcomeScreen.primaryColor
+                  }
                 }
-                background: Rectangle {
-                  radius: 10
-                  color: visitButton.hovered ? welcomeScreen.accentSoftColor : welcomeScreen.surfaceColor
-                  border.width: 1
-                  border.color: welcomeScreen.borderColor
+
+                Button {
+                  id: newProjectButton
+                  implicitHeight: 40
+                  text: qsTr("New project")
+                  hoverEnabled: true
+                  Accessible.name: text
+                  onClicked: {
+                    welcomeScreenController.createBlankProject()
+                    welcomeScreenController.hideScene()
+                  }
+                  contentItem: Text {
+                    text: newProjectButton.text
+                    color: welcomeScreen.textColor
+                    font.family: welcomeScreen.uiFont
+                    font.pixelSize: 13
+                    font.weight: Font.Bold
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                    leftPadding: 14
+                    rightPadding: 14
+                  }
+                  background: Rectangle {
+                    radius: 10
+                    color: newProjectButton.hovered ? welcomeScreen.accentSoftColor : welcomeScreen.surfaceColor
+                    border.width: 1
+                    border.color: welcomeScreen.borderColor
+                  }
+                }
+
+                Button {
+                  id: visitButton
+                  implicitHeight: 40
+                  text: qsTr("Visit Hake")
+                  hoverEnabled: true
+                  Accessible.name: text
+                  onClicked: Qt.openUrlExternally("https://haketech.com")
+                  contentItem: Text {
+                    text: visitButton.text
+                    color: welcomeScreen.textColor
+                    font.family: welcomeScreen.uiFont
+                    font.pixelSize: 13
+                    font.weight: Font.Bold
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                    leftPadding: 14
+                    rightPadding: 14
+                  }
+                  background: Rectangle {
+                    radius: 10
+                    color: visitButton.hovered ? welcomeScreen.accentSoftColor : welcomeScreen.surfaceColor
+                    border.width: 1
+                    border.color: welcomeScreen.borderColor
+                  }
                 }
               }
             }
@@ -432,7 +485,7 @@ Item {
             Layout.fillWidth: true
             Label {
               text: qsTr("RECENT NEWS")
-              color: welcomeScreen.accentColor
+              color: welcomeScreen.newsAccentColor
               font.family: welcomeScreen.uiFont
               font.pixelSize: 11
               font.weight: Font.ExtraBold
@@ -481,7 +534,7 @@ Item {
                   Label {
                     anchors.centerIn: parent
                     text: "✦"
-                    color: welcomeScreen.accentColor
+                    color: welcomeScreen.newsAccentColor
                     font.pixelSize: 14
                     font.weight: Font.DemiBold
                   }
@@ -495,7 +548,7 @@ Item {
                   RowLayout {
                     Label {
                       text: qsTr("NEWS")
-                      color: welcomeScreen.accentColor
+                      color: welcomeScreen.newsAccentColor
                       font.family: welcomeScreen.uiFont
                       font.pixelSize: 10
                       font.weight: Font.Bold
@@ -547,7 +600,7 @@ Item {
                     Layout.fillWidth: true
                     visible: Link != ""
                     text: qsTr("Read more")
-                    color: welcomeScreen.accentColor
+                    color: welcomeScreen.newsAccentColor
                     font.family: welcomeScreen.uiFont
                     font.pixelSize: 11
                     font.weight: Font.Bold
@@ -684,6 +737,7 @@ Item {
       font.pixelSize: 12
       font.weight: Font.Medium
       wrapMode: Text.WordWrap
+    }
     }
   }
 

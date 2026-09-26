@@ -199,26 +199,9 @@ void QgsWelcomeScreen::refreshGeometry()
 {
   if ( QWidget *parentWidget = qobject_cast<QWidget *>( parent() ) )
   {
-    constexpr int marginX = 32;
-    constexpr int marginY = 28;
-    constexpr int minW = 720;
-    constexpr int minH = 520;
-    constexpr int maxW = 1400;
-    constexpr int maxH = 920;
-
-    const int parentW = parentWidget->width();
-    const int parentH = parentWidget->height();
-    const int availableW = qMax( 1, parentW - ( 2 * marginX ) );
-    const int availableH = qMax( 1, parentH - ( 2 * marginY ) );
-
-    const int adjustedWidth = qBound( minW, availableW, maxW );
-    const int adjustedHeight = qBound( minH, availableH, maxH );
-    // Never exceed the parent even if mins are larger than the window.
-    const int finalWidth = qMin( adjustedWidth, qMax( 1, parentW - 10 ) );
-    const int finalHeight = qMin( adjustedHeight, qMax( 1, parentH - 60 ) );
-    const int adjustedX = ( parentW - finalWidth ) / 2;
-    const int adjustedY = ( parentH - finalHeight ) / 2;
-    setGeometry( adjustedX, adjustedY, finalWidth, finalHeight );
+    // Fill the central widget so QML can paint the workspace tint ring
+    // and a raised home surface; no inset against the map canvas.
+    setGeometry( 0, 0, parentWidget->width(), parentWidget->height() );
   }
 }
 
