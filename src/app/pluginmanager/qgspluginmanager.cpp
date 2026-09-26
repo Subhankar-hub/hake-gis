@@ -36,6 +36,8 @@
 
 #include <QActionGroup>
 #include <QApplication>
+#include <QBuffer>
+#include <QByteArray>
 #include <QCheckBox>
 #include <QDesktopServices>
 #include <QFileDialog>
@@ -593,6 +595,12 @@ void QgsPluginManager::fetchPluginListIcon( QStandardItem *item, const QString &
     if ( !pixmap.loadFromData( reply->readAll() ) || pixmap.isNull() )
       return;
     iconItem->setData( pixmap, Qt::DecorationRole );
+    // QTextBrowser cannot load remote http(s) images; refresh details once the
+    // real pixmap is available so the detail pane can embed a data URI.
+    if ( iconItem->data( PLUGIN_BASE_NAME_ROLE ).toString() == mCurrentlyDisplayedPlugin )
+    {
+      showPluginDetails( iconItem );
+    }
   } );
 }
 
@@ -909,22 +917,43 @@ void QgsPluginManager::showPluginDetails( QStandardItem *item )
   html += "<tr><td colspan='2'>"_L1;
 
   QString iconPath = metadata->value( u"icon"_s );
+  QString imgSrc;
 
-  if ( QFileInfo( iconPath ).isFile() || iconPath.startsWith( "http"_L1 ) )
+  if ( QFileInfo( iconPath ).isFile() )
   {
     if ( iconPath.startsWith( ":/"_L1 ) )
     {
-      iconPath = "qrc" + iconPath;
+      imgSrc = "qrc" + iconPath;
     }
-    else if ( !iconPath.startsWith( "http"_L1 ) )
+    else
     {
 #if defined( Q_OS_WIN )
-      iconPath = "file:///" + iconPath;
+      imgSrc = "file:///" + iconPath;
 #else
-      iconPath = "file://" + iconPath;
+      imgSrc = "file://" + iconPath;
 #endif
     }
-    html += u"<img src=\"%1\" style=\"float:right;max-width:64px;max-height:64px;\">"_s.arg( iconPath );
+  }
+  else
+  {
+    // QgsWebView is a QTextBrowser stub and does not fetch remote http(s)
+    // images. Embed the list item's DecorationRole pixmap as a data URI instead.
+    const QPixmap decoration = item->data( Qt::DecorationRole ).value<QPixmap>();
+    if ( !decoration.isNull() )
+    {
+      QByteArray bytes;
+      QBuffer buffer( &bytes );
+      buffer.open( QIODevice::WriteOnly );
+      if ( decoration.save( &buffer, "PNG" ) )
+      {
+        imgSrc = u"data:image/png;base64,%1"_s.arg( QString::fromLatin1( bytes.toBase64() ) );
+      }
+    }
+  }
+
+  if ( !imgSrc.isEmpty() )
+  {
+    html += u"<img src=\"%1\" style=\"float:right;max-width:64px;max-height:64px;\">"_s.arg( imgSrc );
   }
 
   const thread_local QRegularExpression stripHtml = QRegularExpression( u"&lt;[^\\s].*?&gt;"_s );
