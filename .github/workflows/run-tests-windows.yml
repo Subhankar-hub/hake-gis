@@ -188,6 +188,7 @@ jobs:
                 -D CMAKE_C_COMPILER=cl \
                 -D CMAKE_CXX_COMPILER=cl \
                 -D WITH_VCPKG=ON \
+                -D VCPKG_APPLOCAL_DEPS=OFF \
                 -D CREATE_ZIP=OFF \
                 -D CREATE_NSIS=OFF \
                 -D VCPKG_TARGET_TRIPLET=x64-windows-release \
