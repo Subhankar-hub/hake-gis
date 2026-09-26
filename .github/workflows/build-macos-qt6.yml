@@ -200,7 +200,16 @@ jobs:
       - name: Extract app
         run: |
           mkdir -p arm64
-          gtar --strip-components=5 -zxf ./artifacts/hake-gis-app-${{steps.workflow-artifact-ids.outputs.filename}}-arm64-osx-dynamic-release/hake-gis-app-${{steps.workflow-artifact-ids.outputs.filename}}-arm64-osx-dynamic-release.tar.gz -C arm64
+          # download-artifact extracts a single pattern match flat into path/;
+          # multiple matches nest under path/<artifact-name>/.
+          ARCHIVE=$(find artifacts -name "hake-gis-app-${{steps.workflow-artifact-ids.outputs.filename}}-arm64-osx-dynamic-release.tar.gz" | head -1)
+          if [ -z "$ARCHIVE" ]; then
+            echo "No arm64 app archive found under artifacts/" >&2
+            find artifacts -type f | head -50 >&2
+            exit 1
+          fi
+          echo "Extracting $ARCHIVE"
+          gtar --strip-components=5 -zxf "$ARCHIVE" -C arm64
 
       - name: Create dmg
         run: |
