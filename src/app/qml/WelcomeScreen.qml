@@ -395,7 +395,7 @@ Item {
               id: recentProjectsListView
               Layout.fillWidth: true
               Layout.fillHeight: true
-              spacing: 10
+              spacing: Math.round(welcomeScreen.unit * 0.6)
               clip: true
               model: recentProjectsModel
 
@@ -409,7 +409,7 @@ Item {
                 isEnabled: Exists
                 isPinned: Pinned
                 isSelected: recentProjectsListView.currentIndex === index
-                radius: 10
+                radius: welcomeScreen.cardRadius
 
                 onClicked: (mouse) => {
                   if (mouse.button == Qt.LeftButton && isEnabled) {
@@ -447,9 +447,9 @@ Item {
                 property bool projectHasNativePath: false
 
                 background: Rectangle {
-                  implicitWidth: 200
-                  implicitHeight: 160
-                  radius: 8
+                  implicitWidth: Math.round(welcomeScreen.unit * 12.5)
+                  implicitHeight: welcomeScreen.unit * 10
+                  radius: welcomeScreen.cardRadius
                   color: welcomeScreen.panelColor
                   border.color: welcomeScreen.borderColor
                   border.width: 1
@@ -527,15 +527,15 @@ Item {
             }
             Item { Layout.fillWidth: true }
             BusyIndicator {
-              Layout.preferredWidth: 18
-              Layout.preferredHeight: 18
+              Layout.preferredWidth: Math.round(welcomeScreen.unit * 1.1)
+              Layout.preferredHeight: Math.round(welcomeScreen.unit * 1.1)
               running: newsFeedParser.isFetching
               visible: running
             }
             Rectangle {
-              Layout.preferredWidth: 8
-              Layout.preferredHeight: 8
-              radius: 4
+              Layout.preferredWidth: Math.round(welcomeScreen.unit * 0.5)
+              Layout.preferredHeight: Math.round(welcomeScreen.unit * 0.5)
+              radius: width / 2
               color: welcomeScreen.statusColor
               visible: newsFeedParser.enabled && newsListView.count > 0
             }
@@ -552,25 +552,25 @@ Item {
 
             delegate: Item {
               width: newsListView.width
-              height: Math.max(96, newsColumn.implicitHeight + 20)
+              height: Math.max(welcomeScreen.unit * 6, newsColumn.implicitHeight + Math.round(welcomeScreen.unit * 1.25))
 
               RowLayout {
                 anchors.fill: parent
-                anchors.topMargin: 4
-                anchors.bottomMargin: 12
-                spacing: 12
+                anchors.topMargin: Math.round(welcomeScreen.unit * 0.25)
+                anchors.bottomMargin: Math.round(welcomeScreen.unit * 0.75)
+                spacing: Math.round(welcomeScreen.unit * 0.75)
 
                 Rectangle {
-                  Layout.preferredWidth: 32
-                  Layout.preferredHeight: 32
+                  Layout.preferredWidth: welcomeScreen.unit * 2
+                  Layout.preferredHeight: welcomeScreen.unit * 2
                   Layout.alignment: Qt.AlignTop
-                  radius: 12
+                  radius: welcomeScreen.cardRadius
                   color: welcomeScreen.accentSoftColor
                   Label {
                     anchors.centerIn: parent
                     text: "✦"
                     color: welcomeScreen.newsAccentColor
-                    font.pixelSize: 14
+                    font.pointSize: welcomeScreen.basePointSize * 1.05
                     font.weight: Font.DemiBold
                   }
                 }
@@ -578,20 +578,20 @@ Item {
                 ColumnLayout {
                   id: newsColumn
                   Layout.fillWidth: true
-                  spacing: 4
+                  spacing: Math.round(welcomeScreen.unit * 0.25)
 
                   RowLayout {
                     Label {
                       text: qsTr("NEWS")
                       color: welcomeScreen.newsAccentColor
                       font.family: welcomeScreen.uiFont
-                      font.pixelSize: 10
+                      font.pointSize: welcomeScreen.basePointSize * 0.75
                       font.weight: Font.Bold
                     }
                     Item { Layout.fillWidth: true }
                     RoundButton {
-                      Layout.preferredWidth: 22
-                      Layout.preferredHeight: 22
+                      Layout.preferredWidth: Math.round(welcomeScreen.unit * 1.4)
+                      Layout.preferredHeight: Math.round(welcomeScreen.unit * 1.4)
                       flat: true
                       text: "×"
                       Accessible.name: qsTr("Dismiss news")
@@ -599,7 +599,7 @@ Item {
                       contentItem: Text {
                         text: parent.text
                         color: welcomeScreen.mutedTextColor
-                        font.pixelSize: 14
+                        font.pointSize: welcomeScreen.basePointSize * 1.05
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
                       }
@@ -614,7 +614,7 @@ Item {
                     text: Title || ""
                     color: welcomeScreen.textColor
                     font.family: welcomeScreen.uiFont
-                    font.pixelSize: 14
+                    font.pointSize: welcomeScreen.basePointSize * 1.05
                     font.weight: Font.Bold
                     wrapMode: Text.WordWrap
                   }
@@ -624,7 +624,7 @@ Item {
                     text: Content || ""
                     color: welcomeScreen.mutedTextColor
                     font.family: welcomeScreen.uiFont
-                    font.pixelSize: 12
+                    font.pointSize: welcomeScreen.basePointSize * 0.9
                     lineHeight: 1.35
                     wrapMode: Text.WordWrap
                     maximumLineCount: 4
@@ -637,7 +637,7 @@ Item {
                     text: qsTr("Read more")
                     color: welcomeScreen.newsAccentColor
                     font.family: welcomeScreen.uiFont
-                    font.pixelSize: 11
+                    font.pointSize: welcomeScreen.basePointSize * 0.85
                     font.weight: Font.Bold
                     font.underline: readMoreArea.containsMouse
                     MouseArea {
@@ -732,7 +732,7 @@ Item {
     UpdateNotificationBar {
       id: pluginsUpdateBar
       Layout.fillWidth: true
-      Layout.preferredHeight: 48
+      Layout.preferredHeight: welcomeScreen.unit * 3
       radius: welcomeScreen.cardRadius
       visible: false
       color: "#0f265c"
@@ -745,7 +745,7 @@ Item {
     UpdateNotificationBar {
       id: qgisUpdateBar
       Layout.fillWidth: true
-      Layout.preferredHeight: 48
+      Layout.preferredHeight: welcomeScreen.unit * 3
       radius: welcomeScreen.cardRadius
       visible: false
       color: "#0f265c"
