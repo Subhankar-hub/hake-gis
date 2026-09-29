@@ -22,7 +22,10 @@
 #include <QStringList>
 #include <QTabWidget>
 
+class QAction;
 class QLabel;
+class QMenu;
+class QMenuBar;
 class QToolBar;
 class QWidget;
 class QgisApp;
@@ -61,7 +64,7 @@ class QgsAppRibbon : public QTabWidget
   public:
     explicit QgsAppRibbon( QWidget *parent, QgisApp *app );
 
-    //! Resolves dock toggle actions (Browser, Layers, Processing Toolbox) whose docks are created after the ribbon.
+    //! Resolves dock toggle actions (Browser, Layers, Processing Toolbox) and plugin menus (Processing) created after the ribbon.
     void refreshOptionalActions();
 
     QSize sizeHint() const override;
@@ -81,14 +84,31 @@ class QgsAppRibbon : public QTabWidget
     QgsAppRibbonGroup *addGroup( QgsAppRibbonPage *page, const QString &title );
     void addNamedAction( QgsAppRibbonGroup *group, const QString &objectName, bool primary = false );
     void addDockToggle( QgsAppRibbonGroup *group, const QString &dockObjectName, bool primary = false );
+    //! Adds an existing menu as a drop-down button; hidden while the menu is empty.
+    void addMenu( QgsAppRibbonGroup *group, QMenu *menu );
+    //! Adds a menu created later (e.g. by a plugin), resolved by object name in refreshOptionalActions().
+    void addDeferredMenu( QgsAppRibbonGroup *group, const QString &menuObjectName );
     void mirrorToolbar( QgsAppRibbonGroup *group, QToolBar *toolbar );
     void syncMirroredGroup( QToolBar *toolbar );
+
+    /**
+     * Watches the hidden classic menu bar: keeps top-level menu actions registered on the main
+     * window (so their shortcuts work) and presents non-standard menus, such as those added by
+     * installed extensions, in the Extensions tab.
+     */
+    void watchMenuBar( QMenuBar *menuBar );
+    void syncMenuBar();
+    bool isStandardMenu( const QMenu *menu ) const;
 
     QgisApp *mApp = nullptr;
     QLabel *mBrand = nullptr;
     QList<QgsAppRibbonPage *> mPages;
     QHash<QToolBar *, QgsAppRibbonGroup *> mMirroredToolbars;
     QList<QPointer<QToolBar>> mPendingMirrorSyncs;
+    QPointer<QMenuBar> mMenuBar;
+    QgsAppRibbonGroup *mExtensionMenus = nullptr;
+    QList<QPointer<QAction>> mAdoptedMenuBarActions;
+    bool mMenuBarSyncPending = false;
     QgsAppRibbonMetrics mMetrics;
     int mCommandHeight = 0;
     bool mUpdatingMetrics = false;

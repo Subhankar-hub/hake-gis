@@ -4088,10 +4088,6 @@ void QgisApp::createAppRibbon()
     ribbonBarLayout->setSpacing( 0 );
   }
 
-  // Continuously paint the classic menu row chrome end-to-end (same as ribbon strip).
-  if ( QMenuBar *bar = menuBar() )
-    bar->setAttribute( Qt::WA_StyledBackground, true );
-
   // Host at the top, ahead of the classic toolbars
   if ( mFileToolBar )
     QMainWindow::insertToolBar( mFileToolBar, mAppRibbonBar );
@@ -4099,17 +4095,24 @@ void QgisApp::createAppRibbon()
     QMainWindow::addToolBar( Qt::TopToolBarArea, mAppRibbonBar );
   mAppRibbonBar->show();
 
-  // Visibility is persisted in UI/state, so it must stay user-restorable from View → Toolbars.
-  if ( mToolbarMenu )
-  {
-    QAction *ribbonToggle = mAppRibbonBar->toggleViewAction();
-    ribbonToggle->setObjectName( u"mActionToggleHakeAppRibbon"_s );
-    const QList<QAction *> toolbarActions = mToolbarMenu->actions();
-    QAction *before = toolbarActions.isEmpty() ? nullptr : toolbarActions.first();
-    mToolbarMenu->insertAction( before, ribbonToggle );
-    if ( before )
-      mToolbarMenu->insertSeparator( before );
-  }
+  // The ribbon is the only navigation row (the classic menu bar is hidden), so it
+  // must not be user-hideable from View > Toolbars or toolbar context menus.
+  QAction *ribbonToggle = mAppRibbonBar->toggleViewAction();
+  ribbonToggle->setObjectName( u"mActionToggleHakeAppRibbon"_s );
+  ribbonToggle->setVisible( false );
+}
+
+void QgisApp::hideClassicMenuBar()
+{
+  QMenuBar *bar = menuBar();
+  if ( !bar )
+    return;
+
+  // A hidden menu bar disables the shortcuts of menu-only actions; owning the
+  // top-level menu actions on the main window keeps them active. Menus added
+  // later by plugins are registered by QgsAppRibbon's menu bar watcher.
+  addActions( bar->actions() );
+  bar->hide();
 }
 
 void QgisApp::hideClassicToolBars()
@@ -7648,7 +7651,7 @@ void QgisApp::toggleReducedView( bool viewMapOnly )
   {
     if ( viewMapOnly ) //
     {
-      // hide also statusbar and menubar and all toolbars
+      // hide also statusbar and all toolbars (including the ribbon)
       for ( QToolBar *toolBar : toolBars )
       {
         if ( toolBar->isVisible() && !toolBar->isFloating() && toolBar->parent()->inherits( "QMainWindow" ) )
@@ -7660,9 +7663,7 @@ void QgisApp::toggleReducedView( bool viewMapOnly )
           this->addActions( toolBar->actions() );
         }
       }
-      // Adding the menuBar's actions to the main window allows us to keep using them while the menuBar is invisible
-      this->addActions( this->menuBar()->actions() );
-      this->menuBar()->setVisible( false );
+      // The classic menu bar is permanently hidden (hideClassicMenuBar) and its actions already live on the main window
       this->statusBar()->setVisible( false );
 
       settings.setValue( u"UI/hiddenToolBarsActive"_s, toolBarsActive );
@@ -7725,14 +7726,6 @@ void QgisApp::toggleReducedView( bool viewMapOnly )
         }
       }
     }
-    // Let's remove the menuBar's actions from the main window.
-    // They were only there for use while the menuBar was invisible
-    const QList<QAction *> actions = this->menuBar()->actions();
-    for ( QAction *action : actions )
-    {
-      this->removeAction( action );
-    }
-    this->menuBar()->setVisible( true );
     this->statusBar()->setVisible( true );
 
     settings.remove( u"UI/hiddenToolBarsActive"_s );
@@ -18040,6 +18033,8 @@ void QgisApp::showEvent( QShowEvent *event )
     // A saved state reflects the user's own View > Toolbars choices - keep it.
     if ( !hadSavedState )
       hideClassicToolBars();
+    else if ( mAppRibbonBar )
+      mAppRibbonBar->show();
   } );
 }
 

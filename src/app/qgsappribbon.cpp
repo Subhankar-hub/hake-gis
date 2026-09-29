@@ -30,6 +30,7 @@
 #include <QIcon>
 #include <QLabel>
 #include <QMenu>
+#include <QMenuBar>
 #include <QPainter>
 #include <QPixmap>
 #include <QPointer>
@@ -64,6 +65,37 @@ namespace
   bool isPresentableAction( const QAction *action )
   {
     return action && !action->isSeparator() && !qobject_cast<const QWidgetAction *>( action );
+  }
+
+  //! The menu behind a QMenu::menuAction() drop-down, as opposed to a regular command that merely carries a menu.
+  QMenu *dropDownMenu( const QAction *action )
+  {
+    QMenu *menu = action ? action->menu() : nullptr;
+    return menu && menu->menuAction() == action ? menu : nullptr;
+  }
+
+  //! Visible, and for a menu drop-down, the menu has at least one visible command.
+  bool isShowableCommand( const QAction *action )
+  {
+    if ( !action || !action->isVisible() )
+      return false;
+    if ( const QMenu *menu = dropDownMenu( action ) )
+    {
+      const QList<QAction *> actions = menu->actions();
+      return std::any_of( actions.cbegin(), actions.cend(), []( const QAction *a ) { return !a->isSeparator() && a->isVisible(); } );
+    }
+    return true;
+  }
+
+  //! Toolbar widgets such as drop-down tool buttons are presented through their default action.
+  QAction *presentableToolbarAction( QAction *action )
+  {
+    if ( auto *widgetAction = qobject_cast<QWidgetAction *>( action ) )
+    {
+      auto *button = qobject_cast<QToolButton *>( widgetAction->defaultWidget() );
+      return button ? button->defaultAction() : nullptr;
+    }
+    return action;
   }
 } // namespace
 
@@ -119,6 +151,8 @@ class QgsAppRibbonGroup : public QWidget
         bool primary = false;
         //! Dock whose toggleViewAction() fills this entry once the dock exists
         QString dockObjectName;
+        //! Menu whose menuAction() fills this entry once the menu exists
+        QString menuObjectName;
     };
 
     QgsAppRibbonGroup( const QString &title, QWidget *parent );
@@ -126,7 +160,7 @@ class QgsAppRibbonGroup : public QWidget
     QString title() const { return mTitle; }
     void addEntry( const Entry &entry );
     void setEntries( const QList<Entry> &entries );
-    bool resolveDocks( QObject *root );
+    bool resolveDeferred( QObject *root );
     QList<QAction *> commands() const;
     bool hasCommands() const { return !commands().isEmpty(); }
 
@@ -140,6 +174,9 @@ class QgsAppRibbonGroup : public QWidget
 
     QSize sizeHint() const override;
     QSize minimumSizeHint() const override;
+
+  protected:
+    bool eventFilter( QObject *watched, QEvent *event ) override;
 
   private:
     void watchAction( QAction *action );
@@ -212,15 +249,26 @@ QgsAppRibbonGroup::QgsAppRibbonGroup( const QString &title, QWidget *parent )
 
 void QgsAppRibbonGroup::watchAction( QAction *action )
 {
-  if ( action )
-    connect( action, &QAction::visibleChanged, this, &QgsAppRibbonGroup::scheduleRebuild, Qt::UniqueConnection );
+  if ( !action )
+    return;
+  connect( action, &QAction::visibleChanged, this, &QgsAppRibbonGroup::scheduleRebuild, Qt::UniqueConnection );
+  // Menu drop-downs appear/disappear as plugins populate or empty the menu.
+  if ( QMenu *menu = dropDownMenu( action ) )
+    menu->installEventFilter( this );
+}
+
+bool QgsAppRibbonGroup::eventFilter( QObject *watched, QEvent *event )
+{
+  if ( ( event->type() == QEvent::ActionAdded || event->type() == QEvent::ActionRemoved ) && qobject_cast<QMenu *>( watched ) )
+    scheduleRebuild();
+  return QWidget::eventFilter( watched, event );
 }
 
 void QgsAppRibbonGroup::addEntry( const Entry &entry )
 {
   if ( entry.action && !isPresentableAction( entry.action ) )
     return;
-  if ( !entry.action && entry.dockObjectName.isEmpty() )
+  if ( !entry.action && entry.dockObjectName.isEmpty() && entry.menuObjectName.isEmpty() )
     return;
   mEntries.append( entry );
   watchAction( entry.action );
@@ -234,16 +282,25 @@ void QgsAppRibbonGroup::setEntries( const QList<Entry> &entries )
   scheduleRebuild();
 }
 
-bool QgsAppRibbonGroup::resolveDocks( QObject *root )
+bool QgsAppRibbonGroup::resolveDeferred( QObject *root )
 {
   bool resolved = false;
   for ( Entry &entry : mEntries )
   {
-    if ( entry.action || entry.dockObjectName.isEmpty() )
+    if ( entry.action )
       continue;
-    if ( QDockWidget *dock = root->findChild<QDockWidget *>( entry.dockObjectName ) )
+    if ( !entry.dockObjectName.isEmpty() )
     {
-      entry.action = dock->toggleViewAction();
+      if ( QDockWidget *dock = root->findChild<QDockWidget *>( entry.dockObjectName ) )
+        entry.action = dock->toggleViewAction();
+    }
+    else if ( !entry.menuObjectName.isEmpty() )
+    {
+      if ( QMenu *menu = root->findChild<QMenu *>( entry.menuObjectName ) )
+        entry.action = menu->menuAction();
+    }
+    if ( entry.action )
+    {
       watchAction( entry.action );
       resolved = true;
     }
@@ -256,7 +313,7 @@ QList<QAction *> QgsAppRibbonGroup::commands() const
   QList<QAction *> list;
   for ( const Entry &entry : mEntries )
   {
-    if ( entry.action && entry.action->isVisible() )
+    if ( isShowableCommand( entry.action ) )
       list << entry.action;
   }
   return list;
@@ -315,6 +372,8 @@ QToolButton *QgsAppRibbonGroup::makeButton( QWidget *parent, QAction *action, Qt
   // Reachable by keyboard, but a mouse click must not steal focus from the map canvas.
   button->setFocusPolicy( Qt::TabFocus );
   button->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+  if ( dropDownMenu( action ) )
+    button->setPopupMode( QToolButton::InstantPopup );
   return button;
 }
 
@@ -332,7 +391,7 @@ QWidget *QgsAppRibbonGroup::buildVariant( Level level )
   QList<Entry> visibleEntries;
   for ( const Entry &entry : std::as_const( mEntries ) )
   {
-    if ( entry.action && entry.action->isVisible() )
+    if ( isShowableCommand( entry.action ) )
       visibleEntries << entry;
   }
   if ( visibleEntries.isEmpty() )
@@ -663,7 +722,11 @@ QgsAppRibbon::QgsAppRibbon( QWidget *parent, QgisApp *app )
   if ( !mApp )
     return;
 
-  // Home
+  // The ribbon tab strip is the only navigation row: exactly these nine tabs, in this order.
+  // Classic menus (Project, Edit, View, Layer, Settings, Plugins, ...) are not tabs; they are
+  // exposed as drop-downs inside the matching tab.
+
+  // Home: project, editing, navigation and application settings
   {
     QgsAppRibbonPage *page = addPage( tr( "Home" ) );
     QgsAppRibbonGroup *project = addGroup( page, tr( "Project" ) );
@@ -673,10 +736,12 @@ QgsAppRibbon::QgsAppRibbon( QWidget *parent, QgisApp *app )
     addNamedAction( project, u"mActionSaveProjectAs"_s );
     addNamedAction( project, u"mActionProjectProperties"_s );
     addNamedAction( project, u"mActionExit"_s );
+    addMenu( project, mApp->projectMenu() );
 
     QgsAppRibbonGroup *edit = addGroup( page, tr( "Editing" ) );
     addNamedAction( edit, u"mActionUndo"_s );
     addNamedAction( edit, u"mActionRedo"_s );
+    addMenu( edit, mApp->editMenu() );
 
     QgsAppRibbonGroup *navigation = addGroup( page, tr( "Navigation" ) );
     addNamedAction( navigation, u"mActionPan"_s, true );
@@ -688,6 +753,12 @@ QgsAppRibbon::QgsAppRibbon( QWidget *parent, QgisApp *app )
     QgsAppRibbonGroup *identify = addGroup( page, tr( "Identify" ) );
     addNamedAction( identify, u"mActionIdentify"_s, true );
     addNamedAction( identify, u"mActionOpenTable"_s );
+
+    QgsAppRibbonGroup *application = addGroup( page, tr( "Application" ) );
+    addNamedAction( application, u"mActionOptions"_s, true );
+    addNamedAction( application, u"mActionStyleManager"_s );
+    addNamedAction( application, u"mActionCustomProjection"_s );
+    addMenu( application, mApp->settingsMenu() );
   }
 
   // Data: layer sources, layouts, database and web services
@@ -705,10 +776,16 @@ QgsAppRibbon::QgsAppRibbon( QWidget *parent, QgisApp *app )
     addNamedAction( layers, u"mActionAddWfsLayer"_s );
     addNamedAction( layers, u"mActionLayerProperties"_s );
     addNamedAction( layers, u"mActionRemoveLayer"_s );
+    addNamedAction( layers, u"mActionOpenTable"_s );
+    addMenu( layers, mApp->layerMenu() );
 
     QgsAppRibbonGroup *layout = addGroup( page, tr( "Layout" ) );
     addNamedAction( layout, u"mActionNewPrintLayout"_s, true );
     addNamedAction( layout, u"mActionShowLayoutManager"_s );
+
+    QgsAppRibbonGroup *services = addGroup( page, tr( "Services" ) );
+    addMenu( services, mApp->databaseMenu() );
+    addMenu( services, mApp->webMenu() );
 
     // Plugins (e.g. DB Manager, MetaSearch) populate these toolbars at runtime.
     mirrorToolbar( addGroup( page, tr( "Database" ) ), mApp->databaseToolBar() );
@@ -731,13 +808,18 @@ QgsAppRibbon::QgsAppRibbon( QWidget *parent, QgisApp *app )
     QgsAppRibbonGroup *processing = addGroup( page, tr( "Processing" ) );
     addDockToggle( processing, u"ProcessingToolbox"_s, true );
     addNamedAction( processing, u"mActionShowPythonDialog"_s, true );
+    addDeferredMenu( processing, u"processing"_s );
   }
 
-  // Map: map views and navigation history
+  // Map: navigation, map views, bookmarks and panels
   {
     QgsAppRibbonPage *page = addPage( tr( "Map" ) );
     QgsAppRibbonGroup *navigation = addGroup( page, tr( "Navigation" ) );
-    addNamedAction( navigation, u"mActionNewMapCanvas"_s, true );
+    addNamedAction( navigation, u"mActionPan"_s, true );
+    addNamedAction( navigation, u"mActionZoomIn"_s );
+    addNamedAction( navigation, u"mActionZoomOut"_s );
+    addNamedAction( navigation, u"mActionZoomFullExtent"_s );
+    addNamedAction( navigation, u"mActionDraw"_s );
     addNamedAction( navigation, u"mActionPanToSelected"_s );
     addNamedAction( navigation, u"mActionZoomToSelected"_s );
     addNamedAction( navigation, u"mActionZoomToLayers"_s );
@@ -745,9 +827,23 @@ QgsAppRibbon::QgsAppRibbon( QWidget *parent, QgisApp *app )
     addNamedAction( navigation, u"mActionZoomLast"_s );
     addNamedAction( navigation, u"mActionZoomNext"_s );
 
+    QgsAppRibbonGroup *mapViews = addGroup( page, tr( "Map Views" ) );
+    addNamedAction( mapViews, u"mActionNewMapCanvas"_s, true );
+
     QgsAppRibbonGroup *views3d = addGroup( page, tr( "3D" ) );
     addNamedAction( views3d, u"mActionNew3DMapCanvas"_s, true );
     addNamedAction( views3d, u"mActionNew3DMapCanvasGlobe"_s, true );
+
+    QgsAppRibbonGroup *bookmarks = addGroup( page, tr( "Bookmarks" ) );
+    addNamedAction( bookmarks, u"mActionNewBookmark"_s, true );
+    addNamedAction( bookmarks, u"mActionShowBookmarks"_s );
+
+    QgsAppRibbonGroup *panels = addGroup( page, tr( "Panels" ) );
+    addDockToggle( panels, u"Browser"_s );
+    addDockToggle( panels, u"Layers"_s );
+    addNamedAction( panels, u"mActionTemporalController"_s );
+    addNamedAction( panels, u"mActionToggleFullScreen"_s );
+    addMenu( panels, mApp->viewMenu() );
   }
 
   // Vector
@@ -776,6 +872,9 @@ QgsAppRibbon::QgsAppRibbon( QWidget *parent, QgisApp *app )
     addNamedAction( labels, u"mActionRotateLabel"_s );
     addNamedAction( labels, u"mActionShowPinnedLabels"_s );
     addNamedAction( labels, u"mActionShowHideLabels"_s );
+
+    QgsAppRibbonGroup *tools = addGroup( page, tr( "Tools" ) );
+    addMenu( tools, mApp->vectorMenu() );
   }
 
   // Raster
@@ -798,34 +897,37 @@ QgsAppRibbon::QgsAppRibbon( QWidget *parent, QgisApp *app )
     QgsAppRibbonGroup *gamma = addGroup( page, tr( "Gamma" ) );
     addNamedAction( gamma, u"mActionIncreaseGamma"_s );
     addNamedAction( gamma, u"mActionDecreaseGamma"_s );
+
+    QgsAppRibbonGroup *tools = addGroup( page, tr( "Tools" ) );
+    addNamedAction( tools, u"mActionShowRasterCalculator"_s );
+    addMenu( tools, mApp->rasterMenu() );
   }
 
-  // View: bookmarks, panels and settings
-  {
-    QgsAppRibbonPage *page = addPage( tr( "View" ) );
-    QgsAppRibbonGroup *bookmarks = addGroup( page, tr( "Bookmarks" ) );
-    addNamedAction( bookmarks, u"mActionNewBookmark"_s, true );
-    addNamedAction( bookmarks, u"mActionShowBookmarks"_s );
-
-    QgsAppRibbonGroup *panels = addGroup( page, tr( "Panels" ) );
-    addDockToggle( panels, u"Browser"_s );
-    addDockToggle( panels, u"Layers"_s );
-    addNamedAction( panels, u"mActionTemporalController"_s );
-    addNamedAction( panels, u"mActionToggleFullScreen"_s );
-
-    QgsAppRibbonGroup *settings = addGroup( page, tr( "Settings" ) );
-    addNamedAction( settings, u"mActionOptions"_s, true );
-    addNamedAction( settings, u"mActionStyleManager"_s );
-    addNamedAction( settings, u"mActionCustomProjection"_s );
-  }
-
-  // Extensions: plugin management and plugin-provided toolbar actions
+  // Extensions: extension management (existing plugin manager), plugin toolbar actions,
+  // and top-level menus that installed extensions (e.g. HCMGIS) add at runtime.
   {
     QgsAppRibbonPage *page = addPage( tr( "Extensions" ) );
-    QgsAppRibbonGroup *plugins = addGroup( page, tr( "Plugins" ) );
-    addNamedAction( plugins, u"mActionManagePlugins"_s, true );
+    QgsAppRibbonGroup *manage = addGroup( page, tr( "Manage" ) );
+    addNamedAction( manage, u"mActionManagePlugins"_s, true );
+    addNamedAction( manage, u"mActionShowPythonDialog"_s );
+    addMenu( manage, mApp->pluginMenu() );
 
     mirrorToolbar( addGroup( page, tr( "Installed" ) ), mApp->pluginToolBar() );
+    mExtensionMenus = addGroup( page, tr( "Installed Menus" ) );
+  }
+
+  // Mesh
+  {
+    QgsAppRibbonPage *page = addPage( tr( "Mesh" ) );
+    QgsAppRibbonGroup *layers = addGroup( page, tr( "Layers" ) );
+    addNamedAction( layers, u"mActionAddMeshLayer"_s, true );
+    addNamedAction( layers, u"mActionNewMeshLayer"_s );
+
+    mirrorToolbar( addGroup( page, tr( "Digitizing" ) ), mApp->meshToolBar() );
+
+    QgsAppRibbonGroup *tools = addGroup( page, tr( "Tools" ) );
+    addNamedAction( tools, u"mActionShowMeshCalculator"_s, true );
+    addMenu( tools, mApp->meshMenu() );
   }
 
   // Help
@@ -833,6 +935,7 @@ QgsAppRibbon::QgsAppRibbon( QWidget *parent, QgisApp *app )
     QgsAppRibbonPage *page = addPage( tr( "Help" ) );
     QgsAppRibbonGroup *help = addGroup( page, tr( "Help" ) );
     addNamedAction( help, u"mActionHelpContents"_s, true );
+    addMenu( help, mApp->helpMenu() );
 
     QgsAppRibbonGroup *documentation = addGroup( page, tr( "Documentation" ) );
     addNamedAction( documentation, u"mActionHelpAPI"_s );
@@ -842,6 +945,7 @@ QgsAppRibbon::QgsAppRibbon( QWidget *parent, QgisApp *app )
     addNamedAction( about, u"mActionQgisHomePage"_s );
   }
 
+  watchMenuBar( mApp->menuBar() );
   refreshOptionalActions();
   updateMetrics();
 }
@@ -938,7 +1042,19 @@ void QgsAppRibbon::changeEvent( QEvent *event )
 
 bool QgsAppRibbon::eventFilter( QObject *watched, QEvent *event )
 {
-  if ( event->type() == QEvent::ActionAdded || event->type() == QEvent::ActionRemoved )
+  if ( ( event->type() == QEvent::ActionAdded || event->type() == QEvent::ActionRemoved ) && mMenuBar && watched == mMenuBar.data() )
+  {
+    // Extensions add or remove top-level menus in bursts; coalesce into one sync.
+    if ( !mMenuBarSyncPending )
+    {
+      mMenuBarSyncPending = true;
+      QTimer::singleShot( 0, this, [this] {
+        mMenuBarSyncPending = false;
+        syncMenuBar();
+      } );
+    }
+  }
+  else if ( event->type() == QEvent::ActionAdded || event->type() == QEvent::ActionRemoved )
   {
     auto *toolbar = qobject_cast<QToolBar *>( watched );
     if ( toolbar && mMirroredToolbars.contains( toolbar ) )
@@ -1022,7 +1138,7 @@ void QgsAppRibbon::refreshOptionalActions()
   {
     for ( QgsAppRibbonGroup *group : page->groups() )
     {
-      if ( group->resolveDocks( mApp ) )
+      if ( group->resolveDeferred( mApp ) )
         group->scheduleRebuild();
     }
   }
@@ -1055,6 +1171,18 @@ void QgsAppRibbon::addDockToggle( QgsAppRibbonGroup *group, const QString &dockO
     group->addEntry( { nullptr, primary, dockObjectName } );
 }
 
+void QgsAppRibbon::addMenu( QgsAppRibbonGroup *group, QMenu *menu )
+{
+  if ( group && menu )
+    group->addEntry( { menu->menuAction(), false, QString() } );
+}
+
+void QgsAppRibbon::addDeferredMenu( QgsAppRibbonGroup *group, const QString &menuObjectName )
+{
+  if ( group )
+    group->addEntry( { nullptr, false, QString(), menuObjectName } );
+}
+
 void QgsAppRibbon::mirrorToolbar( QgsAppRibbonGroup *group, QToolBar *toolbar )
 {
   if ( !group || !toolbar )
@@ -1063,7 +1191,10 @@ void QgsAppRibbon::mirrorToolbar( QgsAppRibbonGroup *group, QToolBar *toolbar )
   toolbar->installEventFilter( this );
   const QList<QAction *> actions = toolbar->actions();
   for ( QAction *action : actions )
-    group->addEntry( { action, false, QString() } );
+  {
+    if ( QAction *presented = presentableToolbarAction( action ) )
+      group->addEntry( { presented, false, QString() } );
+  }
 }
 
 void QgsAppRibbon::syncMirroredGroup( QToolBar *toolbar )
@@ -1074,6 +1205,74 @@ void QgsAppRibbon::syncMirroredGroup( QToolBar *toolbar )
   QList<QgsAppRibbonGroup::Entry> entries;
   const QList<QAction *> actions = toolbar->actions();
   for ( QAction *action : actions )
-    entries.append( QgsAppRibbonGroup::Entry { action, false, QString() } );
+  {
+    if ( QAction *presented = presentableToolbarAction( action ) )
+      entries.append( QgsAppRibbonGroup::Entry { presented, false, QString() } );
+  }
   group->setEntries( entries );
+}
+
+void QgsAppRibbon::watchMenuBar( QMenuBar *menuBar )
+{
+  if ( !menuBar )
+    return;
+  mMenuBar = menuBar;
+  menuBar->installEventFilter( this );
+  syncMenuBar();
+}
+
+bool QgsAppRibbon::isStandardMenu( const QMenu *menu ) const
+{
+  if ( !mApp || !menu )
+    return false;
+  // Processing is a core plugin with its own drop-down in the Analysis tab.
+  if ( menu->objectName() == u"processing"_s )
+    return true;
+  const QList<const QMenu *> standardMenus {
+    mApp->projectMenu(),
+    mApp->editMenu(),
+    mApp->viewMenu(),
+    mApp->layerMenu(),
+    mApp->settingsMenu(),
+    mApp->pluginMenu(),
+    mApp->vectorMenu(),
+    mApp->rasterMenu(),
+    mApp->databaseMenu(),
+    mApp->webMenu(),
+    mApp->meshMenu(),
+    mApp->windowMenu(),
+    mApp->helpMenu(),
+  };
+  return standardMenus.contains( menu );
+}
+
+void QgsAppRibbon::syncMenuBar()
+{
+  if ( !mApp || !mMenuBar )
+    return;
+
+  const QList<QAction *> barActions = mMenuBar->actions();
+  const QList<QAction *> appActions = mApp->actions();
+  for ( const QPointer<QAction> &adopted : std::as_const( mAdoptedMenuBarActions ) )
+  {
+    if ( adopted && !barActions.contains( adopted.data() ) )
+      mApp->removeAction( adopted );
+  }
+  mAdoptedMenuBarActions.clear();
+
+  QList<QgsAppRibbonGroup::Entry> extensionEntries;
+  for ( QAction *action : barActions )
+  {
+    // The menu bar is hidden; registering its menus on the main window keeps their shortcuts active.
+    if ( !appActions.contains( action ) )
+      mApp->addAction( action );
+    mAdoptedMenuBarActions << action;
+
+    QMenu *menu = action->menu();
+    if ( menu && !isStandardMenu( menu ) )
+      extensionEntries.append( QgsAppRibbonGroup::Entry { action, false, QString() } );
+  }
+
+  if ( mExtensionMenus )
+    mExtensionMenus->setEntries( extensionEntries );
 }

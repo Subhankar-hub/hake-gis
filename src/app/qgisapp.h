@@ -765,6 +765,12 @@ class APP_EXPORT QgisApp : public QMainWindow, private Ui::MainWindow
 #endif
     QMenu *helpMenu() { return mHelpMenu; }
 
+    /**
+     * Hides the classic menu bar row; the ribbon is the only navigation row.
+     * Menus stay intact and their shortcuts keep working through the main window.
+     */
+    void hideClassicMenuBar();
+
     //! Toolbars
 
     /**
