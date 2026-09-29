@@ -1571,6 +1571,11 @@ QWidget#HakeAppRibbonTabFiller {
     border-bottom: 1px solid @itemdarkbackground;
 }
 
+QWidget#HakeAppRibbonTabFiller QLabel#HakeAppRibbonBrand {
+    color: @focus;
+    background: transparent;
+}
+
 QTabWidget#HakeAppRibbon > QTabBar::tab,
 QTabWidget#HakeAppRibbon > QTabBar::tab:!selected {
     background-color: @background;

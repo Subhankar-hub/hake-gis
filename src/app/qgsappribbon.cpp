@@ -28,6 +28,7 @@
 #include <QGridLayout>
 #include <QHBoxLayout>
 #include <QIcon>
+#include <QLabel>
 #include <QMenu>
 #include <QPainter>
 #include <QPixmap>
@@ -646,11 +647,17 @@ QgsAppRibbon::QgsAppRibbon( QWidget *parent, QgisApp *app )
   tabBar()->setElideMode( Qt::ElideNone );
   tabBar()->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Preferred );
 
-  // Fills any remaining header gap to the right of the last tab with chrome.
+  // Brand at the right end of the tab strip; the tab bar is sized to end where it begins.
   auto *tabFiller = new QWidget( this );
   tabFiller->setObjectName( u"HakeAppRibbonTabFiller"_s );
   tabFiller->setAttribute( Qt::WA_StyledBackground, true );
   tabFiller->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Preferred );
+  auto *fillerLayout = new QHBoxLayout( tabFiller );
+  fillerLayout->setContentsMargins( 0, 0, 0, 0 );
+  mBrand = new QLabel( u"HAKE GEOSPATIAL"_s, tabFiller );
+  mBrand->setObjectName( u"HakeAppRibbonBrand"_s );
+  mBrand->setAccessibleName( tr( "Hake Geospatial" ) );
+  fillerLayout->addWidget( mBrand, 0, Qt::AlignVCenter );
   setCornerWidget( tabFiller, Qt::TopRightCorner );
 
   if ( !mApp )
@@ -667,7 +674,7 @@ QgsAppRibbon::QgsAppRibbon( QWidget *parent, QgisApp *app )
     addNamedAction( project, u"mActionProjectProperties"_s );
     addNamedAction( project, u"mActionExit"_s );
 
-    QgsAppRibbonGroup *edit = addGroup( page, tr( "Edit" ) );
+    QgsAppRibbonGroup *edit = addGroup( page, tr( "Editing" ) );
     addNamedAction( edit, u"mActionUndo"_s );
     addNamedAction( edit, u"mActionRedo"_s );
 
@@ -812,9 +819,9 @@ QgsAppRibbon::QgsAppRibbon( QWidget *parent, QgisApp *app )
     addNamedAction( settings, u"mActionCustomProjection"_s );
   }
 
-  // Plugins
+  // Extensions: plugin management and plugin-provided toolbar actions
   {
-    QgsAppRibbonPage *page = addPage( tr( "Plugins" ) );
+    QgsAppRibbonPage *page = addPage( tr( "Extensions" ) );
     QgsAppRibbonGroup *plugins = addGroup( page, tr( "Plugins" ) );
     addNamedAction( plugins, u"mActionManagePlugins"_s, true );
 
@@ -883,6 +890,15 @@ void QgsAppRibbon::updateMetrics()
   }
   m.captionHeight = QFontMetrics( ribbonCaptionFont( font() ) ).height();
 
+  if ( mBrand )
+  {
+    QFont brandFont = ribbonCaptionFont( font() );
+    brandFont.setWeight( QFont::DemiBold );
+    brandFont.setLetterSpacing( QFont::AbsoluteSpacing, 1.2 );
+    mBrand->setFont( brandFont );
+    mBrand->parentWidget()->layout()->setContentsMargins( m.horizontalMargin * 2, 0, m.horizontalMargin * 2, 0 );
+  }
+
   // Page margins plus the 1px bottom border.
   const int chrome = 2 * m.verticalMargin + 1;
   const int command = chrome + m.tallHeight + m.captionHeight;
@@ -899,6 +915,7 @@ void QgsAppRibbon::updateMetrics()
       page->setMetrics( m );
   }
   updateGeometry();
+  syncChromeTabBarGeometry();
   mUpdatingMetrics = false;
 }
 
@@ -964,25 +981,29 @@ void QgsAppRibbon::syncChromeTabBarGeometry()
     return;
 
   // Portable QWidget geometry only (valid on Wayland/X11/Windows/macOS). Document-mode
-  // tab bars often keep sizeHint width (= tabs only); force the bar to span the full
-  // ribbon so @chrome fills past the last tab without stretching tab labels.
+  // tab bars often keep sizeHint width (= tabs only); force the bar to span up to the
+  // brand corner widget so the strip is filled past the last tab without stretching
+  // tab labels, and the scroll arrows never sit underneath the brand.
   const int stripWidth = width();
   if ( stripWidth <= 0 )
     return;
 
-  if ( bar->minimumWidth() != stripWidth )
-    bar->setMinimumWidth( stripWidth );
+  QWidget *filler = cornerWidget( Qt::TopRightCorner );
+  const int barWidth = std::max( 1, stripWidth - ( filler ? filler->sizeHint().width() : 0 ) );
 
-  // Integer height from sizeHint — avoid fighting layout when already full-width.
+  if ( bar->minimumWidth() != barWidth )
+    bar->setMinimumWidth( barWidth );
+
+  // Integer height from sizeHint — avoid fighting layout when already the right width.
   const int h = std::max( bar->sizeHint().height(), 1 );
-  if ( bar->x() != 0 || bar->width() != stripWidth )
+  if ( bar->x() != 0 || bar->width() != barWidth )
   {
-    const QRect target( 0, bar->y(), stripWidth, std::max( bar->height(), h ) );
+    const QRect target( 0, bar->y(), barWidth, std::max( bar->height(), h ) );
     if ( bar->geometry() != target )
       bar->setGeometry( target );
   }
 
-  if ( QWidget *filler = cornerWidget( Qt::TopRightCorner ) )
+  if ( filler )
   {
     const int fillerH = std::max( bar->height(), h );
     if ( filler->minimumHeight() != fillerH )

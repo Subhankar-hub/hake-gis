@@ -42,9 +42,9 @@ QToolTip
 }
 
 QMenuBar {
-    background-color: @chrome;
-    color: @chromeText;
-    border-bottom: 1px solid @chromeBorder;
+    background-color: @ribbonSurface;
+    color: @text;
+    border: none;
     /* Horizontal padding 0 so item padding (4px 10px) matches ribbon tab insets. */
     padding: 2px 0;
 }
@@ -55,14 +55,14 @@ QMenuBar::item
     padding: 4px 10px;
     margin: 0;
     border: none;
-    border-radius: 0;
-    color: @chromeText;
+    border-radius: 3px;
+    color: @text;
 }
 
 QMenuBar::item:selected
 {
-    background: @chromeHover;
-    color: @chromeText;
+    background: @chromeToolbar;
+    color: @chrome;
     padding: 4px 10px;
     margin: 0;
     border: none;
@@ -70,7 +70,7 @@ QMenuBar::item:selected
 
 QMenuBar::item:pressed
 {
-    background: @chromeActive;
+    background: @chrome;
     color: @chromeText;
     padding: 4px 10px;
     margin: 0;
@@ -1531,11 +1531,10 @@ QgsLocatorResultsView::item:disabled {
     color: @text;
 }
 
-/* Hake tabbed ribbon — full-width chrome strip; light tool pane below */
+/* Hake tabbed ribbon — full-width white tab strip; light tool pane below */
 QToolBar#HakeAppRibbon {
-    background-color: @chrome;
+    background-color: @ribbonSurface;
     border: none;
-    border-bottom: 1px solid @chromeBorder;
     margin: 0;
     spacing: 0;
     padding: 0;
@@ -1553,12 +1552,12 @@ QToolBar#HakeAppRibbon::handle:vertical {
 }
 
 QWidget#HakeAppRibbonHost {
-    background-color: @chrome;
+    background-color: @ribbonSurface;
     border: none;
 }
 
 QTabWidget#HakeAppRibbon {
-    background-color: @chrome;
+    background-color: @ribbonSurface;
     border: none;
 }
 
@@ -1582,56 +1581,51 @@ QTabWidget#HakeAppRibbon QWidget#HakeAppRibbonPage {
 }
 
 QTabWidget#HakeAppRibbon > QTabBar {
-    background-color: @chrome;
+    background-color: @ribbonSurface;
     border: none;
-    border-bottom: 1px solid @chromeBorder;
+    border-bottom: 1px solid @ribbonBorder;
     /* Same left content inset as QMenuBar items (item/tab padding 4px 10px). */
     padding: 0;
     min-height: 0;
 }
 
 QWidget#HakeAppRibbonTabFiller {
-    background-color: @chrome;
+    background-color: @ribbonSurface;
     border: none;
-    border-bottom: 1px solid @chromeBorder;
+    border-bottom: 1px solid @ribbonBorder;
 }
 
+QWidget#HakeAppRibbonTabFiller QLabel#HakeAppRibbonBrand {
+    color: @chrome;
+    background: transparent;
+}
+
+/* Same border and padding in every state so hover/selected never shift geometry. */
 QTabWidget#HakeAppRibbon > QTabBar::tab,
 QTabWidget#HakeAppRibbon > QTabBar::tab:!selected {
-    background-color: @chrome;
-    color: @chromeText;
+    background-color: transparent;
+    color: @text;
     border: none;
-    /* Reserve 2px bottom border in every state so hover/selected never shift geometry. */
-    border-bottom: 2px solid transparent;
-    border-radius: 0;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
     padding: 4px 14px;
-    margin: 0;
+    margin: 0 1px;
+}
+
+QTabWidget#HakeAppRibbon > QTabBar::tab:hover:!selected {
+    background-color: @chromeToolbar;
+    color: @chrome;
 }
 
 QTabWidget#HakeAppRibbon > QTabBar::tab:selected {
-    background-color: @chromeActive;
-    color: @chromeText;
-    border: none;
-    border-bottom: 2px solid @chromeToolbar;
-    border-radius: 0;
-    padding: 4px 14px;
-    margin: 0;
-}
-
-QTabWidget#HakeAppRibbon > QTabBar::tab:hover {
-    background-color: @chromeHover;
-    color: @chromeText;
-    border: none;
-    border-bottom: 2px solid transparent;
-    border-radius: 0;
-    padding: 4px 14px;
-    margin: 0;
-}
-
-/* Tab-strip scroll arrows sit on the navy strip, not the command area. */
-QTabWidget#HakeAppRibbon > QTabBar QToolButton {
     background-color: @chrome;
     color: @chromeText;
+}
+
+/* Tab-strip scroll arrows sit on the white strip, not the command area. */
+QTabWidget#HakeAppRibbon > QTabBar QToolButton {
+    background-color: @ribbonSurface;
+    color: @text;
     border: none;
     border-radius: 0;
     padding: 0;
@@ -1639,7 +1633,7 @@ QTabWidget#HakeAppRibbon > QTabBar QToolButton {
 }
 
 QTabWidget#HakeAppRibbon > QTabBar QToolButton:hover {
-    background-color: @chromeHover;
+    background-color: @chromeToolbar;
 }
 
 /* ID selectors beat generic QToolBar QToolButton { padding: 0.2em } — keep px geometry stable.

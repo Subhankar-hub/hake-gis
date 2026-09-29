@@ -22,6 +22,7 @@
 #include <QStringList>
 #include <QTabWidget>
 
+class QLabel;
 class QToolBar;
 class QWidget;
 class QgisApp;
@@ -84,6 +85,7 @@ class QgsAppRibbon : public QTabWidget
     void syncMirroredGroup( QToolBar *toolbar );
 
     QgisApp *mApp = nullptr;
+    QLabel *mBrand = nullptr;
     QList<QgsAppRibbonPage *> mPages;
     QHash<QToolBar *, QgsAppRibbonGroup *> mMirroredToolbars;
     QList<QPointer<QToolBar>> mPendingMirrorSyncs;
