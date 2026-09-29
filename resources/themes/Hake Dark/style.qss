@@ -1642,8 +1642,18 @@ QTabWidget#HakeAppRibbon QToolButton:disabled {
 }
 
 QTabWidget#HakeAppRibbon QFrame#HakeAppRibbonSeparator {
-    color: @itemdarkbackground;
-    max-width: 1px;
+    background-color: @itemdarkbackground;
+    border: none;
+}
+
+QTabWidget#HakeAppRibbon #HakeAppRibbonGroupCaption {
+    color: @focus;
+    background: transparent;
+}
+
+QTabWidget#HakeAppRibbon > QStackedWidget QToolButton::menu-indicator {
+    image: none;
+    width: 0;
 }
 
 

@@ -660,7 +660,7 @@ QToolBar::separator:vertical
 QStatusBar {
     background-color: @statusbar;
     color: @text;
-    border-top: 1px solid @itemdarkbackground;
+    border-top: 1px solid @ribbonBorder;
 }
 
 QStatusBar QLabel {
@@ -1574,6 +1574,13 @@ QTabWidget#HakeAppRibbon > QStackedWidget {
     background-color: @chromeToolbar;
 }
 
+/* QgsAppRibbon reserves 1px of bottom margin for this border. */
+QTabWidget#HakeAppRibbon QWidget#HakeAppRibbonPage {
+    background-color: @chromeToolbar;
+    border: none;
+    border-bottom: 1px solid @ribbonBorder;
+}
+
 QTabWidget#HakeAppRibbon > QTabBar {
     background-color: @chrome;
     border: none;
@@ -1597,7 +1604,7 @@ QTabWidget#HakeAppRibbon > QTabBar::tab:!selected {
     /* Reserve 2px bottom border in every state so hover/selected never shift geometry. */
     border-bottom: 2px solid transparent;
     border-radius: 0;
-    padding: 4px 10px;
+    padding: 4px 14px;
     margin: 0;
 }
 
@@ -1607,7 +1614,7 @@ QTabWidget#HakeAppRibbon > QTabBar::tab:selected {
     border: none;
     border-bottom: 2px solid @chromeToolbar;
     border-radius: 0;
-    padding: 4px 10px;
+    padding: 4px 14px;
     margin: 0;
 }
 
@@ -1617,53 +1624,80 @@ QTabWidget#HakeAppRibbon > QTabBar::tab:hover {
     border: none;
     border-bottom: 2px solid transparent;
     border-radius: 0;
-    padding: 4px 10px;
+    padding: 4px 14px;
     margin: 0;
 }
 
-/* ID selectors beat generic QToolBar QToolButton { padding: 0.2em } — keep px geometry stable. */
-QToolBar#HakeAppRibbon QToolButton,
-QTabWidget#HakeAppRibbon QToolButton {
+/* Tab-strip scroll arrows sit on the navy strip, not the command area. */
+QTabWidget#HakeAppRibbon > QTabBar QToolButton {
+    background-color: @chrome;
+    color: @chromeText;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    margin: 0;
+}
+
+QTabWidget#HakeAppRibbon > QTabBar QToolButton:hover {
+    background-color: @chromeHover;
+}
+
+/* ID selectors beat generic QToolBar QToolButton { padding: 0.2em } — keep px geometry stable.
+   Button height is measured from this padding in QgsAppRibbon, so change both together. */
+QTabWidget#HakeAppRibbon > QStackedWidget QToolButton {
     color: @text;
     background: transparent;
     border: 1px solid transparent;
-    border-radius: 0;
-    padding: 4px;
+    border-radius: 3px;
+    padding: 1px 3px;
     margin: 0;
 }
 
-QToolBar#HakeAppRibbon QToolButton:hover,
-QTabWidget#HakeAppRibbon QToolButton:hover {
-    background-color: @chromeHover;
-    border: 1px solid @chromeActive;
-    color: @chromeText;
-    padding: 4px;
-    margin: 0;
+QTabWidget#HakeAppRibbon > QStackedWidget QToolButton:hover {
+    background-color: @ribbonSurface;
+    border: 1px solid @ribbonBorder;
+    color: @text;
 }
 
-QToolBar#HakeAppRibbon QToolButton:checked,
-QToolBar#HakeAppRibbon QToolButton:pressed,
-QTabWidget#HakeAppRibbon QToolButton:checked,
-QTabWidget#HakeAppRibbon QToolButton:pressed {
-    background-color: @chromeActive;
-    border: 1px solid @chromeActive;
-    color: @chromeText;
-    padding: 4px;
-    margin: 0;
+QTabWidget#HakeAppRibbon > QStackedWidget QToolButton:pressed {
+    background-color: @ribbonPressed;
+    border: 1px solid @chromeHover;
+    color: @text;
 }
 
-QToolBar#HakeAppRibbon QToolButton:disabled,
-QTabWidget#HakeAppRibbon QToolButton:disabled {
-    color: #5B7290;
+QTabWidget#HakeAppRibbon > QStackedWidget QToolButton:checked {
+    background-color: @ribbonPressed;
+    border: 1px solid @chrome;
+    color: @text;
+}
+
+QTabWidget#HakeAppRibbon > QStackedWidget QToolButton:checked:hover {
+    border: 1px solid @chromeHover;
+}
+
+QTabWidget#HakeAppRibbon > QStackedWidget QToolButton:disabled {
+    color: @ribbonDisabled;
     background: transparent;
     border: 1px solid transparent;
-    padding: 4px;
-    margin: 0;
+}
+
+QTabWidget#HakeAppRibbon > QStackedWidget QToolButton:focus {
+    border: 1px dotted @chrome;
+}
+
+QTabWidget#HakeAppRibbon > QStackedWidget QToolButton::menu-indicator {
+    image: none;
+    width: 0;
+}
+
+QTabWidget#HakeAppRibbon #HakeAppRibbonGroupCaption {
+    color: @ribbonCaption;
+    background: transparent;
 }
 
 QTabWidget#HakeAppRibbon QFrame#HakeAppRibbonSeparator {
-    color: @itemdarkbackground;
-    max-width: 1px;
+    background-color: @ribbonBorder;
+    border: none;
 }
 
 

@@ -16,14 +16,38 @@
 #ifndef QGSAPPRIBBON_H
 #define QGSAPPRIBBON_H
 
+#include <QHash>
+#include <QList>
+#include <QPointer>
 #include <QStringList>
 #include <QTabWidget>
 
-class QAction;
-class QHBoxLayout;
 class QToolBar;
 class QWidget;
 class QgisApp;
+class QgsAppRibbonGroup;
+class QgsAppRibbonPage;
+
+/**
+ * Logical-pixel sizes for the ribbon, measured from the current font, style
+ * and stylesheet rather than hard-coded, so they follow DPI and theme changes.
+ */
+struct QgsAppRibbonMetrics
+{
+    int smallIcon = 16;
+    int largeIcon = 24;
+    int rowHeight = 24;
+    int tallHeight = 52;
+    int captionHeight = 14;
+    int horizontalMargin = 4;
+    int verticalMargin = 2;
+    int buttonAreaHeight = 52;
+    int rows = 2;
+    bool tallPrimary = true;
+    bool captions = true;
+
+    bool operator==( const QgsAppRibbonMetrics &other ) const = default;
+};
 
 /**
  * Tabbed ribbon that reuses existing QgisApp QActions via QToolButton::setDefaultAction.
@@ -36,24 +60,36 @@ class QgsAppRibbon : public QTabWidget
   public:
     explicit QgsAppRibbon( QWidget *parent, QgisApp *app );
 
-    //! Adds Processing Toolbox toggle if the dock exists (may appear after plugins load).
+    //! Resolves dock toggle actions (Browser, Layers, Processing Toolbox) whose docks are created after the ribbon.
     void refreshOptionalActions();
 
+    QSize sizeHint() const override;
+    QSize minimumSizeHint() const override;
+
   protected:
+    bool event( QEvent *event ) override;
+    void changeEvent( QEvent *event ) override;
+    bool eventFilter( QObject *watched, QEvent *event ) override;
     void resizeEvent( QResizeEvent *event ) override;
     void showEvent( QShowEvent *event ) override;
 
   private:
     void syncChromeTabBarGeometry();
-    QWidget *addPage( const QString &title );
-    QHBoxLayout *addGroup( QWidget *page, const QString &title );
-    void addActionButton( QHBoxLayout *groupLayout, QAction *action );
-    void addNamedAction( QHBoxLayout *groupLayout, const QString &objectName );
-    void addToolbarActions( QHBoxLayout *groupLayout, QToolBar *toolbar, const QStringList &excludedObjectNames = QStringList() );
+    void updateMetrics();
+    QgsAppRibbonPage *addPage( const QString &title );
+    QgsAppRibbonGroup *addGroup( QgsAppRibbonPage *page, const QString &title );
+    void addNamedAction( QgsAppRibbonGroup *group, const QString &objectName, bool primary = false );
+    void addDockToggle( QgsAppRibbonGroup *group, const QString &dockObjectName, bool primary = false );
+    void mirrorToolbar( QgsAppRibbonGroup *group, QToolBar *toolbar );
+    void syncMirroredGroup( QToolBar *toolbar );
 
     QgisApp *mApp = nullptr;
-    QHBoxLayout *mProcessingGroupLayout = nullptr;
-    bool mProcessingActionAdded = false;
+    QList<QgsAppRibbonPage *> mPages;
+    QHash<QToolBar *, QgsAppRibbonGroup *> mMirroredToolbars;
+    QList<QPointer<QToolBar>> mPendingMirrorSyncs;
+    QgsAppRibbonMetrics mMetrics;
+    int mCommandHeight = 0;
+    bool mUpdatingMetrics = false;
 };
 
 #endif // QGSAPPRIBBON_H

@@ -4092,12 +4092,24 @@ void QgisApp::createAppRibbon()
   if ( QMenuBar *bar = menuBar() )
     bar->setAttribute( Qt::WA_StyledBackground, true );
 
-  // Host at the top without listing the ribbon under View → Toolbars
+  // Host at the top, ahead of the classic toolbars
   if ( mFileToolBar )
     QMainWindow::insertToolBar( mFileToolBar, mAppRibbonBar );
   else
     QMainWindow::addToolBar( Qt::TopToolBarArea, mAppRibbonBar );
   mAppRibbonBar->show();
+
+  // Visibility is persisted in UI/state, so it must stay user-restorable from View → Toolbars.
+  if ( mToolbarMenu )
+  {
+    QAction *ribbonToggle = mAppRibbonBar->toggleViewAction();
+    ribbonToggle->setObjectName( u"mActionToggleHakeAppRibbon"_s );
+    const QList<QAction *> toolbarActions = mToolbarMenu->actions();
+    QAction *before = toolbarActions.isEmpty() ? nullptr : toolbarActions.first();
+    mToolbarMenu->insertAction( before, ribbonToggle );
+    if ( before )
+      mToolbarMenu->insertSeparator( before );
+  }
 }
 
 void QgisApp::hideClassicToolBars()

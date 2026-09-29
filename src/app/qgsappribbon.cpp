@@ -17,26 +17,614 @@
 #include "qgsappribbon.h"
 
 #include "qgisapp.h"
-#include "qgsdockwidget.h"
-#include "qgsguiutils.h"
 
 #include <algorithm>
+#include <array>
+#include <utility>
 
 #include <QAction>
+#include <QDockWidget>
 #include <QFrame>
+#include <QGridLayout>
 #include <QHBoxLayout>
+#include <QIcon>
+#include <QMenu>
+#include <QPainter>
+#include <QPixmap>
+#include <QPointer>
 #include <QResizeEvent>
 #include <QShowEvent>
 #include <QSizePolicy>
+#include <QStyle>
 #include <QTabBar>
+#include <QTimer>
 #include <QToolBar>
 #include <QToolButton>
+#include <QVBoxLayout>
 #include <QWidget>
 #include <QWidgetAction>
 
 #include "moc_qgsappribbon.cpp"
 
 using namespace Qt::StringLiterals;
+
+namespace
+{
+  QFont ribbonCaptionFont( const QFont &base )
+  {
+    QFont f = base;
+    if ( f.pointSizeF() > 0 )
+      f.setPointSizeF( f.pointSizeF() * 0.85 );
+    else
+      f.setPixelSize( std::max( 8, qRound( f.pixelSize() * 0.85 ) ) );
+    return f;
+  }
+
+  bool isPresentableAction( const QAction *action )
+  {
+    return action && !action->isSeparator() && !qobject_cast<const QWidgetAction *>( action );
+  }
+} // namespace
+
+// Group caption that elides instead of forcing its group wider than its buttons.
+// Color comes from the theme QSS (#HakeAppRibbonGroupCaption) via the palette.
+class QgsAppRibbonCaption : public QWidget
+{
+  public:
+    QgsAppRibbonCaption( const QString &text, QWidget *parent )
+      : QWidget( parent )
+      , mText( text )
+    {
+      setObjectName( u"HakeAppRibbonGroupCaption"_s );
+      setSizePolicy( QSizePolicy::Ignored, QSizePolicy::Fixed );
+      setAttribute( Qt::WA_TransparentForMouseEvents, true );
+    }
+
+    QSize sizeHint() const override
+    {
+      const QFontMetrics fm( font() );
+      return QSize( fm.horizontalAdvance( mText ) + fm.averageCharWidth() * 2, fm.height() );
+    }
+
+    QSize minimumSizeHint() const override { return QSize( 0, QFontMetrics( font() ).height() ); }
+
+  protected:
+    void paintEvent( QPaintEvent * ) override
+    {
+      QPainter p( this );
+      p.setPen( palette().color( QPalette::WindowText ) );
+      const QString shown = fontMetrics().elidedText( mText, Qt::ElideRight, width() );
+      p.drawText( rect(), Qt::AlignHCenter | Qt::AlignVCenter, shown );
+    }
+
+  private:
+    QString mText;
+};
+
+class QgsAppRibbonGroup : public QWidget
+{
+  public:
+    enum Level
+    {
+      Full,
+      Compact,
+      IconsOnly,
+      Collapsed,
+    };
+
+    struct Entry
+    {
+        QPointer<QAction> action;
+        bool primary = false;
+        //! Dock whose toggleViewAction() fills this entry once the dock exists
+        QString dockObjectName;
+    };
+
+    QgsAppRibbonGroup( const QString &title, QWidget *parent );
+
+    QString title() const { return mTitle; }
+    void addEntry( const Entry &entry );
+    void setEntries( const QList<Entry> &entries );
+    bool resolveDocks( QObject *root );
+    QList<QAction *> commands() const;
+    bool hasCommands() const { return !commands().isEmpty(); }
+
+    void setMetrics( const QgsAppRibbonMetrics &metrics );
+    void rebuild();
+    void scheduleRebuild();
+
+    Level level() const { return mLevel; }
+    void setLevel( Level level );
+    int widthForLevel( Level level ) const;
+
+    QSize sizeHint() const override;
+    QSize minimumSizeHint() const override;
+
+  private:
+    void watchAction( QAction *action );
+    QWidget *buildVariant( Level level );
+    QToolButton *makeButton( QWidget *parent, QAction *action, Qt::ToolButtonStyle style, int iconSize ) const;
+
+    QString mTitle;
+    QList<Entry> mEntries;
+    QgsAppRibbonMetrics mMetrics;
+    Level mLevel = Full;
+    QWidget *mContent = nullptr;
+    QHBoxLayout *mContentLayout = nullptr;
+    QgsAppRibbonCaption *mCaption = nullptr;
+    std::array<QWidget *, 4> mVariants { { nullptr, nullptr, nullptr, nullptr } };
+    bool mRebuildPending = false;
+};
+
+class QgsAppRibbonPage : public QWidget
+{
+  public:
+    explicit QgsAppRibbonPage( QWidget *parent );
+
+    QgsAppRibbonGroup *addGroup( const QString &title );
+    const QList<QgsAppRibbonGroup *> &groups() const { return mGroups; }
+    void setMetrics( const QgsAppRibbonMetrics &metrics );
+    void relayout();
+
+    QSize sizeHint() const override;
+    QSize minimumSizeHint() const override;
+
+  protected:
+    void resizeEvent( QResizeEvent *event ) override;
+    void showEvent( QShowEvent *event ) override;
+
+  private:
+    int requiredWidth( const QVector<QgsAppRibbonGroup::Level> &levels, const QVector<bool> &hidden, bool overflow ) const;
+
+    QHBoxLayout *mLayout = nullptr;
+    QList<QgsAppRibbonGroup *> mGroups;
+    QList<QFrame *> mSeparators;
+    QToolButton *mOverflow = nullptr;
+    QMenu *mOverflowMenu = nullptr;
+    bool mInRelayout = false;
+};
+
+//
+// QgsAppRibbonGroup
+//
+
+QgsAppRibbonGroup::QgsAppRibbonGroup( const QString &title, QWidget *parent )
+  : QWidget( parent )
+  , mTitle( title )
+{
+  setAccessibleName( title );
+  setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
+
+  auto *layout = new QVBoxLayout( this );
+  layout->setContentsMargins( 0, 0, 0, 0 );
+  layout->setSpacing( 0 );
+
+  mContent = new QWidget( this );
+  mContentLayout = new QHBoxLayout( mContent );
+  mContentLayout->setContentsMargins( 0, 0, 0, 0 );
+  mContentLayout->setSpacing( 0 );
+  layout->addWidget( mContent, 1 );
+
+  mCaption = new QgsAppRibbonCaption( title, this );
+  layout->addWidget( mCaption, 0 );
+}
+
+void QgsAppRibbonGroup::watchAction( QAction *action )
+{
+  if ( action )
+    connect( action, &QAction::visibleChanged, this, &QgsAppRibbonGroup::scheduleRebuild, Qt::UniqueConnection );
+}
+
+void QgsAppRibbonGroup::addEntry( const Entry &entry )
+{
+  if ( entry.action && !isPresentableAction( entry.action ) )
+    return;
+  if ( !entry.action && entry.dockObjectName.isEmpty() )
+    return;
+  mEntries.append( entry );
+  watchAction( entry.action );
+}
+
+void QgsAppRibbonGroup::setEntries( const QList<Entry> &entries )
+{
+  mEntries.clear();
+  for ( const Entry &entry : entries )
+    addEntry( entry );
+  scheduleRebuild();
+}
+
+bool QgsAppRibbonGroup::resolveDocks( QObject *root )
+{
+  bool resolved = false;
+  for ( Entry &entry : mEntries )
+  {
+    if ( entry.action || entry.dockObjectName.isEmpty() )
+      continue;
+    if ( QDockWidget *dock = root->findChild<QDockWidget *>( entry.dockObjectName ) )
+    {
+      entry.action = dock->toggleViewAction();
+      watchAction( entry.action );
+      resolved = true;
+    }
+  }
+  return resolved;
+}
+
+QList<QAction *> QgsAppRibbonGroup::commands() const
+{
+  QList<QAction *> list;
+  for ( const Entry &entry : mEntries )
+  {
+    if ( entry.action && entry.action->isVisible() )
+      list << entry.action;
+  }
+  return list;
+}
+
+void QgsAppRibbonGroup::setMetrics( const QgsAppRibbonMetrics &metrics )
+{
+  mMetrics = metrics;
+  rebuild();
+}
+
+void QgsAppRibbonGroup::scheduleRebuild()
+{
+  if ( mRebuildPending )
+    return;
+  mRebuildPending = true;
+  QTimer::singleShot( 0, this, [this] {
+    mRebuildPending = false;
+    rebuild();
+    if ( auto *page = dynamic_cast<QgsAppRibbonPage *>( parentWidget() ) )
+      page->relayout();
+  } );
+}
+
+void QgsAppRibbonGroup::rebuild()
+{
+  // deleteLater: a rebuild can be triggered while one of these buttons is still
+  // inside its own click handler (e.g. an action that changes the theme).
+  for ( QWidget *&variant : mVariants )
+  {
+    if ( variant )
+    {
+      variant->hide();
+      variant->deleteLater();
+      variant = nullptr;
+    }
+  }
+
+  mCaption->setFont( ribbonCaptionFont( font() ) );
+  for ( int l = Full; l <= Collapsed; ++l )
+  {
+    mVariants[l] = buildVariant( static_cast<Level>( l ) );
+    mContentLayout->addWidget( mVariants[l], 0, Qt::AlignLeft | Qt::AlignVCenter );
+    mVariants[l]->ensurePolished();
+  }
+  setLevel( mLevel );
+}
+
+QToolButton *QgsAppRibbonGroup::makeButton( QWidget *parent, QAction *action, Qt::ToolButtonStyle style, int iconSize ) const
+{
+  auto *button = new QToolButton( parent );
+  button->setDefaultAction( action );
+  button->setAutoRaise( true );
+  button->setToolButtonStyle( style );
+  button->setIconSize( QSize( iconSize, iconSize ) );
+  // Reachable by keyboard, but a mouse click must not steal focus from the map canvas.
+  button->setFocusPolicy( Qt::TabFocus );
+  button->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+  return button;
+}
+
+QWidget *QgsAppRibbonGroup::buildVariant( Level level )
+{
+  auto *variant = new QWidget( mContent );
+  auto *grid = new QGridLayout( variant );
+  grid->setContentsMargins( 0, 0, 0, 0 );
+  grid->setHorizontalSpacing( 2 );
+  grid->setVerticalSpacing( 0 );
+
+  const QgsAppRibbonMetrics &m = mMetrics;
+  const int tallButtonHeight = std::min( m.buttonAreaHeight, std::max( m.tallHeight, m.rows * m.rowHeight ) );
+
+  QList<Entry> visibleEntries;
+  for ( const Entry &entry : std::as_const( mEntries ) )
+  {
+    if ( entry.action && entry.action->isVisible() )
+      visibleEntries << entry;
+  }
+  if ( visibleEntries.isEmpty() )
+    return variant;
+
+  if ( level == Collapsed )
+  {
+    auto *button = new QToolButton( variant );
+    button->setText( mTitle + u" \u25BE"_s );
+    button->setToolTip( mTitle );
+    button->setAccessibleName( mTitle );
+    button->setIcon( visibleEntries.first().action->icon() );
+    button->setAutoRaise( true );
+    button->setFocusPolicy( Qt::TabFocus );
+    button->setPopupMode( QToolButton::InstantPopup );
+    auto *menu = new QMenu( button );
+    menu->addActions( commands() );
+    button->setMenu( menu );
+    if ( m.tallPrimary )
+    {
+      button->setToolButtonStyle( Qt::ToolButtonTextUnderIcon );
+      button->setIconSize( QSize( m.largeIcon, m.largeIcon ) );
+      button->setFixedHeight( tallButtonHeight );
+    }
+    else
+    {
+      button->setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
+      button->setIconSize( QSize( m.smallIcon, m.smallIcon ) );
+      button->setFixedHeight( m.rowHeight );
+    }
+    grid->addWidget( button, 0, 0, Qt::AlignLeft | Qt::AlignVCenter );
+    return variant;
+  }
+
+  int row = 0;
+  int col = 0;
+  for ( const Entry &entry : std::as_const( visibleEntries ) )
+  {
+    const bool tall = entry.primary && m.tallPrimary && level != IconsOnly;
+    if ( tall )
+    {
+      if ( row != 0 )
+      {
+        ++col;
+        row = 0;
+      }
+      QToolButton *button = makeButton( variant, entry.action, Qt::ToolButtonTextUnderIcon, m.largeIcon );
+      button->setFixedHeight( tallButtonHeight );
+      grid->addWidget( button, 0, col, m.rows, 1, Qt::AlignLeft | Qt::AlignVCenter );
+      ++col;
+      continue;
+    }
+
+    Qt::ToolButtonStyle style = Qt::ToolButtonIconOnly;
+    if ( level == Full || ( level == Compact && entry.primary ) )
+      style = Qt::ToolButtonTextBesideIcon;
+    // Menu-only commands may have no icon; an icon-only button would be blank.
+    if ( entry.action->icon().isNull() )
+      style = Qt::ToolButtonTextOnly;
+
+    QToolButton *button = makeButton( variant, entry.action, style, m.smallIcon );
+    button->setFixedHeight( m.rowHeight );
+    grid->addWidget( button, row, col, Qt::AlignLeft | Qt::AlignVCenter );
+    if ( ++row >= m.rows )
+    {
+      row = 0;
+      ++col;
+    }
+  }
+  return variant;
+}
+
+void QgsAppRibbonGroup::setLevel( Level level )
+{
+  mLevel = level;
+  for ( int l = Full; l <= Collapsed; ++l )
+  {
+    if ( mVariants[l] )
+      mVariants[l]->setVisible( l == level );
+  }
+  mCaption->setVisible( mMetrics.captions && level != Collapsed );
+  updateGeometry();
+}
+
+int QgsAppRibbonGroup::widthForLevel( Level level ) const
+{
+  const QWidget *variant = mVariants[level];
+  if ( !variant )
+    return 0;
+  const int content = variant->sizeHint().width();
+  if ( !mMetrics.captions || level == Collapsed )
+    return content;
+  const int caption = mCaption->sizeHint().width();
+  if ( level == IconsOnly )
+    return std::max( content, std::min( caption, mCaption->fontMetrics().averageCharWidth() * 6 ) );
+  return std::max( content, caption );
+}
+
+QSize QgsAppRibbonGroup::sizeHint() const
+{
+  return QSize( widthForLevel( mLevel ), QWidget::sizeHint().height() );
+}
+
+QSize QgsAppRibbonGroup::minimumSizeHint() const
+{
+  return QSize( widthForLevel( mLevel ), 0 );
+}
+
+//
+// QgsAppRibbonPage
+//
+
+QgsAppRibbonPage::QgsAppRibbonPage( QWidget *parent )
+  : QWidget( parent )
+{
+  setObjectName( u"HakeAppRibbonPage"_s );
+  setAttribute( Qt::WA_StyledBackground, true );
+  setSizePolicy( QSizePolicy::Ignored, QSizePolicy::Ignored );
+
+  mLayout = new QHBoxLayout( this );
+  mLayout->setSpacing( 4 );
+  mLayout->addStretch( 1 );
+
+  mOverflowMenu = new QMenu( this );
+  mOverflow = new QToolButton( this );
+  mOverflow->setText( u"\u00BB"_s );
+  mOverflow->setToolTip( QObject::tr( "More commands" ) );
+  mOverflow->setAccessibleName( QObject::tr( "More commands" ) );
+  mOverflow->setToolButtonStyle( Qt::ToolButtonTextOnly );
+  mOverflow->setAutoRaise( true );
+  mOverflow->setFocusPolicy( Qt::TabFocus );
+  mOverflow->setPopupMode( QToolButton::InstantPopup );
+  mOverflow->setMenu( mOverflowMenu );
+  mOverflow->hide();
+  mLayout->addWidget( mOverflow, 0, Qt::AlignVCenter );
+}
+
+QgsAppRibbonGroup *QgsAppRibbonPage::addGroup( const QString &title )
+{
+  auto *group = new QgsAppRibbonGroup( title, this );
+  auto *separator = new QFrame( this );
+  separator->setObjectName( u"HakeAppRibbonSeparator"_s );
+  separator->setFrameShape( QFrame::NoFrame );
+  separator->setFixedWidth( 1 );
+  separator->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
+
+  // Keep the trailing stretch and overflow button at the end.
+  const int insertAt = mLayout->count() - 2;
+  mLayout->insertWidget( insertAt, group );
+  mLayout->insertWidget( insertAt + 1, separator );
+  mGroups << group;
+  mSeparators << separator;
+  return group;
+}
+
+void QgsAppRibbonPage::setMetrics( const QgsAppRibbonMetrics &metrics )
+{
+  // +1 bottom margin reserves the page's 1px bottom border drawn by the theme.
+  mLayout->setContentsMargins( metrics.horizontalMargin, metrics.verticalMargin, metrics.horizontalMargin, metrics.verticalMargin + 1 );
+  mOverflow->setFixedHeight( metrics.rowHeight );
+  for ( QgsAppRibbonGroup *group : std::as_const( mGroups ) )
+    group->setMetrics( metrics );
+  relayout();
+}
+
+QSize QgsAppRibbonPage::sizeHint() const
+{
+  const QVector<QgsAppRibbonGroup::Level> levels( mGroups.size(), QgsAppRibbonGroup::Full );
+  const QVector<bool> hidden( mGroups.size(), false );
+  return QSize( requiredWidth( levels, hidden, false ), 0 );
+}
+
+QSize QgsAppRibbonPage::minimumSizeHint() const
+{
+  // Height is owned by QgsAppRibbon; width always adapts through relayout().
+  return QSize( 0, 0 );
+}
+
+int QgsAppRibbonPage::requiredWidth( const QVector<QgsAppRibbonGroup::Level> &levels, const QVector<bool> &hidden, bool overflow ) const
+{
+  const QMargins margins = mLayout->contentsMargins();
+  int width = margins.left() + margins.right();
+  int items = 0;
+  int visibleGroups = 0;
+  for ( int i = 0; i < mGroups.size(); ++i )
+  {
+    if ( hidden[i] || !mGroups[i]->hasCommands() )
+      continue;
+    width += mGroups[i]->widthForLevel( levels[i] );
+    ++visibleGroups;
+    ++items;
+  }
+  if ( visibleGroups > 1 )
+  {
+    width += ( visibleGroups - 1 ) * mSeparators.first()->minimumWidth();
+    items += visibleGroups - 1;
+  }
+  if ( overflow )
+  {
+    width += mOverflow->sizeHint().width();
+    ++items;
+  }
+  if ( items > 1 )
+    width += ( items - 1 ) * mLayout->spacing();
+  return width;
+}
+
+void QgsAppRibbonPage::relayout()
+{
+  if ( mInRelayout || mGroups.isEmpty() )
+    return;
+  mInRelayout = true;
+
+  const int available = width();
+  const int n = static_cast<int>( mGroups.size() );
+  QVector<QgsAppRibbonGroup::Level> levels( n, QgsAppRibbonGroup::Full );
+  QVector<bool> hidden( n, false );
+  bool overflow = false;
+
+  auto fits = [&] { return requiredWidth( levels, hidden, overflow ) <= available; };
+
+  // Compress one level at a time, rightmost group first, so the most-used
+  // commands on the left keep their labels longest.
+  bool done = fits();
+  for ( int level = QgsAppRibbonGroup::Compact; !done && level <= QgsAppRibbonGroup::Collapsed; ++level )
+  {
+    for ( int i = n - 1; !done && i >= 0; --i )
+    {
+      // A collapsed drop-down carries a text label, so for small groups it can
+      // be wider than the icon-only layout; only collapse when it saves space.
+      const bool saves = level != QgsAppRibbonGroup::Collapsed
+                         || mGroups[i]->widthForLevel( QgsAppRibbonGroup::Collapsed ) < mGroups[i]->widthForLevel( levels[i] );
+      if ( levels[i] < level && saves )
+      {
+        levels[i] = static_cast<QgsAppRibbonGroup::Level>( level );
+        done = fits();
+      }
+    }
+  }
+  if ( !done )
+  {
+    overflow = true;
+    for ( int i = n - 1; i >= 0 && !fits(); --i )
+      hidden[i] = true;
+  }
+
+  const QList<QMenu *> oldSubMenus = mOverflowMenu->findChildren<QMenu *>( Qt::FindDirectChildrenOnly );
+  mOverflowMenu->clear();
+  for ( QMenu *subMenu : oldSubMenus )
+    subMenu->deleteLater();
+
+  int lastVisible = -1;
+  for ( int i = 0; i < n; ++i )
+  {
+    QgsAppRibbonGroup *group = mGroups[i];
+    const bool hasCommands = group->hasCommands();
+    group->setLevel( levels[i] );
+    group->setVisible( hasCommands && !hidden[i] );
+    if ( !hasCommands )
+      continue;
+    if ( hidden[i] )
+    {
+      QMenu *subMenu = mOverflowMenu->addMenu( group->title() );
+      subMenu->addActions( group->commands() );
+    }
+    else
+    {
+      lastVisible = i;
+    }
+  }
+  for ( int i = 0; i < n; ++i )
+    mSeparators[i]->setVisible( mGroups[i]->isVisibleTo( this ) && i < lastVisible );
+  mOverflow->setVisible( overflow );
+
+  mInRelayout = false;
+}
+
+void QgsAppRibbonPage::resizeEvent( QResizeEvent *event )
+{
+  QWidget::resizeEvent( event );
+  if ( event->size().width() != event->oldSize().width() )
+    relayout();
+}
+
+void QgsAppRibbonPage::showEvent( QShowEvent *event )
+{
+  QWidget::showEvent( event );
+  relayout();
+}
+
+//
+// QgsAppRibbon
+//
 
 QgsAppRibbon::QgsAppRibbon( QWidget *parent, QgisApp *app )
   : QTabWidget( parent )
@@ -46,7 +634,8 @@ QgsAppRibbon::QgsAppRibbon( QWidget *parent, QgisApp *app )
   setDocumentMode( true );
   setMovable( false );
   setUsesScrollButtons( true );
-  setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Preferred );
+  // Height comes from measured metrics (sizeHint), never from a fixed pixel value.
+  setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Fixed );
   // Fusion leaves the empty region after the last tab unpainted unless QSS backgrounds are forced.
   // WA_StyledBackground is Qt-portable (Wayland-safe); do not use platform window APIs here.
   setAttribute( Qt::WA_StyledBackground, true );
@@ -54,6 +643,7 @@ QgsAppRibbon::QgsAppRibbon( QWidget *parent, QgisApp *app )
   tabBar()->setAutoFillBackground( true );
   tabBar()->setExpanding( false );
   tabBar()->setDrawBase( false );
+  tabBar()->setElideMode( Qt::ElideNone );
   tabBar()->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Preferred );
 
   // Fills any remaining header gap to the right of the last tab with chrome.
@@ -68,33 +658,36 @@ QgsAppRibbon::QgsAppRibbon( QWidget *parent, QgisApp *app )
 
   // Home
   {
-    QWidget *page = addPage( tr( "Home" ) );
-    QHBoxLayout *project = addGroup( page, tr( "Project" ) );
-    addNamedAction( project, u"mActionNewProject"_s );
-    addNamedAction( project, u"mActionOpenProject"_s );
-    addNamedAction( project, u"mActionSaveProject"_s );
+    QgsAppRibbonPage *page = addPage( tr( "Home" ) );
+    QgsAppRibbonGroup *project = addGroup( page, tr( "Project" ) );
+    addNamedAction( project, u"mActionNewProject"_s, true );
+    addNamedAction( project, u"mActionOpenProject"_s, true );
+    addNamedAction( project, u"mActionSaveProject"_s, true );
+    addNamedAction( project, u"mActionSaveProjectAs"_s );
+    addNamedAction( project, u"mActionProjectProperties"_s );
+    addNamedAction( project, u"mActionExit"_s );
 
-    QHBoxLayout *edit = addGroup( page, tr( "Edit" ) );
+    QgsAppRibbonGroup *edit = addGroup( page, tr( "Edit" ) );
     addNamedAction( edit, u"mActionUndo"_s );
     addNamedAction( edit, u"mActionRedo"_s );
 
-    QHBoxLayout *map = addGroup( page, tr( "Map" ) );
-    addNamedAction( map, u"mActionPan"_s );
-    addNamedAction( map, u"mActionZoomIn"_s );
-    addNamedAction( map, u"mActionZoomOut"_s );
-    addNamedAction( map, u"mActionZoomFullExtent"_s );
-    addNamedAction( map, u"mActionDraw"_s );
+    QgsAppRibbonGroup *navigation = addGroup( page, tr( "Navigation" ) );
+    addNamedAction( navigation, u"mActionPan"_s, true );
+    addNamedAction( navigation, u"mActionZoomIn"_s );
+    addNamedAction( navigation, u"mActionZoomOut"_s );
+    addNamedAction( navigation, u"mActionZoomFullExtent"_s );
+    addNamedAction( navigation, u"mActionDraw"_s );
 
-    QHBoxLayout *identify = addGroup( page, tr( "Identify" ) );
-    addNamedAction( identify, u"mActionIdentify"_s );
+    QgsAppRibbonGroup *identify = addGroup( page, tr( "Identify" ) );
+    addNamedAction( identify, u"mActionIdentify"_s, true );
     addNamedAction( identify, u"mActionOpenTable"_s );
   }
 
   // Data: layer sources, layouts, database and web services
   {
-    QWidget *page = addPage( tr( "Data" ) );
-    QHBoxLayout *layers = addGroup( page, tr( "Layers" ) );
-    addNamedAction( layers, u"mActionDataSourceManager"_s );
+    QgsAppRibbonPage *page = addPage( tr( "Data" ) );
+    QgsAppRibbonGroup *layers = addGroup( page, tr( "Layers" ) );
+    addNamedAction( layers, u"mActionDataSourceManager"_s, true );
     addNamedAction( layers, u"mActionAddOgrLayer"_s );
     addNamedAction( layers, u"mActionAddRasterLayer"_s );
     addNamedAction( layers, u"mActionAddMeshLayer"_s );
@@ -103,78 +696,253 @@ QgsAppRibbon::QgsAppRibbon( QWidget *parent, QgisApp *app )
     addNamedAction( layers, u"mActionAddVirtualLayer"_s );
     addNamedAction( layers, u"mActionAddWmsLayer"_s );
     addNamedAction( layers, u"mActionAddWfsLayer"_s );
+    addNamedAction( layers, u"mActionLayerProperties"_s );
+    addNamedAction( layers, u"mActionRemoveLayer"_s );
 
-    QHBoxLayout *layout = addGroup( page, tr( "Layout" ) );
-    addNamedAction( layout, u"mActionNewPrintLayout"_s );
+    QgsAppRibbonGroup *layout = addGroup( page, tr( "Layout" ) );
+    addNamedAction( layout, u"mActionNewPrintLayout"_s, true );
     addNamedAction( layout, u"mActionShowLayoutManager"_s );
 
-    QHBoxLayout *database = addGroup( page, tr( "Database" ) );
-    addToolbarActions( database, mApp->databaseToolBar() );
-
-    QHBoxLayout *web = addGroup( page, tr( "Web" ) );
-    addToolbarActions( web, mApp->webToolBar() );
+    // Plugins (e.g. DB Manager, MetaSearch) populate these toolbars at runtime.
+    mirrorToolbar( addGroup( page, tr( "Database" ) ), mApp->databaseToolBar() );
+    mirrorToolbar( addGroup( page, tr( "Web" ) ), mApp->webToolBar() );
   }
 
   // Analysis
   {
-    QWidget *page = addPage( tr( "Analysis" ) );
-    QHBoxLayout *measure = addGroup( page, tr( "Measure" ) );
-    addNamedAction( measure, u"mActionMeasure"_s );
+    QgsAppRibbonPage *page = addPage( tr( "Analysis" ) );
+    QgsAppRibbonGroup *measure = addGroup( page, tr( "Measure" ) );
+    addNamedAction( measure, u"mActionMeasure"_s, true );
     addNamedAction( measure, u"mActionMeasureArea"_s );
     addNamedAction( measure, u"mActionMeasureBearing"_s );
     addNamedAction( measure, u"mActionMeasureAngle"_s );
 
-    QHBoxLayout *stats = addGroup( page, tr( "Stats" ) );
-    addNamedAction( stats, u"mActionStatisticalSummary"_s );
-    addNamedAction( stats, u"mActionOpenFieldCalc"_s );
+    QgsAppRibbonGroup *statistics = addGroup( page, tr( "Statistics" ) );
+    addNamedAction( statistics, u"mActionStatisticalSummary"_s );
+    addNamedAction( statistics, u"mActionOpenFieldCalc"_s );
 
-    mProcessingGroupLayout = addGroup( page, tr( "Processing" ) );
-    addNamedAction( mProcessingGroupLayout, u"mActionShowPythonDialog"_s );
-    refreshOptionalActions();
+    QgsAppRibbonGroup *processing = addGroup( page, tr( "Processing" ) );
+    addDockToggle( processing, u"ProcessingToolbox"_s, true );
+    addNamedAction( processing, u"mActionShowPythonDialog"_s, true );
   }
 
-  // View: navigation, bookmarks and 3D views
+  // Map: map views and navigation history
   {
-    QWidget *page = addPage( tr( "View" ) );
-    QHBoxLayout *navigate = addGroup( page, tr( "Navigate" ) );
-    addNamedAction( navigate, u"mActionPanToSelected"_s );
-    addNamedAction( navigate, u"mActionZoomToSelected"_s );
-    addNamedAction( navigate, u"mActionZoomToLayers"_s );
-    addNamedAction( navigate, u"mActionZoomActualSize"_s );
-    addNamedAction( navigate, u"mActionZoomLast"_s );
-    addNamedAction( navigate, u"mActionZoomNext"_s );
-    addNamedAction( navigate, u"mActionNewMapCanvas"_s );
-    addNamedAction( navigate, u"mActionNewBookmark"_s );
-    addNamedAction( navigate, u"mActionShowBookmarks"_s );
-    addNamedAction( navigate, u"mActionTemporalController"_s );
+    QgsAppRibbonPage *page = addPage( tr( "Map" ) );
+    QgsAppRibbonGroup *navigation = addGroup( page, tr( "Navigation" ) );
+    addNamedAction( navigation, u"mActionNewMapCanvas"_s, true );
+    addNamedAction( navigation, u"mActionPanToSelected"_s );
+    addNamedAction( navigation, u"mActionZoomToSelected"_s );
+    addNamedAction( navigation, u"mActionZoomToLayers"_s );
+    addNamedAction( navigation, u"mActionZoomActualSize"_s );
+    addNamedAction( navigation, u"mActionZoomLast"_s );
+    addNamedAction( navigation, u"mActionZoomNext"_s );
 
-    QHBoxLayout *views3d = addGroup( page, tr( "3D" ) );
-    addNamedAction( views3d, u"mActionNew3DMapCanvas"_s );
-    addNamedAction( views3d, u"mActionNew3DMapCanvasGlobe"_s );
+    QgsAppRibbonGroup *views3d = addGroup( page, tr( "3D" ) );
+    addNamedAction( views3d, u"mActionNew3DMapCanvas"_s, true );
+    addNamedAction( views3d, u"mActionNew3DMapCanvasGlobe"_s, true );
   }
 
   // Vector
   {
-    QWidget *page = addPage( tr( "Vector" ) );
-    QHBoxLayout *digitize = addGroup( page, tr( "Digitizing" ) );
-    // Undo/Redo already live on Home > Edit; don't surface them twice
-    const QStringList homeActions { u"mActionUndo"_s, u"mActionRedo"_s };
-    addToolbarActions( digitize, mApp->digitizeToolBar(), homeActions );
-    addToolbarActions( digitize, mApp->advancedDigitizeToolBar(), homeActions );
+    QgsAppRibbonPage *page = addPage( tr( "Vector" ) );
+    QgsAppRibbonGroup *digitize = addGroup( page, tr( "Digitizing" ) );
+    addNamedAction( digitize, u"mActionToggleEditing"_s, true );
+    addNamedAction( digitize, u"mActionSaveLayerEdits"_s );
+    addNamedAction( digitize, u"mActionAddFeature"_s );
+    addNamedAction( digitize, u"mActionVertexTool"_s );
+    addNamedAction( digitize, u"mActionMoveFeature"_s );
+    addNamedAction( digitize, u"mActionDeleteSelected"_s );
+    addNamedAction( digitize, u"mActionCutFeatures"_s );
+    addNamedAction( digitize, u"mActionCopyFeatures"_s );
+    addNamedAction( digitize, u"mActionPasteFeatures"_s );
 
-    QHBoxLayout *selection = addGroup( page, tr( "Selection" ) );
-    addToolbarActions( selection, mApp->selectionToolBar() );
+    QgsAppRibbonGroup *selection = addGroup( page, tr( "Selection" ) );
+    addNamedAction( selection, u"mActionSelectFeatures"_s, true );
+    addNamedAction( selection, u"mActionSelectPolygon"_s );
+    addNamedAction( selection, u"mActionSelectByExpression"_s );
+    addNamedAction( selection, u"mActionDeselectAll"_s );
 
-    QHBoxLayout *labels = addGroup( page, tr( "Labels" ) );
-    addToolbarActions( labels, mApp->findChild<QToolBar *>( u"mLabelToolBar"_s ) );
+    QgsAppRibbonGroup *labels = addGroup( page, tr( "Labels" ) );
+    addNamedAction( labels, u"mActionLabeling"_s, true );
+    addNamedAction( labels, u"mActionMoveLabel"_s );
+    addNamedAction( labels, u"mActionRotateLabel"_s );
+    addNamedAction( labels, u"mActionShowPinnedLabels"_s );
+    addNamedAction( labels, u"mActionShowHideLabels"_s );
   }
 
   // Raster
   {
-    QWidget *page = addPage( tr( "Raster" ) );
-    QHBoxLayout *stretch = addGroup( page, tr( "Stretch" ) );
-    addToolbarActions( stretch, mApp->rasterToolBar() );
+    QgsAppRibbonPage *page = addPage( tr( "Raster" ) );
+    QgsAppRibbonGroup *stretch = addGroup( page, tr( "Stretch" ) );
+    addNamedAction( stretch, u"mActionLocalHistogramStretch"_s, true );
+    addNamedAction( stretch, u"mActionFullHistogramStretch"_s );
+    addNamedAction( stretch, u"mActionLocalCumulativeCutStretch"_s );
+    addNamedAction( stretch, u"mActionFullCumulativeCutStretch"_s );
+
+    QgsAppRibbonGroup *brightness = addGroup( page, tr( "Brightness" ) );
+    addNamedAction( brightness, u"mActionIncreaseBrightness"_s );
+    addNamedAction( brightness, u"mActionDecreaseBrightness"_s );
+
+    QgsAppRibbonGroup *contrast = addGroup( page, tr( "Contrast" ) );
+    addNamedAction( contrast, u"mActionIncreaseContrast"_s );
+    addNamedAction( contrast, u"mActionDecreaseContrast"_s );
+
+    QgsAppRibbonGroup *gamma = addGroup( page, tr( "Gamma" ) );
+    addNamedAction( gamma, u"mActionIncreaseGamma"_s );
+    addNamedAction( gamma, u"mActionDecreaseGamma"_s );
   }
+
+  // View: bookmarks, panels and settings
+  {
+    QgsAppRibbonPage *page = addPage( tr( "View" ) );
+    QgsAppRibbonGroup *bookmarks = addGroup( page, tr( "Bookmarks" ) );
+    addNamedAction( bookmarks, u"mActionNewBookmark"_s, true );
+    addNamedAction( bookmarks, u"mActionShowBookmarks"_s );
+
+    QgsAppRibbonGroup *panels = addGroup( page, tr( "Panels" ) );
+    addDockToggle( panels, u"Browser"_s );
+    addDockToggle( panels, u"Layers"_s );
+    addNamedAction( panels, u"mActionTemporalController"_s );
+    addNamedAction( panels, u"mActionToggleFullScreen"_s );
+
+    QgsAppRibbonGroup *settings = addGroup( page, tr( "Settings" ) );
+    addNamedAction( settings, u"mActionOptions"_s, true );
+    addNamedAction( settings, u"mActionStyleManager"_s );
+    addNamedAction( settings, u"mActionCustomProjection"_s );
+  }
+
+  // Plugins
+  {
+    QgsAppRibbonPage *page = addPage( tr( "Plugins" ) );
+    QgsAppRibbonGroup *plugins = addGroup( page, tr( "Plugins" ) );
+    addNamedAction( plugins, u"mActionManagePlugins"_s, true );
+
+    mirrorToolbar( addGroup( page, tr( "Installed" ) ), mApp->pluginToolBar() );
+  }
+
+  // Help
+  {
+    QgsAppRibbonPage *page = addPage( tr( "Help" ) );
+    QgsAppRibbonGroup *help = addGroup( page, tr( "Help" ) );
+    addNamedAction( help, u"mActionHelpContents"_s, true );
+
+    QgsAppRibbonGroup *documentation = addGroup( page, tr( "Documentation" ) );
+    addNamedAction( documentation, u"mActionHelpAPI"_s );
+
+    QgsAppRibbonGroup *about = addGroup( page, tr( "About" ) );
+    addNamedAction( about, u"mActionAbout"_s, true );
+    addNamedAction( about, u"mActionQgisHomePage"_s );
+  }
+
+  refreshOptionalActions();
+  updateMetrics();
+}
+
+QSize QgsAppRibbon::sizeHint() const
+{
+  return QSize( tabBar()->sizeHint().width(), tabBar()->sizeHint().height() + mCommandHeight );
+}
+
+QSize QgsAppRibbon::minimumSizeHint() const
+{
+  return QSize( QTabWidget::minimumSizeHint().width(), tabBar()->sizeHint().height() + mCommandHeight );
+}
+
+void QgsAppRibbon::updateMetrics()
+{
+  if ( mUpdatingMetrics || mPages.isEmpty() )
+    return;
+  mUpdatingMetrics = true;
+
+  ensurePolished();
+  const QStyle *st = style();
+  QgsAppRibbonMetrics m;
+  m.smallIcon = st->pixelMetric( QStyle::PM_SmallIconSize, nullptr, this );
+  m.largeIcon = st->pixelMetric( QStyle::PM_ToolBarIconSize, nullptr, this );
+  const QFontMetrics fm = fontMetrics();
+  m.verticalMargin = std::max( 2, fm.height() / 8 );
+  m.horizontalMargin = fm.averageCharWidth();
+
+  // Measure real, stylesheet-polished buttons (a page child picks up the
+  // command-area QSS padding) instead of guessing sizes.
+  {
+    QToolButton probe( mPages.first() );
+    QPixmap pixmap( m.largeIcon, m.largeIcon );
+    pixmap.fill( Qt::transparent );
+    probe.setIcon( QIcon( pixmap ) );
+    probe.setText( u"Wg"_s );
+    probe.setAutoRaise( true );
+    probe.setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
+    probe.setIconSize( QSize( m.smallIcon, m.smallIcon ) );
+    probe.ensurePolished();
+    m.rowHeight = probe.sizeHint().height();
+    probe.setToolButtonStyle( Qt::ToolButtonTextUnderIcon );
+    probe.setIconSize( QSize( m.largeIcon, m.largeIcon ) );
+    m.tallHeight = probe.sizeHint().height();
+  }
+  m.captionHeight = QFontMetrics( ribbonCaptionFont( font() ) ).height();
+
+  // Page margins plus the 1px bottom border.
+  const int chrome = 2 * m.verticalMargin + 1;
+  const int command = chrome + m.tallHeight + m.captionHeight;
+  m.buttonAreaHeight = m.tallHeight;
+  m.rows = std::clamp( m.buttonAreaHeight / std::max( 1, m.rowHeight ), 1, 3 );
+  m.tallPrimary = true;
+  m.captions = true;
+
+  if ( m != mMetrics || command != mCommandHeight )
+  {
+    mMetrics = m;
+    mCommandHeight = command;
+    for ( QgsAppRibbonPage *page : std::as_const( mPages ) )
+      page->setMetrics( m );
+  }
+  updateGeometry();
+  mUpdatingMetrics = false;
+}
+
+bool QgsAppRibbon::event( QEvent *event )
+{
+  const bool result = QTabWidget::event( event );
+#if QT_VERSION >= QT_VERSION_CHECK( 6, 6, 0 )
+  if ( event->type() == QEvent::DevicePixelRatioChange )
+    updateMetrics();
+#endif
+  return result;
+}
+
+void QgsAppRibbon::changeEvent( QEvent *event )
+{
+  QTabWidget::changeEvent( event );
+  if ( event->type() == QEvent::FontChange || event->type() == QEvent::StyleChange )
+    updateMetrics();
+}
+
+bool QgsAppRibbon::eventFilter( QObject *watched, QEvent *event )
+{
+  if ( event->type() == QEvent::ActionAdded || event->type() == QEvent::ActionRemoved )
+  {
+    auto *toolbar = qobject_cast<QToolBar *>( watched );
+    if ( toolbar && mMirroredToolbars.contains( toolbar ) )
+    {
+      // Plugins often add several actions in a row; coalesce into one rebuild.
+      if ( mPendingMirrorSyncs.isEmpty() )
+      {
+        QTimer::singleShot( 0, this, [this] {
+          const QList<QPointer<QToolBar>> pending = std::exchange( mPendingMirrorSyncs, {} );
+          for ( const QPointer<QToolBar> &pendingToolbar : pending )
+          {
+            if ( pendingToolbar )
+              syncMirroredGroup( pendingToolbar );
+          }
+        } );
+      }
+      if ( !mPendingMirrorSyncs.contains( toolbar ) )
+        mPendingMirrorSyncs << toolbar;
+    }
+  }
+  return QTabWidget::eventFilter( watched, event );
 }
 
 void QgsAppRibbon::resizeEvent( QResizeEvent *event )
@@ -226,98 +994,65 @@ void QgsAppRibbon::syncChromeTabBarGeometry()
 
 void QgsAppRibbon::refreshOptionalActions()
 {
-  if ( !mApp || !mProcessingGroupLayout || mProcessingActionAdded )
+  if ( !mApp )
     return;
 
-  const QList<QDockWidget *> docks = mApp->findChildren<QDockWidget *>();
-  for ( QDockWidget *dock : docks )
+  for ( QgsAppRibbonPage *page : std::as_const( mPages ) )
   {
-    if ( dock->objectName() == "ProcessingToolbox"_L1 )
+    for ( QgsAppRibbonGroup *group : page->groups() )
     {
-      if ( QAction *toggle = dock->toggleViewAction() )
-      {
-        addActionButton( mProcessingGroupLayout, toggle );
-        mProcessingActionAdded = true;
-      }
-      break;
+      if ( group->resolveDocks( mApp ) )
+        group->scheduleRebuild();
     }
   }
 }
 
-QWidget *QgsAppRibbon::addPage( const QString &title )
+QgsAppRibbonPage *QgsAppRibbon::addPage( const QString &title )
 {
-  QWidget *page = new QWidget( this );
-  QHBoxLayout *layout = new QHBoxLayout( page );
-  layout->setContentsMargins( 4, 4, 4, 4 );
-  layout->setSpacing( 4 );
-  layout->setAlignment( Qt::AlignVCenter );
-  layout->addStretch( 1 );
+  auto *page = new QgsAppRibbonPage( this );
   addTab( page, title );
+  mPages << page;
   return page;
 }
 
-QHBoxLayout *QgsAppRibbon::addGroup( QWidget *page, const QString &title )
+QgsAppRibbonGroup *QgsAppRibbon::addGroup( QgsAppRibbonPage *page, const QString &title )
 {
-  auto *pageLayout = qobject_cast<QHBoxLayout *>( page->layout() );
-
-  // Single compact row of buttons; the group title stays available to
-  // accessibility tools but is no longer rendered as a caption.
-  QWidget *group = new QWidget( page );
-  group->setAccessibleName( title );
-  auto *buttonLayout = new QHBoxLayout( group );
-  buttonLayout->setContentsMargins( 0, 0, 0, 0 );
-  buttonLayout->setSpacing( 2 );
-  buttonLayout->setAlignment( Qt::AlignVCenter );
-  buttonLayout->addStretch( 1 );
-
-  // Insert before the trailing stretch
-  const int stretchIndex = std::max( 0, pageLayout->count() - 1 );
-  pageLayout->insertWidget( stretchIndex, group, 0, Qt::AlignVCenter );
-
-  QFrame *sep = new QFrame( page );
-  sep->setFrameShape( QFrame::VLine );
-  sep->setFrameShadow( QFrame::Plain );
-  sep->setObjectName( u"HakeAppRibbonSeparator"_s );
-  pageLayout->insertWidget( stretchIndex + 1, sep, 0, Qt::AlignVCenter );
-
-  return buttonLayout;
+  return page->addGroup( title );
 }
 
-void QgsAppRibbon::addActionButton( QHBoxLayout *groupLayout, QAction *action )
+void QgsAppRibbon::addNamedAction( QgsAppRibbonGroup *group, const QString &objectName, bool primary )
 {
-  if ( !groupLayout || !action || action->isSeparator() )
+  if ( !mApp || !group )
     return;
-  if ( qobject_cast<QWidgetAction *>( action ) )
-    return;
-
-  auto *button = new QToolButton( groupLayout->parentWidget() );
-  button->setDefaultAction( action );
-  button->setAutoRaise( true );
-  button->setToolButtonStyle( Qt::ToolButtonIconOnly );
-  button->setIconSize( QSize( QgsGuiUtils::scaleIconSize( 20 ), QgsGuiUtils::scaleIconSize( 20 ) ) );
-  button->setFocusPolicy( Qt::NoFocus );
-  button->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
-
-  const int stretchIndex = std::max( 0, groupLayout->count() - 1 );
-  groupLayout->insertWidget( stretchIndex, button, 0, Qt::AlignVCenter );
+  if ( QAction *action = mApp->findChild<QAction *>( objectName ) )
+    group->addEntry( { action, primary, QString() } );
 }
 
-void QgsAppRibbon::addNamedAction( QHBoxLayout *groupLayout, const QString &objectName )
+void QgsAppRibbon::addDockToggle( QgsAppRibbonGroup *group, const QString &dockObjectName, bool primary )
 {
-  if ( !mApp )
-    return;
-  addActionButton( groupLayout, mApp->findChild<QAction *>( objectName ) );
+  if ( group )
+    group->addEntry( { nullptr, primary, dockObjectName } );
 }
 
-void QgsAppRibbon::addToolbarActions( QHBoxLayout *groupLayout, QToolBar *toolbar, const QStringList &excludedObjectNames )
+void QgsAppRibbon::mirrorToolbar( QgsAppRibbonGroup *group, QToolBar *toolbar )
 {
-  if ( !toolbar )
+  if ( !group || !toolbar )
     return;
+  mMirroredToolbars.insert( toolbar, group );
+  toolbar->installEventFilter( this );
   const QList<QAction *> actions = toolbar->actions();
   for ( QAction *action : actions )
-  {
-    if ( action && excludedObjectNames.contains( action->objectName() ) )
-      continue;
-    addActionButton( groupLayout, action );
-  }
+    group->addEntry( { action, false, QString() } );
+}
+
+void QgsAppRibbon::syncMirroredGroup( QToolBar *toolbar )
+{
+  QgsAppRibbonGroup *group = mMirroredToolbars.value( toolbar );
+  if ( !group )
+    return;
+  QList<QgsAppRibbonGroup::Entry> entries;
+  const QList<QAction *> actions = toolbar->actions();
+  for ( QAction *action : actions )
+    entries.append( QgsAppRibbonGroup::Entry { action, false, QString() } );
+  group->setEntries( entries );
 }

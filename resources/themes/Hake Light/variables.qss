@@ -23,3 +23,8 @@
 @chromeBorder: #0F3B5C
 @chromeText: #FFFFFF
 @chrome: #164A73
+@ribbonBorder: #C7D8E5
+@ribbonPressed: #D6E4F4
+@ribbonSurface: #FFFFFF
+@ribbonCaption: #607D94
+@ribbonDisabled: #9DB0C0
