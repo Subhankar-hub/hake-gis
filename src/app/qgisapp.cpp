@@ -19,7 +19,6 @@
 
 #include <QAction>
 #include <QApplication>
-#include <QGuiApplication>
 #include <QBitmap>
 #include <QCheckBox>
 #include <QClipboard>
@@ -32,6 +31,7 @@
 #include <QEvent>
 #include <QFile>
 #include <QFileInfo>
+#include <QGuiApplication>
 #include <QImageWriter>
 #include <QInputDialog>
 #include <QKeyEvent>
@@ -241,6 +241,7 @@ using namespace Qt::StringLiterals;
 #include "qgisappinterface.h"
 #include "qgisappstylesheet.h"
 #include "qgsappribbon.h"
+#include "qgshakeicons.h"
 #include "qgis.h"
 #include "qgsabout.h"
 #include "qgsabstractmaptoolhandler.h"
@@ -4543,6 +4544,8 @@ void QgisApp::setTheme( const QString &themeName )
   mActionReverseLine->setIcon( QgsApplication::getThemeIcon( u"/mActionReverseLine.svg"_s ) );
   mActionTrimExtendFeature->setIcon( QgsApplication::getThemeIcon( u"/mActionTrimExtendFeature.svg"_s ) );
   mActionTemporalController->setIcon( QgsApplication::getThemeIcon( u"/propertyicons/temporal.svg"_s ) );
+
+  QgsHakeIcons::applyToActions( this, theme );
 
   emit currentThemeChanged( themeName );
 }
@@ -15917,9 +15920,9 @@ void QgisApp::activateDeactivateLayerRelatedActions( QgsMapLayer *layer )
 
         if ( vlayer->geometryType() == Qgis::GeometryType::Point )
         {
-          mActionAddFeature->setIcon( QgsApplication::getThemeIcon( u"/mActionCapturePoint.svg"_s ) );
+          mActionAddFeature->setIcon( QgsHakeIcons::actionIcon( u"/mActionCapturePoint.svg"_s, u"vector/hake-vector-add-point.svg"_s ) );
           addFeatureText = tr( "Add Point Feature" );
-          mActionMoveFeature->setIcon( QgsApplication::getThemeIcon( u"/mActionMoveFeaturePoint.svg"_s ) );
+          mActionMoveFeature->setIcon( QgsHakeIcons::actionIcon( u"/mActionMoveFeaturePoint.svg"_s, u"vector/hake-vector-move-feature.svg"_s ) );
           mActionMoveFeatureCopy->setIcon( QgsApplication::getThemeIcon( u"/mActionMoveFeatureCopyPoint.svg"_s ) );
           mActionFeatureArray->setIcon( QgsApplication::getThemeIcon( u"/mActionFeatureArrayPoint.svg"_s ) );
 
@@ -15949,9 +15952,9 @@ void QgisApp::activateDeactivateLayerRelatedActions( QgsMapLayer *layer )
         }
         else if ( vlayer->geometryType() == Qgis::GeometryType::Line )
         {
-          mActionAddFeature->setIcon( QgsApplication::getThemeIcon( u"/mActionCaptureLine.svg"_s ) );
+          mActionAddFeature->setIcon( QgsHakeIcons::actionIcon( u"/mActionCaptureLine.svg"_s, u"vector/hake-vector-add-line.svg"_s ) );
           addFeatureText = tr( "Add Line Feature" );
-          mActionMoveFeature->setIcon( QgsApplication::getThemeIcon( u"/mActionMoveFeatureLine.svg"_s ) );
+          mActionMoveFeature->setIcon( QgsHakeIcons::actionIcon( u"/mActionMoveFeatureLine.svg"_s, u"vector/hake-vector-move-feature.svg"_s ) );
           mActionMoveFeatureCopy->setIcon( QgsApplication::getThemeIcon( u"/mActionMoveFeatureCopyLine.svg"_s ) );
           mActionFeatureArray->setIcon( QgsApplication::getThemeIcon( u"/mActionFeatureArrayLine.svg"_s ) );
 
@@ -15970,9 +15973,9 @@ void QgisApp::activateDeactivateLayerRelatedActions( QgsMapLayer *layer )
         }
         else if ( vlayer->geometryType() == Qgis::GeometryType::Polygon )
         {
-          mActionAddFeature->setIcon( QgsApplication::getThemeIcon( u"/mActionCapturePolygon.svg"_s ) );
+          mActionAddFeature->setIcon( QgsHakeIcons::actionIcon( u"/mActionCapturePolygon.svg"_s, u"vector/hake-vector-add-polygon.svg"_s ) );
           addFeatureText = tr( "Add Polygon Feature" );
-          mActionMoveFeature->setIcon( QgsApplication::getThemeIcon( u"/mActionMoveFeature.svg"_s ) );
+          mActionMoveFeature->setIcon( QgsHakeIcons::actionIcon( u"/mActionMoveFeature.svg"_s, u"vector/hake-vector-move-feature.svg"_s ) );
           mActionMoveFeatureCopy->setIcon( QgsApplication::getThemeIcon( u"/mActionMoveFeatureCopy.svg"_s ) );
           mActionFeatureArray->setIcon( QgsApplication::getThemeIcon( u"/mActionFeatureArray.svg"_s ) );
 
