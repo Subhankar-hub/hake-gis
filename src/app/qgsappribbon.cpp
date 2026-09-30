@@ -1144,6 +1144,15 @@ void QgsAppRibbon::refreshOptionalActions()
   }
 }
 
+void QgsAppRibbon::refreshIcons()
+{
+  for ( QgsAppRibbonPage *page : std::as_const( mPages ) )
+  {
+    for ( QgsAppRibbonGroup *group : page->groups() )
+      group->scheduleRebuild();
+  }
+}
+
 QgsAppRibbonPage *QgsAppRibbon::addPage( const QString &title )
 {
   auto *page = new QgsAppRibbonPage( this );

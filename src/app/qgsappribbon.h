@@ -67,6 +67,9 @@ class QgsAppRibbon : public QTabWidget
     //! Resolves dock toggle actions (Browser, Layers, Processing Toolbox) and plugin menus (Processing) created after the ribbon.
     void refreshOptionalActions();
 
+    //! Rebuilds the groups so button styles and collapsed-group icons follow action icons changed by a theme switch.
+    void refreshIcons();
+
     QSize sizeHint() const override;
     QSize minimumSizeHint() const override;
 

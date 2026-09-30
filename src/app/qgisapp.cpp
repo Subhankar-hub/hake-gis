@@ -1781,6 +1781,8 @@ QgisApp::QgisApp(
   if ( mAppRibbon )
     mAppRibbon->refreshOptionalActions();
 
+  QgsHakeIcons::watchMenus( this, { menuBar(), mVectorMenu, mRasterMenu, mDatabaseMenu, mWebMenu, findChild<QMenu *>( u"processing"_s ) } );
+
   mSplash->showMessage( tr( "Populate saved styles" ), Qt::AlignHCenter | Qt::AlignBottom, splashTextColor );
   startProfile( tr( "Populate saved styles" ) );
   QgsStyle::defaultStyle();
@@ -2879,6 +2881,7 @@ void QgisApp::dataSourceManager( const QString &pageName, const QString &layerUr
     }
   }
 
+  QgsHakeIcons::applyToDataSourceManager( mDataSourceManagerDialog, QgsApplication::themeName() );
   mDataSourceManagerDialog->show();
   mDataSourceManagerDialog->activate();
 }
@@ -4546,6 +4549,10 @@ void QgisApp::setTheme( const QString &themeName )
   mActionTemporalController->setIcon( QgsApplication::getThemeIcon( u"/propertyicons/temporal.svg"_s ) );
 
   QgsHakeIcons::applyToActions( this, theme );
+  if ( mDataSourceManagerDialog )
+    QgsHakeIcons::applyToDataSourceManager( mDataSourceManagerDialog, theme );
+  if ( mAppRibbon )
+    mAppRibbon->refreshIcons();
 
   emit currentThemeChanged( themeName );
 }
@@ -15923,8 +15930,8 @@ void QgisApp::activateDeactivateLayerRelatedActions( QgsMapLayer *layer )
           mActionAddFeature->setIcon( QgsHakeIcons::actionIcon( u"/mActionCapturePoint.svg"_s, u"vector/hake-vector-add-point.svg"_s ) );
           addFeatureText = tr( "Add Point Feature" );
           mActionMoveFeature->setIcon( QgsHakeIcons::actionIcon( u"/mActionMoveFeaturePoint.svg"_s, u"vector/hake-vector-move-feature.svg"_s ) );
-          mActionMoveFeatureCopy->setIcon( QgsApplication::getThemeIcon( u"/mActionMoveFeatureCopyPoint.svg"_s ) );
-          mActionFeatureArray->setIcon( QgsApplication::getThemeIcon( u"/mActionFeatureArrayPoint.svg"_s ) );
+          mActionMoveFeatureCopy->setIcon( QgsHakeIcons::actionIcon( u"/mActionMoveFeatureCopyPoint.svg"_s, u"vector/hake-vector-copy-move-feature.svg"_s ) );
+          mActionFeatureArray->setIcon( QgsHakeIcons::actionIcon( u"/mActionFeatureArrayPoint.svg"_s, u"vector/hake-vector-feature-array.svg"_s ) );
 
           mActionAddRing->setEnabled( false );
           mActionFillRing->setEnabled( false );
@@ -15955,8 +15962,8 @@ void QgisApp::activateDeactivateLayerRelatedActions( QgsMapLayer *layer )
           mActionAddFeature->setIcon( QgsHakeIcons::actionIcon( u"/mActionCaptureLine.svg"_s, u"vector/hake-vector-add-line.svg"_s ) );
           addFeatureText = tr( "Add Line Feature" );
           mActionMoveFeature->setIcon( QgsHakeIcons::actionIcon( u"/mActionMoveFeatureLine.svg"_s, u"vector/hake-vector-move-feature.svg"_s ) );
-          mActionMoveFeatureCopy->setIcon( QgsApplication::getThemeIcon( u"/mActionMoveFeatureCopyLine.svg"_s ) );
-          mActionFeatureArray->setIcon( QgsApplication::getThemeIcon( u"/mActionFeatureArrayLine.svg"_s ) );
+          mActionMoveFeatureCopy->setIcon( QgsHakeIcons::actionIcon( u"/mActionMoveFeatureCopyLine.svg"_s, u"vector/hake-vector-copy-move-feature.svg"_s ) );
+          mActionFeatureArray->setIcon( QgsHakeIcons::actionIcon( u"/mActionFeatureArrayLine.svg"_s, u"vector/hake-vector-feature-array.svg"_s ) );
 
           mActionReshapeFeatures->setEnabled( isEditable && canChangeGeometry );
           mActionSplitFeatures->setEnabled( isEditable && canAddFeatures );
@@ -15976,8 +15983,8 @@ void QgisApp::activateDeactivateLayerRelatedActions( QgsMapLayer *layer )
           mActionAddFeature->setIcon( QgsHakeIcons::actionIcon( u"/mActionCapturePolygon.svg"_s, u"vector/hake-vector-add-polygon.svg"_s ) );
           addFeatureText = tr( "Add Polygon Feature" );
           mActionMoveFeature->setIcon( QgsHakeIcons::actionIcon( u"/mActionMoveFeature.svg"_s, u"vector/hake-vector-move-feature.svg"_s ) );
-          mActionMoveFeatureCopy->setIcon( QgsApplication::getThemeIcon( u"/mActionMoveFeatureCopy.svg"_s ) );
-          mActionFeatureArray->setIcon( QgsApplication::getThemeIcon( u"/mActionFeatureArray.svg"_s ) );
+          mActionMoveFeatureCopy->setIcon( QgsHakeIcons::actionIcon( u"/mActionMoveFeatureCopy.svg"_s, u"vector/hake-vector-copy-move-feature.svg"_s ) );
+          mActionFeatureArray->setIcon( QgsHakeIcons::actionIcon( u"/mActionFeatureArray.svg"_s, u"vector/hake-vector-feature-array.svg"_s ) );
 
           mActionAddRing->setEnabled( isEditable && canChangeGeometry );
           mActionFillRing->setEnabled( isEditable && canChangeGeometry );
