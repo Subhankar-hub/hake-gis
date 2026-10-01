@@ -3279,6 +3279,15 @@ void QgisApp::createActions()
   connect( mActionAbout, &QAction::triggered, this, &QgisApp::about );
   connect( mActionSponsors, &QAction::triggered, this, &QgisApp::sponsors );
 
+  // Created here, before the ribbon is built; the locator itself only exists once the status bar is created.
+  mActionToolSearch = new QAction( QgsApplication::getThemeIcon( u"/search.svg"_s ), tr( "Tool Search" ), this );
+  mActionToolSearch->setObjectName( u"mActionToolSearch"_s );
+  mActionToolSearch->setToolTip( tr( "Tool Search" ) );
+  connect( mActionToolSearch, &QAction::triggered, this, [this] {
+    if ( mLocatorWidget )
+      mLocatorWidget->search( QString() );
+  } );
+
   connect( mActionShowPinnedLabels, &QAction::toggled, this, &QgisApp::showPinnedLabels );
   connect( mActionShowUnplacedLabels, &QAction::toggled, this, [this]( bool active ) {
     QgsLabelingEngineSettings engineSettings = QgsProject::instance()->labelingEngineSettings();
@@ -4428,6 +4437,7 @@ void QgisApp::setTheme( const QString &themeName )
   mActionConfigureShortcuts->setIcon( QgsApplication::getThemeIcon( u"/mActionKeyboardShortcuts.svg"_s ) );
   mActionCustomization->setIcon( QgsApplication::getThemeIcon( u"/mActionInterfaceCustomization.svg"_s ) );
   mActionHelpContents->setIcon( QgsApplication::getThemeIcon( u"/mActionHelpContents.svg"_s ) );
+  mActionToolSearch->setIcon( QgsApplication::getThemeIcon( u"/search.svg"_s ) );
   mActionLocalHistogramStretch->setIcon( QgsApplication::getThemeIcon( u"/mActionLocalHistogramStretch.svg"_s ) );
   mActionFullHistogramStretch->setIcon( QgsApplication::getThemeIcon( u"/mActionFullHistogramStretch.svg"_s ) );
   mActionIncreaseBrightness->setIcon( QgsApplication::getThemeIcon( u"/mActionIncreaseBrightness.svg"_s ) );

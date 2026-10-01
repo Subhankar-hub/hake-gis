@@ -169,6 +169,7 @@ namespace
     { A, "mActionHelpContents", "help/hake-help-contents.svg" },
     { A, "mActionQgisHomePage", "help/hake-help-home-page.svg" },
     { A, "mActionAbout", "help/hake-help-about.svg" },
+    { A, "mActionToolSearch", "help/hake-help-tool-search.svg" },
 
     // Catalog: Project
     { A, "mActionCloseProject", "project/hake-project-close.svg" },

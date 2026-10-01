@@ -936,6 +936,7 @@ QgsAppRibbon::QgsAppRibbon( QWidget *parent, QgisApp *app )
     QgsAppRibbonGroup *help = addGroup( page, tr( "Help" ) );
     addNamedAction( help, u"mActionHelpContents"_s, true );
     addMenu( help, mApp->helpMenu() );
+    addNamedAction( help, u"mActionToolSearch"_s );
 
     QgsAppRibbonGroup *documentation = addGroup( page, tr( "Documentation" ) );
     addNamedAction( documentation, u"mActionHelpAPI"_s );

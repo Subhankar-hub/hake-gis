@@ -2911,6 +2911,7 @@ class APP_EXPORT QgisApp : public QMainWindow, private Ui::MainWindow
     void tapAndHoldTriggered( QTapAndHoldGesture *gesture );
 
     QgsLocatorWidget *mLocatorWidget = nullptr;
+    QAction *mActionToolSearch = nullptr;
     std::unique_ptr<QgsNominatimGeocoder> mNominatimGeocoder;
 
     QgsStatusBar *mStatusBar = nullptr;
