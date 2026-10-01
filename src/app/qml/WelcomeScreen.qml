@@ -8,7 +8,9 @@ Item {
   id: welcomeScreen
 
   property color workspaceColor: "#F7F9FB"
-  property color pageColor: "#F7F9FB"
+  property color pageColor: "#F1F6FA"
+  property color elevationColor: "#DCE6EE"
+  property color insetColor: "#F7FAFC"
   property color panelColor: "#FFFFFF"
   property color surfaceColor: "#EAF2F7"
   property color pressedSurfaceColor: "#D6E4F4"
@@ -24,7 +26,7 @@ Item {
   property color statusColor: "#25875F"
 
   readonly property string uiFont: Qt.platform.os === "osx" ? ".AppleSystemUIFont" : Application.font.family
-  readonly property bool narrowLayout: homeSurface.width < 960
+  readonly property bool narrowLayout: homeSurface.width < welcomeScreen.unit * 40
   readonly property real layoutSizeFactor: homeSurface.width > 1200 && homeSurface.height > 800 ? 1.1 : 1.0
 
   // All spacing and type derive from the application font so the page follows
@@ -38,7 +40,10 @@ Item {
   readonly property real buttonHeight: Math.round(baseMetrics.height + 14)
   readonly property real buttonMinWidth: Math.round(baseMetrics.averageCharacterWidth * 14)
   readonly property int cardRadius: 8
+  readonly property int surfaceRadius: 10
   readonly property int buttonRadius: 4
+  // Based on the root width (not homeSurface) to avoid a binding loop with narrowLayout.
+  readonly property real surfaceMargin: width < unit * 44 ? unit : Math.round(unit * 1.5)
 
   // Full-bleed workspace tint (self-contained; does not rely on map canvas color)
   Rectangle {
@@ -50,14 +55,39 @@ Item {
   Item {
     id: homeSurface
     anchors.fill: parent
-    anchors.margins: welcomeScreen.unit
+    anchors.margins: welcomeScreen.surfaceMargin
+
+    // Crisp 2px elevation edge (no blur)
+    Rectangle {
+      anchors.fill: parent
+      anchors.topMargin: 2
+      anchors.bottomMargin: -2
+      radius: welcomeScreen.surfaceRadius
+      color: welcomeScreen.elevationColor
+    }
 
     Rectangle {
       anchors.fill: parent
-      radius: welcomeScreen.cardRadius
+      radius: welcomeScreen.surfaceRadius
       color: welcomeScreen.pageColor
       border.width: 1
       border.color: welcomeScreen.borderColor
+    }
+
+    // Decorative contour motif behind the header band; images take no mouse input.
+    Image {
+      anchors.top: parent.top
+      anchors.right: parent.right
+      anchors.margins: 1
+      width: Math.round(Math.min(parent.width * 0.5, welcomeScreen.unit * 40))
+      height: Math.round(width * 2 / 3)
+      source: "images/welcome-contours.svg"
+      sourceSize.width: width
+      sourceSize.height: height
+      fillMode: Image.PreserveAspectFit
+      mirrorVertically: true
+      opacity: 0.1
+      asynchronous: true
     }
 
     ColumnLayout {
@@ -75,9 +105,11 @@ Item {
       spacing: Math.round(welcomeScreen.unit * 0.75)
 
       Image {
-        Layout.preferredWidth: Math.round(welcomeScreen.unit * 3.6)
-        Layout.preferredHeight: Math.round(welcomeScreen.unit * 3.6)
+        Layout.preferredWidth: Math.round(welcomeScreen.unit * 3.2)
+        Layout.preferredHeight: Math.round(welcomeScreen.unit * 3.2)
         source: "images/hake-gis-icon.png"
+        sourceSize.width: Layout.preferredWidth
+        sourceSize.height: Layout.preferredHeight
         fillMode: Image.PreserveAspectFit
         mipmap: true
         asynchronous: true
@@ -232,7 +264,7 @@ Item {
 
             Flow {
               Layout.fillWidth: true
-              Layout.topMargin: Math.round(welcomeScreen.unit * 0.7)
+              Layout.topMargin: Math.round(welcomeScreen.unit * 0.9)
               spacing: Math.round(welcomeScreen.unit * 0.6)
 
               // Soft
@@ -430,13 +462,25 @@ Item {
                 policy: ScrollBar.AsNeeded
               }
 
-              Label {
-                anchors.centerIn: parent
+              Rectangle {
+                width: recentProjectsListView.width
+                height: recentProjectsListView.height
                 visible: recentProjectsListView.count === 0
-                text: qsTr("Open or create a project to see it here.")
-                color: welcomeScreen.mutedTextColor
-                font.family: welcomeScreen.uiFont
-                font.pointSize: welcomeScreen.basePointSize * 0.95
+                radius: welcomeScreen.cardRadius
+                color: welcomeScreen.insetColor
+                border.width: 1
+                border.color: welcomeScreen.borderColor
+
+                Label {
+                  anchors.centerIn: parent
+                  width: Math.min(implicitWidth, parent.width - 2 * welcomeScreen.unit)
+                  horizontalAlignment: Text.AlignHCenter
+                  wrapMode: Text.WordWrap
+                  text: qsTr("Open or create a project to see it here.")
+                  color: welcomeScreen.mutedTextColor
+                  font.family: welcomeScreen.uiFont
+                  font.pointSize: welcomeScreen.basePointSize * 0.95
+                }
               }
 
               Menu {
