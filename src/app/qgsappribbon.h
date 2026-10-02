@@ -43,9 +43,15 @@ struct QgsAppRibbonMetrics
     int rowHeight = 24;
     int tallHeight = 52;
     int captionHeight = 14;
-    int horizontalMargin = 4;
-    int verticalMargin = 2;
     int buttonAreaHeight = 52;
+    //! Spacing scale shared by every ribbon page, group and separator
+    int spaceXs = 2;
+    int spaceSm = 4;
+    int spaceMd = 6;
+    int spaceLg = 8;
+    //! Widest label text before eliding, per button tier
+    int largeLabelMax = 120;
+    int compactLabelMax = 150;
     int rows = 2;
     bool tallPrimary = true;
     bool captions = true;
@@ -86,7 +92,8 @@ class QgsAppRibbon : public QTabWidget
     QgsAppRibbonPage *addPage( const QString &title );
     QgsAppRibbonGroup *addGroup( QgsAppRibbonPage *page, const QString &title );
     void addNamedAction( QgsAppRibbonGroup *group, const QString &objectName, bool primary = false );
-    void addDockToggle( QgsAppRibbonGroup *group, const QString &dockObjectName, bool primary = false );
+    //! \a label is shown on the button only; the dock's toggle action text is left untouched.
+    void addDockToggle( QgsAppRibbonGroup *group, const QString &dockObjectName, const QString &label, bool primary = false );
     //! Adds an existing menu as a drop-down button; hidden while the menu is empty.
     void addMenu( QgsAppRibbonGroup *group, QMenu *menu );
     //! Adds a menu created later (e.g. by a plugin), resolved by object name in refreshOptionalActions().

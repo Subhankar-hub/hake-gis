@@ -1661,7 +1661,7 @@ QTabWidget#HakeAppRibbon > QStackedWidget QToolButton:pressed {
 
 QTabWidget#HakeAppRibbon > QStackedWidget QToolButton:checked {
     background-color: @ribbonPressed;
-    border: 1px solid @chrome;
+    border: 1px solid @chromeActive;
     color: @text;
 }
 
@@ -1684,14 +1684,23 @@ QTabWidget#HakeAppRibbon > QStackedWidget QToolButton::menu-indicator {
     width: 0;
 }
 
+/* Shared geometry of every ribbon command button (large and compact tiers).
+   State-independent properties only: this ID selector outranks the :hover/:checked rules above. */
+QTabWidget#HakeAppRibbon > QStackedWidget QToolButton#HakeAppRibbonButton {
+    border-radius: 3px;
+    padding: 1px 3px;
+    margin: 0;
+}
+
 QTabWidget#HakeAppRibbon #HakeAppRibbonGroupCaption {
     color: @ribbonCaption;
     background: transparent;
 }
 
-QTabWidget#HakeAppRibbon QFrame#HakeAppRibbonSeparator {
-    background-color: @ribbonBorder;
-    border: none;
+/* Painted by QgsAppRibbon from the palette text color. */
+QTabWidget#HakeAppRibbon QWidget#HakeAppRibbonSeparator {
+    color: @ribbonBorder;
+    background: transparent;
 }
 
 

@@ -24,7 +24,6 @@
 
 #include <QAction>
 #include <QDockWidget>
-#include <QFrame>
 #include <QGridLayout>
 #include <QHBoxLayout>
 #include <QIcon>
@@ -38,6 +37,8 @@
 #include <QShowEvent>
 #include <QSizePolicy>
 #include <QStyle>
+#include <QStyleOption>
+#include <QStylePainter>
 #include <QTabBar>
 #include <QTimer>
 #include <QToolBar>
@@ -59,6 +60,7 @@ namespace
       f.setPointSizeF( f.pointSizeF() * 0.85 );
     else
       f.setPixelSize( std::max( 8, qRound( f.pixelSize() * 0.85 ) ) );
+    f.setWeight( QFont::Medium );
     return f;
   }
 
@@ -134,6 +136,145 @@ class QgsAppRibbonCaption : public QWidget
     QString mText;
 };
 
+/**
+ * The one command button used everywhere in the ribbon, in two tiers: Large (text under
+ * icon) and Compact (text beside icon, or icon only). Size depends only on tier, icon and
+ * label, never on enabled/checked state, so the ribbon does not move when actions change state.
+ * Styled through #HakeAppRibbonButton and the "ribbonSize" property in the theme QSS.
+ */
+class QgsAppRibbonButton : public QToolButton
+{
+  public:
+    enum Tier
+    {
+      Large,
+      Compact,
+    };
+
+    QgsAppRibbonButton( QWidget *parent, Tier tier, int labelMax )
+      : QToolButton( parent )
+      , mLabelMax( labelMax )
+    {
+      setObjectName( u"HakeAppRibbonButton"_s );
+      setProperty( "ribbonSize", tier == Large ? u"large"_s : u"compact"_s );
+      setAutoRaise( true );
+      // Reachable by keyboard, but a mouse click must not steal focus from the map canvas.
+      setFocusPolicy( Qt::TabFocus );
+    }
+
+    //! Shown instead of the action text; the action itself is not modified.
+    void setLabel( const QString &label ) { mLabel = label; }
+
+    void setDropDown( bool dropDown )
+    {
+      mDropDown = dropDown;
+      if ( dropDown )
+        setPopupMode( QToolButton::InstantPopup );
+    }
+
+    QSize sizeHint() const override
+    {
+      ensurePolished();
+      QStyleOptionToolButton opt;
+      initPresentationOption( &opt );
+      const QFontMetrics fm = fontMetrics();
+      int w = 0;
+      int h = 0;
+      if ( opt.toolButtonStyle != Qt::ToolButtonTextOnly )
+      {
+        w = opt.iconSize.width();
+        h = opt.iconSize.height();
+      }
+      if ( opt.toolButtonStyle != Qt::ToolButtonIconOnly )
+      {
+        QSize textSize = fm.size( Qt::TextShowMnemonic, opt.text );
+        textSize.setWidth( textSize.width() + fm.horizontalAdvance( u' ' ) * 2 );
+        if ( opt.toolButtonStyle == Qt::ToolButtonTextUnderIcon )
+        {
+          h += 4 + textSize.height();
+          w = std::max( w, textSize.width() );
+        }
+        else if ( opt.toolButtonStyle == Qt::ToolButtonTextBesideIcon )
+        {
+          w += 4 + textSize.width();
+          h = std::max( h, textSize.height() );
+        }
+        else
+        {
+          w = textSize.width();
+          h = textSize.height();
+        }
+      }
+      opt.rect.setSize( QSize( w, h ) );
+      return style()->sizeFromContents( QStyle::CT_ToolButton, &opt, QSize( w, h ), this );
+    }
+
+    QSize minimumSizeHint() const override { return sizeHint(); }
+
+  protected:
+    void paintEvent( QPaintEvent * ) override
+    {
+      QStylePainter p( this );
+      QStyleOptionToolButton opt;
+      initPresentationOption( &opt );
+      p.drawComplexControl( QStyle::CC_ToolButton, opt );
+    }
+
+  private:
+    void initPresentationOption( QStyleOptionToolButton *opt ) const
+    {
+      initStyleOption( opt );
+      const QString text = mLabel.isEmpty() ? opt->text : mLabel;
+      opt->text = fontMetrics().elidedText( text, Qt::ElideRight, mLabelMax );
+      if ( mDropDown )
+        opt->text += u" \u25BE"_s;
+      // Icon-less commands (mostly menu drop-downs) keep the icon slot of their tier so
+      // their label lines up with neighbouring buttons instead of floating as plain text.
+      if ( opt->toolButtonStyle != Qt::ToolButtonTextOnly && opt->icon.isNull() )
+      {
+        QPixmap placeholder( opt->iconSize );
+        placeholder.fill( Qt::transparent );
+        opt->icon = QIcon( placeholder );
+      }
+    }
+
+    int mLabelMax = 0;
+    QString mLabel;
+    bool mDropDown = false;
+};
+
+//! Subtle vertical group separator, inset from the page edges; color from the theme QSS via the palette.
+class QgsAppRibbonSeparator : public QWidget
+{
+  public:
+    explicit QgsAppRibbonSeparator( QWidget *parent )
+      : QWidget( parent )
+    {
+      setObjectName( u"HakeAppRibbonSeparator"_s );
+      setFixedWidth( 1 );
+      setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
+      setAttribute( Qt::WA_TransparentForMouseEvents, true );
+    }
+
+    void setInsets( int top, int bottom )
+    {
+      mTop = top;
+      mBottom = bottom;
+      update();
+    }
+
+  protected:
+    void paintEvent( QPaintEvent * ) override
+    {
+      QPainter p( this );
+      p.fillRect( QRect( 0, mTop, width(), std::max( 0, height() - mTop - mBottom ) ), palette().color( QPalette::WindowText ) );
+    }
+
+  private:
+    int mTop = 0;
+    int mBottom = 0;
+};
+
 class QgsAppRibbonGroup : public QWidget
 {
   public:
@@ -153,6 +294,8 @@ class QgsAppRibbonGroup : public QWidget
         QString dockObjectName;
         //! Menu whose menuAction() fills this entry once the menu exists
         QString menuObjectName;
+        //! Button label overriding the action text for presentation only
+        QString label;
     };
 
     QgsAppRibbonGroup( const QString &title, QWidget *parent );
@@ -181,12 +324,13 @@ class QgsAppRibbonGroup : public QWidget
   private:
     void watchAction( QAction *action );
     QWidget *buildVariant( Level level );
-    QToolButton *makeButton( QWidget *parent, QAction *action, Qt::ToolButtonStyle style, int iconSize ) const;
+    QgsAppRibbonButton *makeButton( QWidget *parent, const Entry &entry, QgsAppRibbonButton::Tier tier, Qt::ToolButtonStyle style ) const;
 
     QString mTitle;
     QList<Entry> mEntries;
     QgsAppRibbonMetrics mMetrics;
     Level mLevel = Full;
+    QVBoxLayout *mLayout = nullptr;
     QWidget *mContent = nullptr;
     QHBoxLayout *mContentLayout = nullptr;
     QgsAppRibbonCaption *mCaption = nullptr;
@@ -216,7 +360,7 @@ class QgsAppRibbonPage : public QWidget
 
     QHBoxLayout *mLayout = nullptr;
     QList<QgsAppRibbonGroup *> mGroups;
-    QList<QFrame *> mSeparators;
+    QList<QgsAppRibbonSeparator *> mSeparators;
     QToolButton *mOverflow = nullptr;
     QMenu *mOverflowMenu = nullptr;
     bool mInRelayout = false;
@@ -230,21 +374,23 @@ QgsAppRibbonGroup::QgsAppRibbonGroup( const QString &title, QWidget *parent )
   : QWidget( parent )
   , mTitle( title )
 {
+  setObjectName( u"HakeAppRibbonGroup"_s );
   setAccessibleName( title );
   setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
 
-  auto *layout = new QVBoxLayout( this );
-  layout->setContentsMargins( 0, 0, 0, 0 );
-  layout->setSpacing( 0 );
+  mLayout = new QVBoxLayout( this );
+  mLayout->setContentsMargins( 0, 0, 0, 0 );
+  mLayout->setSpacing( 0 );
 
   mContent = new QWidget( this );
   mContentLayout = new QHBoxLayout( mContent );
   mContentLayout->setContentsMargins( 0, 0, 0, 0 );
   mContentLayout->setSpacing( 0 );
-  layout->addWidget( mContent, 1 );
+  mLayout->addWidget( mContent, 0 );
 
   mCaption = new QgsAppRibbonCaption( title, this );
-  layout->addWidget( mCaption, 0 );
+  mLayout->addWidget( mCaption, 0 );
+  mLayout->addStretch( 1 );
 }
 
 void QgsAppRibbonGroup::watchAction( QAction *action )
@@ -322,6 +468,12 @@ QList<QAction *> QgsAppRibbonGroup::commands() const
 void QgsAppRibbonGroup::setMetrics( const QgsAppRibbonMetrics &metrics )
 {
   mMetrics = metrics;
+  // Every group shares the same command-area height and caption row, so command rows
+  // and captions sit on the same baselines on every tab.
+  mLayout->setContentsMargins( metrics.spaceSm, 0, metrics.spaceSm, 0 );
+  mLayout->setSpacing( metrics.spaceXs );
+  mContent->setFixedHeight( metrics.buttonAreaHeight );
+  mCaption->setFixedHeight( metrics.captionHeight );
   rebuild();
 }
 
@@ -356,37 +508,43 @@ void QgsAppRibbonGroup::rebuild()
   for ( int l = Full; l <= Collapsed; ++l )
   {
     mVariants[l] = buildVariant( static_cast<Level>( l ) );
-    mContentLayout->addWidget( mVariants[l], 0, Qt::AlignLeft | Qt::AlignVCenter );
+    mContentLayout->addWidget( mVariants[l], 0, Qt::AlignLeft | Qt::AlignTop );
     mVariants[l]->ensurePolished();
   }
   setLevel( mLevel );
 }
 
-QToolButton *QgsAppRibbonGroup::makeButton( QWidget *parent, QAction *action, Qt::ToolButtonStyle style, int iconSize ) const
+QgsAppRibbonButton *QgsAppRibbonGroup::makeButton( QWidget *parent, const Entry &entry, QgsAppRibbonButton::Tier tier, Qt::ToolButtonStyle style ) const
 {
-  auto *button = new QToolButton( parent );
-  button->setDefaultAction( action );
-  button->setAutoRaise( true );
+  const bool large = tier == QgsAppRibbonButton::Large;
+  auto *button = new QgsAppRibbonButton( parent, tier, large ? mMetrics.largeLabelMax : mMetrics.compactLabelMax );
+  button->setDefaultAction( entry.action );
+  button->setLabel( entry.label );
+  button->setDropDown( dropDownMenu( entry.action ) != nullptr );
   button->setToolButtonStyle( style );
+  const int iconSize = large ? mMetrics.largeIcon : mMetrics.smallIcon;
   button->setIconSize( QSize( iconSize, iconSize ) );
-  // Reachable by keyboard, but a mouse click must not steal focus from the map canvas.
-  button->setFocusPolicy( Qt::TabFocus );
-  button->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
-  if ( dropDownMenu( action ) )
-    button->setPopupMode( QToolButton::InstantPopup );
+  // Buttons stretch to their grid column so equivalent controls share one width.
+  button->setSizePolicy( QSizePolicy::Preferred, QSizePolicy::Fixed );
+  button->setFixedHeight( large ? mMetrics.buttonAreaHeight : mMetrics.rowHeight );
   return button;
 }
 
 QWidget *QgsAppRibbonGroup::buildVariant( Level level )
 {
+  const QgsAppRibbonMetrics &m = mMetrics;
+
   auto *variant = new QWidget( mContent );
+  variant->setFixedHeight( m.buttonAreaHeight );
   auto *grid = new QGridLayout( variant );
   grid->setContentsMargins( 0, 0, 0, 0 );
-  grid->setHorizontalSpacing( 2 );
+  grid->setHorizontalSpacing( m.spaceXs );
   grid->setVerticalSpacing( 0 );
-
-  const QgsAppRibbonMetrics &m = mMetrics;
-  const int tallButtonHeight = std::min( m.buttonAreaHeight, std::max( m.tallHeight, m.rows * m.rowHeight ) );
+  for ( int r = 0; r < m.rows; ++r )
+  {
+    grid->setRowMinimumHeight( r, m.buttonAreaHeight / m.rows );
+    grid->setRowStretch( r, 1 );
+  }
 
   QList<Entry> visibleEntries;
   for ( const Entry &entry : std::as_const( mEntries ) )
@@ -399,30 +557,31 @@ QWidget *QgsAppRibbonGroup::buildVariant( Level level )
 
   if ( level == Collapsed )
   {
-    auto *button = new QToolButton( variant );
-    button->setText( mTitle + u" \u25BE"_s );
+    const QgsAppRibbonButton::Tier tier = m.tallPrimary ? QgsAppRibbonButton::Large : QgsAppRibbonButton::Compact;
+    auto *button = new QgsAppRibbonButton( variant, tier, m.tallPrimary ? m.largeLabelMax : m.compactLabelMax );
+    button->setText( mTitle );
     button->setToolTip( mTitle );
     button->setAccessibleName( mTitle );
     button->setIcon( visibleEntries.first().action->icon() );
-    button->setAutoRaise( true );
-    button->setFocusPolicy( Qt::TabFocus );
-    button->setPopupMode( QToolButton::InstantPopup );
+    button->setDropDown( true );
     auto *menu = new QMenu( button );
     menu->addActions( commands() );
     button->setMenu( menu );
+    button->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
     if ( m.tallPrimary )
     {
       button->setToolButtonStyle( Qt::ToolButtonTextUnderIcon );
       button->setIconSize( QSize( m.largeIcon, m.largeIcon ) );
-      button->setFixedHeight( tallButtonHeight );
+      button->setFixedHeight( m.buttonAreaHeight );
+      grid->addWidget( button, 0, 0, m.rows, 1, Qt::AlignLeft | Qt::AlignTop );
     }
     else
     {
       button->setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
       button->setIconSize( QSize( m.smallIcon, m.smallIcon ) );
       button->setFixedHeight( m.rowHeight );
+      grid->addWidget( button, 0, 0, Qt::AlignLeft | Qt::AlignVCenter );
     }
-    grid->addWidget( button, 0, 0, Qt::AlignLeft | Qt::AlignVCenter );
     return variant;
   }
 
@@ -438,23 +597,28 @@ QWidget *QgsAppRibbonGroup::buildVariant( Level level )
         ++col;
         row = 0;
       }
-      QToolButton *button = makeButton( variant, entry.action, Qt::ToolButtonTextUnderIcon, m.largeIcon );
-      button->setFixedHeight( tallButtonHeight );
-      grid->addWidget( button, 0, col, m.rows, 1, Qt::AlignLeft | Qt::AlignVCenter );
+      QgsAppRibbonButton *button = makeButton( variant, entry, QgsAppRibbonButton::Large, Qt::ToolButtonTextUnderIcon );
+      grid->addWidget( button, 0, col, m.rows, 1, Qt::AlignTop );
       ++col;
       continue;
     }
 
     Qt::ToolButtonStyle style = Qt::ToolButtonIconOnly;
-    if ( level == Full || ( level == Compact && entry.primary ) )
+    // Menu-only commands may have no icon; an icon-only button would be blank, so they keep
+    // their label (with a reserved icon slot) at every compression level.
+    if ( level == Full || ( level == Compact && entry.primary ) || entry.action->icon().isNull() )
       style = Qt::ToolButtonTextBesideIcon;
-    // Menu-only commands may have no icon; an icon-only button would be blank.
-    if ( entry.action->icon().isNull() )
-      style = Qt::ToolButtonTextOnly;
 
-    QToolButton *button = makeButton( variant, entry.action, style, m.smallIcon );
-    button->setFixedHeight( m.rowHeight );
-    grid->addWidget( button, row, col, Qt::AlignLeft | Qt::AlignVCenter );
+    QgsAppRibbonButton *button = makeButton( variant, entry, QgsAppRibbonButton::Compact, style );
+    if ( style == Qt::ToolButtonIconOnly )
+    {
+      button->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
+      grid->addWidget( button, row, col, Qt::AlignLeft | Qt::AlignVCenter );
+    }
+    else
+    {
+      grid->addWidget( button, row, col, Qt::AlignVCenter );
+    }
     if ( ++row >= m.rows )
     {
       row = 0;
@@ -481,13 +645,14 @@ int QgsAppRibbonGroup::widthForLevel( Level level ) const
   const QWidget *variant = mVariants[level];
   if ( !variant )
     return 0;
+  const int padding = 2 * mMetrics.spaceSm;
   const int content = variant->sizeHint().width();
   if ( !mMetrics.captions || level == Collapsed )
-    return content;
+    return content + padding;
   const int caption = mCaption->sizeHint().width();
   if ( level == IconsOnly )
-    return std::max( content, std::min( caption, mCaption->fontMetrics().averageCharWidth() * 6 ) );
-  return std::max( content, caption );
+    return std::max( content, std::min( caption, mCaption->fontMetrics().averageCharWidth() * 6 ) ) + padding;
+  return std::max( content, caption ) + padding;
 }
 
 QSize QgsAppRibbonGroup::sizeHint() const
@@ -512,7 +677,8 @@ QgsAppRibbonPage::QgsAppRibbonPage( QWidget *parent )
   setSizePolicy( QSizePolicy::Ignored, QSizePolicy::Ignored );
 
   mLayout = new QHBoxLayout( this );
-  mLayout->setSpacing( 4 );
+  // Gaps between groups come from each group's own padding, so separators sit evenly between them.
+  mLayout->setSpacing( 0 );
   mLayout->addStretch( 1 );
 
   mOverflowMenu = new QMenu( this );
@@ -532,11 +698,7 @@ QgsAppRibbonPage::QgsAppRibbonPage( QWidget *parent )
 QgsAppRibbonGroup *QgsAppRibbonPage::addGroup( const QString &title )
 {
   auto *group = new QgsAppRibbonGroup( title, this );
-  auto *separator = new QFrame( this );
-  separator->setObjectName( u"HakeAppRibbonSeparator"_s );
-  separator->setFrameShape( QFrame::NoFrame );
-  separator->setFixedWidth( 1 );
-  separator->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Expanding );
+  auto *separator = new QgsAppRibbonSeparator( this );
 
   // Keep the trailing stretch and overflow button at the end.
   const int insertAt = mLayout->count() - 2;
@@ -550,8 +712,10 @@ QgsAppRibbonGroup *QgsAppRibbonPage::addGroup( const QString &title )
 void QgsAppRibbonPage::setMetrics( const QgsAppRibbonMetrics &metrics )
 {
   // +1 bottom margin reserves the page's 1px bottom border drawn by the theme.
-  mLayout->setContentsMargins( metrics.horizontalMargin, metrics.verticalMargin, metrics.horizontalMargin, metrics.verticalMargin + 1 );
+  mLayout->setContentsMargins( metrics.spaceMd, metrics.spaceSm, metrics.spaceMd, metrics.spaceXs + 1 );
   mOverflow->setFixedHeight( metrics.rowHeight );
+  for ( QgsAppRibbonSeparator *separator : std::as_const( mSeparators ) )
+    separator->setInsets( metrics.spaceSm, metrics.spaceXs );
   for ( QgsAppRibbonGroup *group : std::as_const( mGroups ) )
     group->setMetrics( metrics );
   relayout();
@@ -806,7 +970,7 @@ QgsAppRibbon::QgsAppRibbon( QWidget *parent, QgisApp *app )
     addNamedAction( statistics, u"mActionOpenFieldCalc"_s );
 
     QgsAppRibbonGroup *processing = addGroup( page, tr( "Processing" ) );
-    addDockToggle( processing, u"ProcessingToolbox"_s, true );
+    addDockToggle( processing, u"ProcessingToolbox"_s, tr( "Processing Toolbox" ), true );
     addNamedAction( processing, u"mActionShowPythonDialog"_s, true );
     addDeferredMenu( processing, u"processing"_s );
   }
@@ -839,8 +1003,8 @@ QgsAppRibbon::QgsAppRibbon( QWidget *parent, QgisApp *app )
     addNamedAction( bookmarks, u"mActionShowBookmarks"_s );
 
     QgsAppRibbonGroup *panels = addGroup( page, tr( "Panels" ) );
-    addDockToggle( panels, u"Browser"_s );
-    addDockToggle( panels, u"Layers"_s );
+    addDockToggle( panels, u"Browser"_s, tr( "Browser" ) );
+    addDockToggle( panels, u"Layers"_s, tr( "Layers" ) );
     addNamedAction( panels, u"mActionTemporalController"_s );
     addNamedAction( panels, u"mActionToggleFullScreen"_s );
     addMenu( panels, mApp->viewMenu() );
@@ -973,25 +1137,34 @@ void QgsAppRibbon::updateMetrics()
   m.smallIcon = st->pixelMetric( QStyle::PM_SmallIconSize, nullptr, this );
   m.largeIcon = st->pixelMetric( QStyle::PM_ToolBarIconSize, nullptr, this );
   const QFontMetrics fm = fontMetrics();
-  m.verticalMargin = std::max( 2, fm.height() / 8 );
-  m.horizontalMargin = fm.averageCharWidth();
+  m.spaceXs = std::max( 2, fm.height() / 8 );
+  m.spaceSm = 2 * m.spaceXs;
+  m.spaceMd = 3 * m.spaceXs;
+  m.spaceLg = 4 * m.spaceXs;
+  m.largeLabelMax = fm.averageCharWidth() * 18;
+  m.compactLabelMax = fm.averageCharWidth() * 22;
 
-  // Measure real, stylesheet-polished buttons (a page child picks up the
+  QFont tabFont = font();
+  tabFont.setWeight( QFont::Medium );
+  tabBar()->setFont( tabFont );
+
+  // Measure real, stylesheet-polished ribbon buttons (a page child picks up the
   // command-area QSS padding) instead of guessing sizes.
   {
-    QToolButton probe( mPages.first() );
     QPixmap pixmap( m.largeIcon, m.largeIcon );
     pixmap.fill( Qt::transparent );
-    probe.setIcon( QIcon( pixmap ) );
-    probe.setText( u"Wg"_s );
-    probe.setAutoRaise( true );
-    probe.setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
-    probe.setIconSize( QSize( m.smallIcon, m.smallIcon ) );
-    probe.ensurePolished();
-    m.rowHeight = probe.sizeHint().height();
-    probe.setToolButtonStyle( Qt::ToolButtonTextUnderIcon );
-    probe.setIconSize( QSize( m.largeIcon, m.largeIcon ) );
-    m.tallHeight = probe.sizeHint().height();
+    QgsAppRibbonButton compactProbe( mPages.first(), QgsAppRibbonButton::Compact, m.compactLabelMax );
+    compactProbe.setIcon( QIcon( pixmap ) );
+    compactProbe.setText( u"Wg"_s );
+    compactProbe.setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
+    compactProbe.setIconSize( QSize( m.smallIcon, m.smallIcon ) );
+    m.rowHeight = compactProbe.sizeHint().height();
+    QgsAppRibbonButton largeProbe( mPages.first(), QgsAppRibbonButton::Large, m.largeLabelMax );
+    largeProbe.setIcon( QIcon( pixmap ) );
+    largeProbe.setText( u"Wg"_s );
+    largeProbe.setToolButtonStyle( Qt::ToolButtonTextUnderIcon );
+    largeProbe.setIconSize( QSize( m.largeIcon, m.largeIcon ) );
+    m.tallHeight = largeProbe.sizeHint().height();
   }
   m.captionHeight = QFontMetrics( ribbonCaptionFont( font() ) ).height();
 
@@ -1001,12 +1174,13 @@ void QgsAppRibbon::updateMetrics()
     brandFont.setWeight( QFont::DemiBold );
     brandFont.setLetterSpacing( QFont::AbsoluteSpacing, 1.2 );
     mBrand->setFont( brandFont );
-    mBrand->parentWidget()->layout()->setContentsMargins( m.horizontalMargin * 2, 0, m.horizontalMargin * 2, 0 );
+    mBrand->parentWidget()->layout()->setContentsMargins( fm.averageCharWidth() * 2, 0, fm.averageCharWidth() * 2, 0 );
   }
 
-  // Page margins plus the 1px bottom border.
-  const int chrome = 2 * m.verticalMargin + 1;
-  const int command = chrome + m.tallHeight + m.captionHeight;
+  // Page margins (top SM, bottom XS plus the 1px border), command area, the XS gap above
+  // the caption, and the caption row.
+  const int chrome = m.spaceSm + m.spaceXs + 1;
+  const int command = chrome + m.tallHeight + m.spaceXs + m.captionHeight;
   m.buttonAreaHeight = m.tallHeight;
   m.rows = std::clamp( m.buttonAreaHeight / std::max( 1, m.rowHeight ), 1, 3 );
   m.tallPrimary = true;
@@ -1175,10 +1349,10 @@ void QgsAppRibbon::addNamedAction( QgsAppRibbonGroup *group, const QString &obje
     group->addEntry( { action, primary, QString() } );
 }
 
-void QgsAppRibbon::addDockToggle( QgsAppRibbonGroup *group, const QString &dockObjectName, bool primary )
+void QgsAppRibbon::addDockToggle( QgsAppRibbonGroup *group, const QString &dockObjectName, const QString &label, bool primary )
 {
   if ( group )
-    group->addEntry( { nullptr, primary, dockObjectName } );
+    group->addEntry( { nullptr, primary, dockObjectName, QString(), label } );
 }
 
 void QgsAppRibbon::addMenu( QgsAppRibbonGroup *group, QMenu *menu )

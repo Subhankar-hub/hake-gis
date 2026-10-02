@@ -1646,9 +1646,10 @@ QTabWidget#HakeAppRibbon QToolButton:disabled {
     margin: 0;
 }
 
-QTabWidget#HakeAppRibbon QFrame#HakeAppRibbonSeparator {
-    background-color: @itemdarkbackground;
-    border: none;
+/* Painted by QgsAppRibbon from the palette text color. */
+QTabWidget#HakeAppRibbon QWidget#HakeAppRibbonSeparator {
+    color: @itemdarkbackground;
+    background: transparent;
 }
 
 QTabWidget#HakeAppRibbon #HakeAppRibbonGroupCaption {
@@ -1659,6 +1660,14 @@ QTabWidget#HakeAppRibbon #HakeAppRibbonGroupCaption {
 QTabWidget#HakeAppRibbon > QStackedWidget QToolButton::menu-indicator {
     image: none;
     width: 0;
+}
+
+/* Shared geometry of every ribbon command button (large and compact tiers).
+   State-independent properties only: this ID selector outranks the :hover/:checked rules above. */
+QTabWidget#HakeAppRibbon > QStackedWidget QToolButton#HakeAppRibbonButton {
+    border-radius: 3px;
+    padding: 4px;
+    margin: 0;
 }
 
 
