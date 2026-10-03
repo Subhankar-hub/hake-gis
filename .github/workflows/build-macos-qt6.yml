@@ -162,6 +162,16 @@ jobs:
           cmake --build build
           cmake --build build --target bundle
 
+      - name: Verify packaged Hake Night theme
+        run: |
+          found=0
+          for app in ./build/_CPack_Packages/Darwin/External/*/*.app; do
+            find "$app" -path "*resources/themes/Hake Night/style.qss" | grep -q . || { echo "Hake Night theme missing in $app"; exit 1; }
+            python3 scripts/hake_theme_validate.py --installed "$app"
+            found=1
+          done
+          [ "$found" -eq 1 ] || { echo "No .app bundle found"; exit 1; }
+
       - name: Archive app
         run: |
           gtar -cpvzf hake-gis-app-${{steps.workflow-artifact-ids.outputs.filename}}-${{ matrix.triplet }}.tar.gz ./build/_CPack_Packages/Darwin/External/*/*.app

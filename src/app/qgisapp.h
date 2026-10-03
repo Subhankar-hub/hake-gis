@@ -184,6 +184,7 @@ class QgsTopocentricWidget;
 #include "qgsbrowserdockwidget.h"
 #include "qgscoordinatereferencesystem.h"
 #include "qgscustomization.h"
+#include "qgshaketheme.h"
 #include "qgslayertreeregistrybridge.h"
 #include "qgslayoutdesignerinterface.h"
 #include "qgsmaplayeractionregistry.h"
@@ -381,6 +382,13 @@ class APP_EXPORT QgisApp : public QMainWindow, private Ui::MainWindow
 
     //! Sets theme (icons)
     void setTheme( const QString &themeName = "default" );
+
+    /**
+     * Applies an explicit user theme choice: switches live when the change is between
+     * Hake Light and Hake Night, otherwise announces that a restart is required.
+     * The selection is persisted either way. Returns TRUE if the theme was applied live.
+     */
+    bool selectTheme( const QString &themeName, QgsHakeTheme::AppearanceMode mode );
 
     void setIconSizes( int size );
 
@@ -1595,6 +1603,15 @@ class APP_EXPORT QgisApp : public QMainWindow, private Ui::MainWindow
     void transactionGroupCommitError( const QString &error );
 
     void onSnappingConfigChanged();
+
+    //! Switches between Hake Light and Hake Night (non-Hake themes switch to Hake Night)
+    void toggleHakeTheme();
+
+    //! Updates the icon and tooltip of the theme toggle for the active theme
+    void updateThemeToggleAction();
+
+    //! Follows the OS color scheme in the System appearance mode
+    void systemColorSchemeChanged();
 
     /**
      * Triggers validation of the specified \a crs.
@@ -2912,6 +2929,11 @@ class APP_EXPORT QgisApp : public QMainWindow, private Ui::MainWindow
 
     QgsLocatorWidget *mLocatorWidget = nullptr;
     QAction *mActionToolSearch = nullptr;
+    QAction *mActionToggleTheme = nullptr;
+    //! TRUE while setTheme() runs, so theme-change listeners cannot re-enter it
+    bool mThemeChangeInProgress = false;
+    //! TRUE once the startup theme has been applied
+    bool mThemeApplied = false;
     std::unique_ptr<QgsNominatimGeocoder> mNominatimGeocoder;
 
     QgsStatusBar *mStatusBar = nullptr;

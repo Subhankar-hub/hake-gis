@@ -269,6 +269,37 @@ jobs:
           }
           Write-Host "Packaged GdalUtils.py decoder check passed"
 
+      - name: Verify packaged Hake Night theme
+        shell: pwsh
+        run: |
+          $build = "${{ github.workspace }}/build"
+          $zips = Get-ChildItem -Path $build -Filter *.zip | Sort-Object FullName
+          if (-not $zips) { throw "No CPack zip in $build" }
+
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $root = Join-Path $env:RUNNER_TEMP "hake-theme-installed"
+          if (Test-Path $root) { Remove-Item -Recurse -Force $root }
+          $extracted = 0
+          foreach ($zpath in $zips) {
+            $archive = [System.IO.Compression.ZipFile]::OpenRead($zpath.FullName)
+            try {
+              foreach ($entry in $archive.Entries) {
+                $name = $entry.FullName -replace '\\','/'
+                if ($name -notlike "*resources/themes/Hake Night/*" -or $name.EndsWith('/')) { continue }
+                $target = Join-Path $root $name
+                New-Item -ItemType Directory -Force -Path (Split-Path $target) | Out-Null
+                [System.IO.Compression.ZipFileExtensions]::ExtractToFile($entry, $target, $true)
+                $extracted++
+              }
+            } finally {
+              $archive.Dispose()
+            }
+          }
+          if ($extracted -eq 0) { throw "Hake Night theme was not packaged" }
+          Write-Host "Extracted $extracted Hake Night theme files"
+          python scripts/hake_theme_validate.py --installed $root
+          if ($LASTEXITCODE -ne 0) { throw "Installed Hake Night theme validation failed" }
+
       # Issue #10: prove the packaged Windows runtime can locate proj.db and run
       # GDAL Polygonize without machine-global PROJ_DATA / OSGeo4W.
       - name: Assert packaged PROJ/GDAL/Python layout

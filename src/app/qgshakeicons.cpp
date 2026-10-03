@@ -432,19 +432,70 @@ namespace
   // The SVGs are authored with these exact colors so state variants can be derived by substitution.
   constexpr char HAKE_STROKE[] = "#164A73";
   constexpr char HAKE_FILL[] = "#D6E4F4";
-  constexpr char HAKE_ACTIVE_STROKE[] = "#0E3858";
-  constexpr char HAKE_DISABLED_STROKE[] = "#A9BCCB";
-  constexpr char HAKE_DISABLED_FILL[] = "#EEF3F7";
+  constexpr char HAKE_PAPER[] = "#FFFFFF";
+
+  //! Colors substituted for the authored colors, per theme variant.
+  struct HakeIconPalette
+  {
+      const char *stroke;
+      const char *fill;
+      const char *paper;
+      const char *activeStroke;
+      const char *disabledStroke;
+      const char *disabledFill;
+  };
+
+  // Hake Light: the authored colors themselves.
+  constexpr HakeIconPalette LIGHT_ICON_PALETTE { HAKE_STROKE, HAKE_FILL, HAKE_PAPER, "#0E3858", "#A9BCCB", "#EEF3F7" };
+  // Hake Night: pale glyphs on dark surfaces.
+  constexpr HakeIconPalette NIGHT_ICON_PALETTE { "#CFE0F0", "#2B4A6B", "#1A2533", "#8EC5F5", "#5C6F84", "#1F2C3C" };
+
+  /**
+   * Replaces the authored stroke, fill and paper colors in one pass, so a replacement
+   * color can never be matched again by a later substitution.
+   */
+  QByteArray substituteColors( const QByteArray &svg, const char *stroke, const char *fill, const char *paper )
+  {
+    constexpr qsizetype colorLength = 7;
+    QByteArray out;
+    out.reserve( svg.size() );
+    qsizetype i = 0;
+    while ( i < svg.size() )
+    {
+      if ( svg.at( i ) == '#' && i + colorLength <= svg.size() )
+      {
+        const QByteArray token = svg.mid( i, colorLength );
+        const char *replacement = nullptr;
+        if ( token == HAKE_STROKE )
+          replacement = stroke;
+        else if ( token == HAKE_FILL )
+          replacement = fill;
+        else if ( token == HAKE_PAPER )
+          replacement = paper;
+        if ( replacement )
+        {
+          out.append( replacement );
+          i += colorLength;
+          continue;
+        }
+      }
+      out.append( svg.at( i ) );
+      ++i;
+    }
+    return out;
+  }
 
   /**
    * Renders a Hake SVG at the exact device pixel size requested, with muted colors
-   * for QIcon::Disabled and the Hake active navy for QIcon::On (checked actions).
+   * for QIcon::Disabled and the active stroke for QIcon::On (checked actions), in the
+   * colors of the Hake Light or Hake Night variant.
    */
   class QgsHakeIconEngine : public QIconEngine
   {
     public:
-      explicit QgsHakeIconEngine( const QByteArray &svg )
+      QgsHakeIconEngine( const QByteArray &svg, bool night )
         : mSvg( svg )
+        , mNight( night )
       {}
 
       void paint( QPainter *painter, const QRect &rect, QIcon::Mode mode, QIcon::State state ) override
@@ -499,28 +550,39 @@ namespace
     private:
       QByteArray svgFor( QIcon::Mode mode, QIcon::State state ) const
       {
-        QByteArray svg = mSvg;
+        const HakeIconPalette &palette = mNight ? NIGHT_ICON_PALETTE : LIGHT_ICON_PALETTE;
         if ( mode == QIcon::Disabled )
-          return svg.replace( HAKE_STROKE, HAKE_DISABLED_STROKE ).replace( HAKE_FILL, HAKE_DISABLED_FILL );
+          return substituteColors( mSvg, palette.disabledStroke, palette.disabledFill, palette.paper );
         if ( state == QIcon::On )
-          return svg.replace( HAKE_STROKE, HAKE_ACTIVE_STROKE );
-        return svg;
+          return substituteColors( mSvg, palette.activeStroke, palette.fill, palette.paper );
+        if ( !mNight )
+          return mSvg;
+        return substituteColors( mSvg, palette.stroke, palette.fill, palette.paper );
       }
 
       QByteArray mSvg;
+      bool mNight = false;
       QHash<QString, QPixmap> mPixmaps;
   };
 } // namespace
 
 bool QgsHakeIcons::isHakeTheme( const QString &themeName )
 {
-  return themeName == "Hake Light"_L1;
+  return QgsHakeTheme::variantForTheme( themeName ) != QgsHakeTheme::Variant::None;
 }
 
 QIcon QgsHakeIcons::icon( const QString &resource )
 {
+  return icon( resource, QgsHakeTheme::variantForTheme( QgsApplication::themeName() ) );
+}
+
+QIcon QgsHakeIcons::icon( const QString &resource, QgsHakeTheme::Variant variant )
+{
+  // At most one entry per resource and variant, so the cache stays bounded across theme switches.
   static QHash<QString, QIcon> sIcons;
-  auto it = sIcons.constFind( resource );
+  const bool night = variant == QgsHakeTheme::Variant::Night;
+  const QString cacheKey = ( night ? u"night:"_s : u"light:"_s ) + resource;
+  auto it = sIcons.constFind( cacheKey );
   if ( it != sIcons.constEnd() )
     return *it;
 
@@ -534,8 +596,8 @@ QIcon QgsHakeIcons::icon( const QString &resource )
   QIcon result;
   QFile file( u":/hake/icons/"_s + resource );
   if ( file.open( QIODevice::ReadOnly ) )
-    result = QIcon( new QgsHakeIconEngine( file.readAll() ) );
-  sIcons.insert( resource, result );
+    result = QIcon( new QgsHakeIconEngine( file.readAll(), night ) );
+  sIcons.insert( cacheKey, result );
   return result;
 }
 
@@ -544,18 +606,23 @@ namespace
   // Marks Data Source Manager list items currently showing a Hake icon.
   constexpr int DSM_HAKE_ICON_ROLE = Qt::UserRole + 0x4841;
 
-  void applyToAction( QAction *action, const char *resource, bool hakeTheme )
+  void applyToAction( QAction *action, const char *resource, QgsHakeTheme::Variant variant )
   {
+    if ( !action )
+      return;
     const QVariant hakeKey = action->property( HAKE_ICON_KEY_PROPERTY );
     const bool showingHakeIcon = hakeKey.isValid() && hakeKey.toLongLong() == action->icon().cacheKey();
 
-    if ( hakeTheme )
+    if ( variant != QgsHakeTheme::Variant::None )
     {
-      const QIcon hakeIcon = QgsHakeIcons::icon( QLatin1String( resource ) );
+      const QIcon hakeIcon = QgsHakeIcons::icon( QLatin1String( resource ), variant );
       if ( hakeIcon.isNull() )
         return;
+      // When the action still shows a Hake icon (Light <-> Night switch) the stored stock icon is kept.
       if ( !showingHakeIcon )
         action->setProperty( STOCK_ICON_PROPERTY, QVariant::fromValue( action->icon() ) );
+      if ( showingHakeIcon && hakeKey.toLongLong() == hakeIcon.cacheKey() )
+        return;
       action->setIcon( hakeIcon );
       action->setProperty( HAKE_ICON_KEY_PROPERTY, hakeIcon.cacheKey() );
     }
@@ -647,7 +714,7 @@ void QgsHakeIcons::applyToActions( QObject *root, const QString &themeName )
   if ( !root )
     return;
 
-  const bool hakeTheme = isHakeTheme( themeName );
+  const QgsHakeTheme::Variant hakeTheme = QgsHakeTheme::variantForTheme( themeName );
 
   // Plugin and Processing actions can share an objectName (e.g. stale copies after a plugin reload), so look them all up.
   QMultiHash<QString, QAction *> namedActions;
@@ -720,7 +787,7 @@ void QgsHakeIcons::applyToDataSourceManager( QWidget *dialog, const QString &the
       resources.insert( QLatin1String( entry.key ), entry.resource );
   }
 
-  const bool hakeTheme = isHakeTheme( themeName );
+  const QgsHakeTheme::Variant variant = QgsHakeTheme::variantForTheme( themeName );
   for ( int row = 0; row < list->count(); ++row )
   {
     QListWidgetItem *item = list->item( row );
@@ -733,9 +800,9 @@ void QgsHakeIcons::applyToDataSourceManager( QWidget *dialog, const QString &the
     if ( it == resources.constEnd() )
       continue;
 
-    if ( hakeTheme )
+    if ( variant != QgsHakeTheme::Variant::None )
     {
-      const QIcon hakeIcon = icon( QLatin1String( *it ) );
+      const QIcon hakeIcon = icon( QLatin1String( *it ), variant );
       if ( hakeIcon.isNull() )
         continue;
       item->setIcon( hakeIcon );

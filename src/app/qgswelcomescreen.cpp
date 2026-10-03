@@ -20,6 +20,7 @@
 #include "qgis.h"
 #include "qgisapp.h"
 #include "qgsapplication.h"
+#include "qgshaketheme.h"
 #include "qgshelp.h"
 #include "qgsmessagelog.h"
 #include "qgspluginmanager.h"
@@ -28,9 +29,11 @@
 #include "qgssettingstree.h"
 
 #include <QAbstractButton>
+#include <QColor>
 #include <QMessageBox>
 #include <QQmlContext>
 #include <QQmlError>
+#include <QQmlPropertyMap>
 #include <QString>
 #include <QTimer>
 #include <QUrl>
@@ -164,6 +167,12 @@ QgsWelcomeScreen::QgsWelcomeScreen( bool skipVersionCheck, QWidget *parent )
   rootContext()->setContextProperty( u"productDisplayName"_s, Qgis::productDisplayName() );
   rootContext()->setContextProperty( u"appVersion"_s, Qgis::productVersionLabel() );
 
+  // Registered before the (lazy) QML load; later theme changes update the values in place.
+  mThemeColors = new QQmlPropertyMap( this );
+  updateThemeColors();
+  rootContext()->setContextProperty( u"welcomeTheme"_s, mThemeColors );
+  connect( QgsApplication::instance(), &QgsApplication::themeChanged, this, &QgsWelcomeScreen::updateThemeColors );
+
   setResizeMode( QQuickWidget::ResizeMode::SizeRootObjectToView );
 
   if ( parent )
@@ -193,6 +202,56 @@ bool QgsWelcomeScreen::eventFilter( QObject *object, QEvent *event )
   }
 
   return result;
+}
+
+void QgsWelcomeScreen::updateThemeColors()
+{
+  if ( !mThemeColors )
+    return;
+
+  struct ThemeColor
+  {
+      const char *name;
+      const char *light;
+      const char *night;
+  };
+
+  // Light values are the Welcome Screen's original colors and apply to every theme except Hake Night.
+  // clang-format off
+  static const ThemeColor colors[] = {
+    { "workspaceColor", "#F7F9FB", "#0D141C" },
+    { "pageColor", "#F1F6FA", "#121A24" },
+    { "elevationColor", "#DCE6EE", "#0A0F15" },
+    { "insetColor", "#F7FAFC", "#172231" },
+    { "panelColor", "#FFFFFF", "#1A2533" },
+    { "surfaceColor", "#EAF2F7", "#1F2C3C" },
+    { "pressedSurfaceColor", "#D6E4F4", "#24496F" },
+    { "primaryColor", "#164A73", "#2F72AE" },
+    { "hoverColor", "#22658F", "#3A80BF" },
+    { "activeColor", "#0E3858", "#245C8F" },
+    { "accentColor", "#164A73", "#8EC5F5" },
+    { "accentSoftColor", "#EAF2F7", "#22344A" },
+    { "newsAccentColor", "#164A73", "#8EC5F5" },
+    { "textColor", "#243B53", "#E6EDF5" },
+    { "mutedTextColor", "#607D94", "#9FB3C8" },
+    { "borderColor", "#C7D8E5", "#2A3B50" },
+    { "statusColor", "#25875F", "#5CC79A" },
+    { "onPrimaryTextColor", "#FFFFFF", "#FFFFFF" },
+    { "projectCardColor", "#FFFFFF", "#1A2533" },
+    { "projectTitleColor", "#2D3748", "#E6EDF5" },
+    { "projectTextColor", "#4A5568", "#9FB3C8" },
+    { "scrollBarColor", "#A7A7A7", "#4A5D73" },
+  };
+  // clang-format on
+
+  const bool night = QgsHakeTheme::variantForTheme( QgsApplication::themeName() ) == QgsHakeTheme::Variant::Night;
+  for ( const ThemeColor &color : colors )
+  {
+    const QColor value( QString::fromLatin1( night ? color.night : color.light ) );
+    const QString key = QLatin1String( color.name );
+    if ( mThemeColors->value( key ).value<QColor>() != value )
+      mThemeColors->insert( key, value );
+  }
 }
 
 void QgsWelcomeScreen::refreshGeometry()

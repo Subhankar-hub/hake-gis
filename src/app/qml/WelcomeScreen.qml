@@ -7,23 +7,25 @@ import "components"
 Item {
   id: welcomeScreen
 
-  property color workspaceColor: "#F7F9FB"
-  property color pageColor: "#F1F6FA"
-  property color elevationColor: "#DCE6EE"
-  property color insetColor: "#F7FAFC"
-  property color panelColor: "#FFFFFF"
-  property color surfaceColor: "#EAF2F7"
-  property color pressedSurfaceColor: "#D6E4F4"
-  property color primaryColor: "#164A73"
-  property color hoverColor: "#22658F"
-  property color activeColor: "#0E3858"
-  property color accentColor: "#164A73"
-  property color accentSoftColor: "#EAF2F7"
-  property color newsAccentColor: "#164A73"
-  property color textColor: "#243B53"
-  property color mutedTextColor: "#607D94"
-  property color borderColor: "#C7D8E5"
-  property color statusColor: "#25875F"
+  // Colors come from the "welcomeTheme" map supplied by QgsWelcomeScreen and follow the UI theme.
+  property color workspaceColor: welcomeTheme.workspaceColor
+  property color pageColor: welcomeTheme.pageColor
+  property color elevationColor: welcomeTheme.elevationColor
+  property color insetColor: welcomeTheme.insetColor
+  property color panelColor: welcomeTheme.panelColor
+  property color surfaceColor: welcomeTheme.surfaceColor
+  property color pressedSurfaceColor: welcomeTheme.pressedSurfaceColor
+  property color primaryColor: welcomeTheme.primaryColor
+  property color hoverColor: welcomeTheme.hoverColor
+  property color activeColor: welcomeTheme.activeColor
+  property color accentColor: welcomeTheme.accentColor
+  property color accentSoftColor: welcomeTheme.accentSoftColor
+  property color newsAccentColor: welcomeTheme.newsAccentColor
+  property color textColor: welcomeTheme.textColor
+  property color mutedTextColor: welcomeTheme.mutedTextColor
+  property color borderColor: welcomeTheme.borderColor
+  property color statusColor: welcomeTheme.statusColor
+  property color onPrimaryTextColor: welcomeTheme.onPrimaryTextColor
 
   readonly property string uiFont: Qt.platform.os === "osx" ? ".AppleSystemUIFont" : Application.font.family
   readonly property bool narrowLayout: homeSurface.width < welcomeScreen.unit * 40
@@ -305,7 +307,7 @@ Item {
                 onClicked: welcomeScreenController.openProjectDialog()
                 contentItem: Text {
                   text: openProjectButton.text
-                  color: "#FFFFFF"
+                  color: welcomeScreen.onPrimaryTextColor
                   font.family: welcomeScreen.uiFont
                   font.pointSize: welcomeScreen.basePointSize
                   horizontalAlignment: Text.AlignHCenter

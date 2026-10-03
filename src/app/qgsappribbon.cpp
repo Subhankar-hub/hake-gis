@@ -1175,6 +1175,15 @@ void QgsAppRibbon::updateMetrics()
     brandFont.setLetterSpacing( QFont::AbsoluteSpacing, 1.2 );
     mBrand->setFont( brandFont );
     mBrand->parentWidget()->layout()->setContentsMargins( fm.averageCharWidth() * 2, 0, fm.averageCharWidth() * 2, 0 );
+    mBrand->parentWidget()->layout()->setSpacing( fm.averageCharWidth() );
+
+    if ( mThemeToggle )
+    {
+      // Sized from the brand caption so the toggle never makes the tab strip taller.
+      const int iconSize = QFontMetrics( brandFont ).height();
+      mThemeToggle->setIconSize( QSize( iconSize, iconSize ) );
+      mThemeToggle->setFixedSize( iconSize + 4, iconSize + 4 );
+    }
   }
 
   // Page margins (top SM, bottom XS plus the 1px border), command area, the XS gap above
@@ -1326,6 +1335,26 @@ void QgsAppRibbon::refreshIcons()
     for ( QgsAppRibbonGroup *group : page->groups() )
       group->scheduleRebuild();
   }
+}
+
+void QgsAppRibbon::setThemeToggleAction( QAction *action )
+{
+  if ( !mBrand || !action )
+    return;
+
+  if ( !mThemeToggle )
+  {
+    QWidget *tabFiller = mBrand->parentWidget();
+    mThemeToggle = new QToolButton( tabFiller );
+    mThemeToggle->setObjectName( u"HakeAppRibbonThemeToggle"_s );
+    mThemeToggle->setAutoRaise( true );
+    mThemeToggle->setToolButtonStyle( Qt::ToolButtonIconOnly );
+    mThemeToggle->setFocusPolicy( Qt::TabFocus );
+    if ( QHBoxLayout *fillerLayout = qobject_cast<QHBoxLayout *>( tabFiller->layout() ) )
+      fillerLayout->insertWidget( fillerLayout->indexOf( mBrand ), mThemeToggle, 0, Qt::AlignVCenter );
+  }
+  // Icon and button size are set from the brand font in updateMetrics().
+  mThemeToggle->setDefaultAction( action );
 }
 
 QgsAppRibbonPage *QgsAppRibbon::addPage( const QString &title )

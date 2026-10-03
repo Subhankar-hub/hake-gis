@@ -62,7 +62,7 @@ QMenuBar::item
 QMenuBar::item:selected
 {
     background: @chromeToolbar;
-    color: @chrome;
+    color: @chromeAccentText;
     padding: 4px 10px;
     margin: 0;
     border: none;
@@ -153,8 +153,8 @@ QAbstractSpinBox::drop-down {
      margin-bottom:1px;
      width: 0.8em;
      background-color: @darkgradient;
-     color:@itembackground;
-     border: 1px solid #B8CDE4;
+     color:@text;
+     border: 1px solid @itemdarkbackground;
 }
 QAbstractSpinBox::drop-down:hover {
     background-color: @darkalternativegradient;
@@ -169,7 +169,7 @@ QAbstractSpinBox::drop-down:disabled {
 
 /* header row */
 QCalendarWidget QWidget {
-    color: @itembackground;
+    color: @text;
     alternate-background-color: @background;
 }
 
@@ -195,7 +195,7 @@ QCalendarWidget QAbstractItemView:enabled
 
 QCalendarWidget QAbstractItemView:disabled
 {
-    color: @background;
+    color: @textdisabled;
 }
 
 /* ==================================================================================== */
@@ -223,7 +223,7 @@ QMenu::item
 
 QMenu::item:disabled
 {
-    color: #5B7290;
+    color: @textdisabled;
     background: transparent;
     padding: 0.2em 1.3em 0.2em 0.4em;
 }
@@ -246,7 +246,7 @@ QMenu::indicator
 
 QWidget:disabled, QWidget:editable:disabled, QWidget:read-only:disabled
 {
-    color: @itemdarkbackground;
+    color: @textdisabled;
     background-color: @background;
 }
 
@@ -466,7 +466,7 @@ QComboBox::drop-down:editable {
      margin-bottom:1px;
      width: 0.8em;
      background-color: @darkgradient;
-     color:@itembackground;
+     color:@text;
      border: 1px solid @itembackground;
 }
 QComboBox::drop-down:editable:hover {
@@ -618,7 +618,7 @@ QMainWindow::separator:hover
     /*background-color: QLinearGradient(x1:0, y1:0, x2:0, y2:1, stop:0 #d7801a, stop:0.5 #b56c17 stop:1 #ffa02f);*/
     color: white;
     padding-left: 0.2em;
-    border: 1px solid #B8CDE4;
+    border: 1px solid @itemdarkbackground;
     spacing: 0.1em; /* spacing between items in the tool bar */
 }
 
@@ -720,7 +720,7 @@ QTabBar::tab {
 }
 
 QTabBar::tab:disabled {
-    color: @itemdarkbackground;
+    color: @textdisabled;
 }
 
 QTabBar::tab:last, QTabBar::tab:only-one
@@ -782,7 +782,7 @@ QGroupBox::title {
 }
 
 QGroupBox::title:disabled { 
-    color: @itemdarkbackground;
+    color: @textdisabled;
 }
 
 QGroupBox::indicator {
@@ -1039,12 +1039,12 @@ QAbstractItemView::item:selected, QListView::item:selected
 
 QAbstractItemView::item:selected:disabled, QListView::item:selected:disabled {
     background-color: @itemdarkbackground;
-    color: @background;
+    color: @textdisabled;
 }
 
 QAbstractItemView:disabled, QListView:disabled
 {
-    color: @itemdarkbackground;
+    color: @textdisabled;
     border: 1px solid @itemdarkbackground;
     border-radius: 0px;
 }
@@ -1098,7 +1098,7 @@ QTreeView::item, QTreeView::branch {
 }
 
 QTreeView::item:disabled {
-    color: @itemdarkbackground;
+    color: @textdisabled;
 }
 
 QTreeView::item:selected, QTreeView::branch:selected {
@@ -1108,7 +1108,7 @@ QTreeView::item:selected, QTreeView::branch:selected {
 
 QTreeView::item:selected:disabled, QTreeView::branch:selected:disabled {
     background-color: @itemdarkbackground;
-    color: @background;
+    color: @textdisabled;
 }
 
 QTreeView::branch:has-children:!has-siblings:closed,
@@ -1245,7 +1245,7 @@ QTableView {
 }
 
 QTableView:disabled {
-    color: @itemdarkbackground;
+    color: @textdisabled;
     border: 1px solid @itemdarkbackground;
     border-radius: 0px;
 }
@@ -1304,7 +1304,7 @@ QHeaderView {
 QHeaderView:disabled {
     background-color: transparent;
     border: 0;
-    color: @itemdarkbackground;
+    color: @textdisabled;
 }
 
 QHeaderView::section, QHeaderView::section:vertical {
@@ -1412,8 +1412,8 @@ QgsMessageBar QLabel, QgsMessageBar QTextEdit, QMessageBar QToolButton, QMessage
 }
 
 QgsMessageBar QScrollBar:vertical {
-    border-left:1px solid #000000;
-    border-right:1px solid #000000;
+    border-left:1px solid @itemdarkbackground;
+    border-right:1px solid @itemdarkbackground;
     background-color: rgba(0,0,0,0);
     width: 0.7em;
     margin: 0.7em 0px 0.7em 0px;
@@ -1421,18 +1421,18 @@ QgsMessageBar QScrollBar:vertical {
 
 QgsMessageBar QScrollBar::add-line:vertical {
     height: 0.7em;
-    border:1px solid #000000;
+    border:1px solid @itemdarkbackground;
     background-color: rgba(0,0,0,0);
-    color: #000000;
+    color: @text;
     subcontrol-position: bottom;
     subcontrol-origin: margin;
 } 
 
 QgsMessageBar QScrollBar::sub-line:vertical {
     height: 0.7em;
-    border:1px solid #000000;
+    border:1px solid @itemdarkbackground;
     background-color: rgba(0,0,0,0);
-    color: #000000;
+    color: @text;
     subcontrol-position: top;
     subcontrol-origin: margin;
 }
@@ -1492,7 +1492,7 @@ QgsLayoutRuler {
 
 QgsLayoutView QToolTip
 {
-    color: @itembackground;
+    color: @text;
 }
 
 QgsAttributeFormWidget QComboBox:disabled {
@@ -1513,6 +1513,7 @@ QWidget#mCadWidget QLineEdit:disabled {
     color: @text;
 }
 
+/* The floater sits on the map canvas, whose color is independent of the UI theme. */
 QgsAdvancedDigitizingFloater QLabel,
 QgsAdvancedDigitizingFloater QLineEdit {
     color: #000000;
@@ -1531,7 +1532,7 @@ QgsLocatorResultsView::item:disabled {
     color: @text;
 }
 
-/* Hake tabbed ribbon — full-width white tab strip; light tool pane below */
+/* Hake tabbed ribbon — full-width dark tab strip; raised dark tool pane below */
 QToolBar#HakeAppRibbon {
     background-color: @ribbonSurface;
     border: none;
@@ -1568,7 +1569,7 @@ QTabWidget#HakeAppRibbon::pane {
 }
 
 /* Do NOT use "> QWidget" here — it also matches QTabBar and paints the empty
-   strip after the last tab with the light toolbar color. */
+   strip after the last tab with the toolbar color. */
 QTabWidget#HakeAppRibbon > QStackedWidget {
     background-color: @chromeToolbar;
 }
@@ -1596,7 +1597,7 @@ QWidget#HakeAppRibbonTabFiller {
 }
 
 QWidget#HakeAppRibbonTabFiller QLabel#HakeAppRibbonBrand {
-    color: @chrome;
+    color: @chromeAccentText;
     background: transparent;
 }
 
@@ -1635,7 +1636,7 @@ QTabWidget#HakeAppRibbon > QTabBar::tab:!selected {
 
 QTabWidget#HakeAppRibbon > QTabBar::tab:hover:!selected {
     background-color: @chromeToolbar;
-    color: @chrome;
+    color: @chromeAccentText;
 }
 
 QTabWidget#HakeAppRibbon > QTabBar::tab:selected {
@@ -1643,7 +1644,7 @@ QTabWidget#HakeAppRibbon > QTabBar::tab:selected {
     color: @chromeText;
 }
 
-/* Tab-strip scroll arrows sit on the white strip, not the command area. */
+/* Tab-strip scroll arrows sit on the tab strip, not the command area. */
 QTabWidget#HakeAppRibbon > QTabBar QToolButton {
     background-color: @ribbonSurface;
     color: @text;
@@ -1697,7 +1698,7 @@ QTabWidget#HakeAppRibbon > QStackedWidget QToolButton:disabled {
 }
 
 QTabWidget#HakeAppRibbon > QStackedWidget QToolButton:focus {
-    border: 1px dotted @chrome;
+    border: 1px dotted @focus;
 }
 
 QTabWidget#HakeAppRibbon > QStackedWidget QToolButton::menu-indicator {

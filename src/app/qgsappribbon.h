@@ -27,6 +27,7 @@ class QLabel;
 class QMenu;
 class QMenuBar;
 class QToolBar;
+class QToolButton;
 class QWidget;
 class QgisApp;
 class QgsAppRibbonGroup;
@@ -76,6 +77,12 @@ class QgsAppRibbon : public QTabWidget
     //! Rebuilds the groups so button styles and collapsed-group icons follow action icons changed by a theme switch.
     void refreshIcons();
 
+    /**
+     * Shows \a action as a compact icon button beside the brand at the top-right of the tab strip.
+     * Does not take ownership of the action.
+     */
+    void setThemeToggleAction( QAction *action );
+
     QSize sizeHint() const override;
     QSize minimumSizeHint() const override;
 
@@ -112,6 +119,7 @@ class QgsAppRibbon : public QTabWidget
 
     QgisApp *mApp = nullptr;
     QLabel *mBrand = nullptr;
+    QToolButton *mThemeToggle = nullptr;
     QList<QgsAppRibbonPage *> mPages;
     QHash<QToolBar *, QgsAppRibbonGroup *> mMirroredToolbars;
     QList<QPointer<QToolBar>> mPendingMirrorSyncs;

@@ -16,6 +16,9 @@
 #ifndef QGSHAKEICONS_H
 #define QGSHAKEICONS_H
 
+#include "qgis_app.h"
+#include "qgshaketheme.h"
+
 #include <QIcon>
 #include <QList>
 #include <QString>
@@ -27,29 +30,36 @@ class QWidget;
  * Hake GeoDesk icon family for the application's own (Hake-owned) actions.
  *
  * Icons are SVGs compiled into the :/hake/icons resource. They are only used
- * under the "Hake Light" UI theme and only for the fixed set of targets listed
+ * under the "Hake Light" and "Hake Night" UI themes (light and dark color
+ * substitution of the same SVGs) and only for the fixed set of targets listed
  * in qgshakeicons.cpp: core actions, ribbon panel dock toggles, Data Source
  * Manager pages, and the bundled plugin commands named in the Hake icon catalog.
  * Any other plugin or extension action keeps its own icon.
  */
-class QgsHakeIcons
+class APP_EXPORT QgsHakeIcons
 {
   public:
-    //! Returns TRUE if \a themeName is the UI theme the Hake icon family is designed for.
+    //! Returns TRUE if \a themeName is a UI theme the Hake icon family is designed for.
     static bool isHakeTheme( const QString &themeName );
 
-    //! Returns the Hake icon for \a resource (relative to :/hake/icons), or a null icon if it is missing.
+    /**
+     * Returns the Hake icon for \a resource (relative to :/hake/icons) in the colors of the
+     * active UI theme (Hake Light colors for non-Hake themes), or a null icon if it is missing.
+     */
     static QIcon icon( const QString &resource );
+
+    //! Returns the Hake icon for \a resource in the colors of \a variant (Light for None).
+    static QIcon icon( const QString &resource, QgsHakeTheme::Variant variant );
 
     /**
      * Applies the Hake icons to the mapped actions and dock toggles found under \a root when
-     * \a themeName is the Hake theme, otherwise restores the icons those actions had before.
+     * \a themeName is a Hake theme, otherwise restores the icons those actions had before.
      */
     static void applyToActions( QObject *root, const QString &themeName );
 
     /**
      * Applies the Hake icons to the source pages of the Data Source Manager \a dialog when
-     * \a themeName is the Hake theme, otherwise restores the provider icons.
+     * \a themeName is a Hake theme, otherwise restores the provider icons.
      */
     static void applyToDataSourceManager( QWidget *dialog, const QString &themeName );
 

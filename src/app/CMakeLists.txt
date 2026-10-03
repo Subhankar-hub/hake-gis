@@ -12,6 +12,7 @@ set(QGIS_APP_SRCS
   qgisappstylesheet.cpp
   qgsappribbon.cpp
   qgshakeicons.cpp
+  qgshaketheme.cpp
   ${CMAKE_SOURCE_DIR}/resources/icons/hake/hake_icons.qrc
   qgsabout.cpp
   qgsappauthrequesthandler.cpp

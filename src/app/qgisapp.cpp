@@ -49,12 +49,14 @@
 #include <QProgressDialog>
 #include <QQuickStyle>
 #include <QRegularExpression>
+#include <QScopedValueRollback>
 #include <QScreen>
 #include <QShortcut>
 #include <QSpinBox>
 #include <QSplashScreen>
 #include <QStandardPaths>
 #include <QString>
+#include <QStyleHints>
 #include <QUrl>
 #include <QUrlQuery>
 
@@ -2982,7 +2984,10 @@ void QgisApp::applyDefaultSettingsToCanvas( QgsMapCanvas *canvas )
 void QgisApp::readSettings()
 {
   QgsSettings settings;
-  const QString themeName = settings.value( u"UI/UITheme"_s, "Hake Light" ).toString();
+  QString themeName = settings.value( u"UI/UITheme"_s, "Hake Light" ).toString();
+  const QgsHakeTheme::AppearanceMode appearanceMode = QgsHakeTheme::appearanceMode();
+  if ( appearanceMode == QgsHakeTheme::AppearanceMode::System )
+    themeName = QgsHakeTheme::resolveTheme( appearanceMode, themeName );
   setTheme( themeName );
 
   // Read legacy settings
@@ -3287,6 +3292,13 @@ void QgisApp::createActions()
     if ( mLocatorWidget )
       mLocatorWidget->search( QString() );
   } );
+
+  // Two-state Hake Light / Hake Night toggle shown at the top-right of the ribbon; no shortcut.
+  mActionToggleTheme = new QAction( tr( "Switch to dark theme" ), this );
+  mActionToggleTheme->setObjectName( u"mActionToggleTheme"_s );
+  mActionToggleTheme->setToolTip( tr( "Switch to dark theme" ) );
+  connect( mActionToggleTheme, &QAction::triggered, this, &QgisApp::toggleHakeTheme );
+  updateThemeToggleAction();
 
   connect( mActionShowPinnedLabels, &QAction::toggled, this, &QgisApp::showPinnedLabels );
   connect( mActionShowUnplacedLabels, &QAction::toggled, this, [this]( bool active ) {
@@ -4092,6 +4104,7 @@ void QgisApp::createAppRibbon()
   ribbonHostLayout->setSpacing( 0 );
 
   mAppRibbon = new QgsAppRibbon( ribbonHost, this );
+  mAppRibbon->setThemeToggleAction( mActionToggleTheme );
   ribbonHostLayout->addWidget( mAppRibbon, 1 );
   mAppRibbonBar->addWidget( ribbonHost );
   // QToolBar style metrics can still inset the hosted widget; force flush geometry.
@@ -4385,9 +4398,26 @@ void QgisApp::setTheme( const QString &themeName )
   for the user to choose from.
   */
 
-  QString theme = themeName;
+  // A theme change triggered from a theme-change listener must not recurse, and re-applying
+  // the active theme would only rebuild every icon for nothing.
+  if ( mThemeChangeInProgress )
+    return;
+  if ( mThemeApplied && themeName == QgsApplication::themeName() )
+    return;
 
-  QgsApplication::setUITheme( theme );
+  QString validationError;
+  if ( !QgsHakeTheme::validateThemeResources( themeName, &validationError ) )
+  {
+    QgsMessageLog::logMessage( validationError, tr( "Theme" ), Qgis::MessageLevel::Warning );
+    if ( mThemeApplied )
+      return;
+  }
+
+  const QScopedValueRollback<bool> themeChangeGuard( mThemeChangeInProgress, true );
+
+  QgsApplication::setUITheme( themeName );
+  // setUITheme keeps the previous theme if the requested one could not be loaded.
+  const QString theme = QgsApplication::themeName();
   mStyleSheetBuilder->updateStyleSheet();
 
   mActionNewProject->setIcon( QgsApplication::getThemeIcon( u"/mActionFileNew.svg"_s ) );
@@ -4564,13 +4594,95 @@ void QgisApp::setTheme( const QString &themeName )
   if ( mAppRibbon )
     mAppRibbon->refreshIcons();
 
-  emit currentThemeChanged( themeName );
+  // The geometry-specific digitizing icons are chosen per active layer; refresh them on live switches.
+  if ( mThemeApplied && mLayerTreeView )
+    activateDeactivateLayerRelatedActions( activeLayer() );
+
+  mThemeApplied = true;
+  updateThemeToggleAction();
+
+  emit currentThemeChanged( theme );
+}
+
+bool QgisApp::selectTheme( const QString &themeName, QgsHakeTheme::AppearanceMode mode )
+{
+  QString validationError;
+  if ( !QgsHakeTheme::validateThemeResources( themeName, &validationError ) )
+  {
+    visibleMessageBar()->pushWarning( tr( "Theme" ), validationError );
+    return false;
+  }
+
+  const QString currentTheme = QgsApplication::themeName();
+  const bool live = QgsHakeTheme::isLiveSwitchable( currentTheme, themeName );
+  if ( live )
+    setTheme( themeName );
+
+  if ( !QgsHakeTheme::persist( themeName, mode ) )
+  {
+    QgsMessageLog::logMessage( tr( "The UI theme selection \"%1\" could not be saved to the settings." ).arg( themeName ), tr( "Theme" ), Qgis::MessageLevel::Warning );
+    visibleMessageBar()->pushWarning( tr( "Theme" ), tr( "The theme selection could not be saved and will not be kept after a restart." ) );
+  }
+
+  if ( !live && themeName != currentTheme )
+    visibleMessageBar()->pushInfo( tr( "Theme" ), tr( "Restart %1 to apply the \"%2\" theme." ).arg( Qgis::productDisplayName(), themeName ) );
+
+  return live && QgsApplication::themeName() == themeName;
+}
+
+void QgisApp::toggleHakeTheme()
+{
+  // Night goes to Light; Hake Light and every non-Hake theme (Hake Dark, Night Mapping, ...) go to Night.
+  const bool night = QgsHakeTheme::variantForTheme( QgsApplication::themeName() ) == QgsHakeTheme::Variant::Night;
+  if ( night )
+    selectTheme( QgsHakeTheme::lightTheme(), QgsHakeTheme::AppearanceMode::Light );
+  else
+    selectTheme( QgsHakeTheme::nightTheme(), QgsHakeTheme::AppearanceMode::Dark );
+}
+
+void QgisApp::updateThemeToggleAction()
+{
+  if ( !mActionToggleTheme )
+    return;
+
+  const QgsHakeTheme::Variant variant = QgsHakeTheme::variantForTheme( QgsApplication::themeName() );
+  const bool night = variant == QgsHakeTheme::Variant::Night;
+
+  // Non-Hake themes get the icon colors that read best on their own window color.
+  QgsHakeTheme::Variant iconVariant = variant;
+  if ( iconVariant == QgsHakeTheme::Variant::None )
+    iconVariant = palette().color( QPalette::Window ).lightness() < 128 ? QgsHakeTheme::Variant::Night : QgsHakeTheme::Variant::Light;
+
+  const QString text = night ? tr( "Switch to light theme" ) : tr( "Switch to dark theme" );
+  mActionToggleTheme->setIcon( night ? QgsHakeIcons::icon( u"app/hake-theme-sun.svg"_s, iconVariant ) : QgsHakeIcons::icon( u"app/hake-theme-moon.svg"_s, iconVariant ) );
+  mActionToggleTheme->setText( text );
+  mActionToggleTheme->setToolTip( text );
+}
+
+void QgisApp::systemColorSchemeChanged()
+{
+  if ( QgsHakeTheme::appearanceMode() != QgsHakeTheme::AppearanceMode::System )
+    return;
+
+  const QString currentTheme = QgsApplication::themeName();
+  const QString targetTheme = QgsHakeTheme::resolveTheme( QgsHakeTheme::AppearanceMode::System, currentTheme );
+  if ( targetTheme == currentTheme || !QgsHakeTheme::isLiveSwitchable( currentTheme, targetTheme ) )
+    return;
+
+  // UI/UITheme is left as stored: only an explicit user choice writes it.
+  setTheme( targetTheme );
 }
 
 void QgisApp::setupConnections()
 {
   // connect the "cleanup" slot
   connect( qApp, &QApplication::aboutToQuit, this, &QgisApp::saveWindowState );
+
+#if QT_VERSION >= QT_VERSION_CHECK( 6, 5, 0 )
+  // Only acts in the System appearance mode, and only between Hake Light and Hake Night.
+  if ( QStyleHints *styleHints = QGuiApplication::styleHints() )
+    connect( styleHints, &QStyleHints::colorSchemeChanged, this, &QgisApp::systemColorSchemeChanged );
+#endif
   // Repair the window geometry if it became unreachable because a monitor was
   // unplugged or the current screen's work area changed (resolution change,
   // taskbar/dock moved, VM/RDP display resize). Queued so Qt's screen list has

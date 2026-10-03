@@ -1,6 +1,8 @@
 <!DOCTYPE RCC>
 <RCC version="1.0">
   <qresource prefix="/hake/icons">
+    <file>app/hake-theme-moon.svg</file>
+    <file>app/hake-theme-sun.svg</file>
     <file>analysis/hake-analysis-basic-statistics.svg</file>
     <file>analysis/hake-analysis-count-points-in-polygon.svg</file>
     <file>analysis/hake-analysis-create-grid.svg</file>
