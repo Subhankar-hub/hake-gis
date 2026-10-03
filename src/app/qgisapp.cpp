@@ -19,7 +19,6 @@
 
 #include <QAction>
 #include <QApplication>
-#include <QGuiApplication>
 #include <QBitmap>
 #include <QCheckBox>
 #include <QClipboard>
@@ -32,6 +31,7 @@
 #include <QEvent>
 #include <QFile>
 #include <QFileInfo>
+#include <QGuiApplication>
 #include <QImageWriter>
 #include <QInputDialog>
 #include <QKeyEvent>
@@ -49,12 +49,14 @@
 #include <QProgressDialog>
 #include <QQuickStyle>
 #include <QRegularExpression>
+#include <QScopedValueRollback>
 #include <QScreen>
 #include <QShortcut>
 #include <QSpinBox>
 #include <QSplashScreen>
 #include <QStandardPaths>
 #include <QString>
+#include <QStyleHints>
 #include <QUrl>
 #include <QUrlQuery>
 
@@ -241,6 +243,7 @@ using namespace Qt::StringLiterals;
 #include "qgisappinterface.h"
 #include "qgisappstylesheet.h"
 #include "qgsappribbon.h"
+#include "qgshakeicons.h"
 #include "qgis.h"
 #include "qgsabout.h"
 #include "qgsabstractmaptoolhandler.h"
@@ -1780,6 +1783,8 @@ QgisApp::QgisApp(
   if ( mAppRibbon )
     mAppRibbon->refreshOptionalActions();
 
+  QgsHakeIcons::watchMenus( this, { menuBar(), mVectorMenu, mRasterMenu, mDatabaseMenu, mWebMenu, findChild<QMenu *>( u"processing"_s ) } );
+
   mSplash->showMessage( tr( "Populate saved styles" ), Qt::AlignHCenter | Qt::AlignBottom, splashTextColor );
   startProfile( tr( "Populate saved styles" ) );
   QgsStyle::defaultStyle();
@@ -2878,6 +2883,7 @@ void QgisApp::dataSourceManager( const QString &pageName, const QString &layerUr
     }
   }
 
+  QgsHakeIcons::applyToDataSourceManager( mDataSourceManagerDialog, QgsApplication::themeName() );
   mDataSourceManagerDialog->show();
   mDataSourceManagerDialog->activate();
 }
@@ -2978,7 +2984,10 @@ void QgisApp::applyDefaultSettingsToCanvas( QgsMapCanvas *canvas )
 void QgisApp::readSettings()
 {
   QgsSettings settings;
-  const QString themeName = settings.value( u"UI/UITheme"_s, "Hake Light" ).toString();
+  QString themeName = settings.value( u"UI/UITheme"_s, "Hake Light" ).toString();
+  const QgsHakeTheme::AppearanceMode appearanceMode = QgsHakeTheme::appearanceMode();
+  if ( appearanceMode == QgsHakeTheme::AppearanceMode::System )
+    themeName = QgsHakeTheme::resolveTheme( appearanceMode, themeName );
   setTheme( themeName );
 
   // Read legacy settings
@@ -3274,6 +3283,22 @@ void QgisApp::createActions()
   connect( mActionCheckQgisVersion, &QAction::triggered, this, &QgisApp::checkQgisVersion );
   connect( mActionAbout, &QAction::triggered, this, &QgisApp::about );
   connect( mActionSponsors, &QAction::triggered, this, &QgisApp::sponsors );
+
+  // Created here, before the ribbon is built; the locator itself only exists once the status bar is created.
+  mActionToolSearch = new QAction( QgsApplication::getThemeIcon( u"/search.svg"_s ), tr( "Tool Search" ), this );
+  mActionToolSearch->setObjectName( u"mActionToolSearch"_s );
+  mActionToolSearch->setToolTip( tr( "Tool Search" ) );
+  connect( mActionToolSearch, &QAction::triggered, this, [this] {
+    if ( mLocatorWidget )
+      mLocatorWidget->search( QString() );
+  } );
+
+  // Two-state Hake Light / Hake Night toggle shown at the top-right of the ribbon; no shortcut.
+  mActionToggleTheme = new QAction( tr( "Switch to dark theme" ), this );
+  mActionToggleTheme->setObjectName( u"mActionToggleTheme"_s );
+  mActionToggleTheme->setToolTip( tr( "Switch to dark theme" ) );
+  connect( mActionToggleTheme, &QAction::triggered, this, &QgisApp::toggleHakeTheme );
+  updateThemeToggleAction();
 
   connect( mActionShowPinnedLabels, &QAction::toggled, this, &QgisApp::showPinnedLabels );
   connect( mActionShowUnplacedLabels, &QAction::toggled, this, [this]( bool active ) {
@@ -4079,6 +4104,7 @@ void QgisApp::createAppRibbon()
   ribbonHostLayout->setSpacing( 0 );
 
   mAppRibbon = new QgsAppRibbon( ribbonHost, this );
+  mAppRibbon->setThemeToggleAction( mActionToggleTheme );
   ribbonHostLayout->addWidget( mAppRibbon, 1 );
   mAppRibbonBar->addWidget( ribbonHost );
   // QToolBar style metrics can still inset the hosted widget; force flush geometry.
@@ -4088,16 +4114,31 @@ void QgisApp::createAppRibbon()
     ribbonBarLayout->setSpacing( 0 );
   }
 
-  // Continuously paint the classic menu row chrome end-to-end (same as ribbon strip).
-  if ( QMenuBar *bar = menuBar() )
-    bar->setAttribute( Qt::WA_StyledBackground, true );
-
-  // Host at the top without listing the ribbon under View → Toolbars
+  // Host at the top, ahead of the classic toolbars
   if ( mFileToolBar )
     QMainWindow::insertToolBar( mFileToolBar, mAppRibbonBar );
   else
     QMainWindow::addToolBar( Qt::TopToolBarArea, mAppRibbonBar );
   mAppRibbonBar->show();
+
+  // The ribbon is the only navigation row (the classic menu bar is hidden), so it
+  // must not be user-hideable from View > Toolbars or toolbar context menus.
+  QAction *ribbonToggle = mAppRibbonBar->toggleViewAction();
+  ribbonToggle->setObjectName( u"mActionToggleHakeAppRibbon"_s );
+  ribbonToggle->setVisible( false );
+}
+
+void QgisApp::hideClassicMenuBar()
+{
+  QMenuBar *bar = menuBar();
+  if ( !bar )
+    return;
+
+  // A hidden menu bar disables the shortcuts of menu-only actions; owning the
+  // top-level menu actions on the main window keeps them active. Menus added
+  // later by plugins are registered by QgsAppRibbon's menu bar watcher.
+  addActions( bar->actions() );
+  bar->hide();
 }
 
 void QgisApp::hideClassicToolBars()
@@ -4357,9 +4398,26 @@ void QgisApp::setTheme( const QString &themeName )
   for the user to choose from.
   */
 
-  QString theme = themeName;
+  // A theme change triggered from a theme-change listener must not recurse, and re-applying
+  // the active theme would only rebuild every icon for nothing.
+  if ( mThemeChangeInProgress )
+    return;
+  if ( mThemeApplied && themeName == QgsApplication::themeName() )
+    return;
 
-  QgsApplication::setUITheme( theme );
+  QString validationError;
+  if ( !QgsHakeTheme::validateThemeResources( themeName, &validationError ) )
+  {
+    QgsMessageLog::logMessage( validationError, tr( "Theme" ), Qgis::MessageLevel::Warning );
+    if ( mThemeApplied )
+      return;
+  }
+
+  const QScopedValueRollback<bool> themeChangeGuard( mThemeChangeInProgress, true );
+
+  QgsApplication::setUITheme( themeName );
+  // setUITheme keeps the previous theme if the requested one could not be loaded.
+  const QString theme = QgsApplication::themeName();
   mStyleSheetBuilder->updateStyleSheet();
 
   mActionNewProject->setIcon( QgsApplication::getThemeIcon( u"/mActionFileNew.svg"_s ) );
@@ -4409,6 +4467,7 @@ void QgisApp::setTheme( const QString &themeName )
   mActionConfigureShortcuts->setIcon( QgsApplication::getThemeIcon( u"/mActionKeyboardShortcuts.svg"_s ) );
   mActionCustomization->setIcon( QgsApplication::getThemeIcon( u"/mActionInterfaceCustomization.svg"_s ) );
   mActionHelpContents->setIcon( QgsApplication::getThemeIcon( u"/mActionHelpContents.svg"_s ) );
+  mActionToolSearch->setIcon( QgsApplication::getThemeIcon( u"/search.svg"_s ) );
   mActionLocalHistogramStretch->setIcon( QgsApplication::getThemeIcon( u"/mActionLocalHistogramStretch.svg"_s ) );
   mActionFullHistogramStretch->setIcon( QgsApplication::getThemeIcon( u"/mActionFullHistogramStretch.svg"_s ) );
   mActionIncreaseBrightness->setIcon( QgsApplication::getThemeIcon( u"/mActionIncreaseBrightness.svg"_s ) );
@@ -4529,13 +4588,101 @@ void QgisApp::setTheme( const QString &themeName )
   mActionTrimExtendFeature->setIcon( QgsApplication::getThemeIcon( u"/mActionTrimExtendFeature.svg"_s ) );
   mActionTemporalController->setIcon( QgsApplication::getThemeIcon( u"/propertyicons/temporal.svg"_s ) );
 
-  emit currentThemeChanged( themeName );
+  QgsHakeIcons::applyToActions( this, theme );
+  if ( mDataSourceManagerDialog )
+    QgsHakeIcons::applyToDataSourceManager( mDataSourceManagerDialog, theme );
+  if ( mAppRibbon )
+    mAppRibbon->refreshIcons();
+
+  // The geometry-specific digitizing icons are chosen per active layer; refresh them on live switches.
+  if ( mThemeApplied && mLayerTreeView )
+    activateDeactivateLayerRelatedActions( activeLayer() );
+
+  mThemeApplied = true;
+  updateThemeToggleAction();
+
+  emit currentThemeChanged( theme );
+}
+
+bool QgisApp::selectTheme( const QString &themeName, QgsHakeTheme::AppearanceMode mode )
+{
+  QString validationError;
+  if ( !QgsHakeTheme::validateThemeResources( themeName, &validationError ) )
+  {
+    visibleMessageBar()->pushWarning( tr( "Theme" ), validationError );
+    return false;
+  }
+
+  const QString currentTheme = QgsApplication::themeName();
+  const bool live = QgsHakeTheme::isLiveSwitchable( currentTheme, themeName );
+  if ( live )
+    setTheme( themeName );
+
+  if ( !QgsHakeTheme::persist( themeName, mode ) )
+  {
+    QgsMessageLog::logMessage( tr( "The UI theme selection \"%1\" could not be saved to the settings." ).arg( themeName ), tr( "Theme" ), Qgis::MessageLevel::Warning );
+    visibleMessageBar()->pushWarning( tr( "Theme" ), tr( "The theme selection could not be saved and will not be kept after a restart." ) );
+  }
+
+  if ( !live && themeName != currentTheme )
+    visibleMessageBar()->pushInfo( tr( "Theme" ), tr( "Restart %1 to apply the \"%2\" theme." ).arg( Qgis::productDisplayName(), themeName ) );
+
+  return live && QgsApplication::themeName() == themeName;
+}
+
+void QgisApp::toggleHakeTheme()
+{
+  // Night goes to Light; Hake Light and every non-Hake theme (Hake Dark, Night Mapping, ...) go to Night.
+  const bool night = QgsHakeTheme::variantForTheme( QgsApplication::themeName() ) == QgsHakeTheme::Variant::Night;
+  if ( night )
+    selectTheme( QgsHakeTheme::lightTheme(), QgsHakeTheme::AppearanceMode::Light );
+  else
+    selectTheme( QgsHakeTheme::nightTheme(), QgsHakeTheme::AppearanceMode::Dark );
+}
+
+void QgisApp::updateThemeToggleAction()
+{
+  if ( !mActionToggleTheme )
+    return;
+
+  const QgsHakeTheme::Variant variant = QgsHakeTheme::variantForTheme( QgsApplication::themeName() );
+  const bool night = variant == QgsHakeTheme::Variant::Night;
+
+  // Non-Hake themes get the icon colors that read best on their own window color.
+  QgsHakeTheme::Variant iconVariant = variant;
+  if ( iconVariant == QgsHakeTheme::Variant::None )
+    iconVariant = palette().color( QPalette::Window ).lightness() < 128 ? QgsHakeTheme::Variant::Night : QgsHakeTheme::Variant::Light;
+
+  const QString text = night ? tr( "Switch to light theme" ) : tr( "Switch to dark theme" );
+  mActionToggleTheme->setIcon( night ? QgsHakeIcons::icon( u"app/hake-theme-sun.svg"_s, iconVariant ) : QgsHakeIcons::icon( u"app/hake-theme-moon.svg"_s, iconVariant ) );
+  mActionToggleTheme->setText( text );
+  mActionToggleTheme->setToolTip( text );
+}
+
+void QgisApp::systemColorSchemeChanged()
+{
+  if ( QgsHakeTheme::appearanceMode() != QgsHakeTheme::AppearanceMode::System )
+    return;
+
+  const QString currentTheme = QgsApplication::themeName();
+  const QString targetTheme = QgsHakeTheme::resolveTheme( QgsHakeTheme::AppearanceMode::System, currentTheme );
+  if ( targetTheme == currentTheme || !QgsHakeTheme::isLiveSwitchable( currentTheme, targetTheme ) )
+    return;
+
+  // UI/UITheme is left as stored: only an explicit user choice writes it.
+  setTheme( targetTheme );
 }
 
 void QgisApp::setupConnections()
 {
   // connect the "cleanup" slot
   connect( qApp, &QApplication::aboutToQuit, this, &QgisApp::saveWindowState );
+
+#if QT_VERSION >= QT_VERSION_CHECK( 6, 5, 0 )
+  // Only acts in the System appearance mode, and only between Hake Light and Hake Night.
+  if ( QStyleHints *styleHints = QGuiApplication::styleHints() )
+    connect( styleHints, &QStyleHints::colorSchemeChanged, this, &QgisApp::systemColorSchemeChanged );
+#endif
   // Repair the window geometry if it became unreachable because a monitor was
   // unplugged or the current screen's work area changed (resolution change,
   // taskbar/dock moved, VM/RDP display resize). Queued so Qt's screen list has
@@ -7636,7 +7783,7 @@ void QgisApp::toggleReducedView( bool viewMapOnly )
   {
     if ( viewMapOnly ) //
     {
-      // hide also statusbar and menubar and all toolbars
+      // hide also statusbar and all toolbars (including the ribbon)
       for ( QToolBar *toolBar : toolBars )
       {
         if ( toolBar->isVisible() && !toolBar->isFloating() && toolBar->parent()->inherits( "QMainWindow" ) )
@@ -7648,9 +7795,7 @@ void QgisApp::toggleReducedView( bool viewMapOnly )
           this->addActions( toolBar->actions() );
         }
       }
-      // Adding the menuBar's actions to the main window allows us to keep using them while the menuBar is invisible
-      this->addActions( this->menuBar()->actions() );
-      this->menuBar()->setVisible( false );
+      // The classic menu bar is permanently hidden (hideClassicMenuBar) and its actions already live on the main window
       this->statusBar()->setVisible( false );
 
       settings.setValue( u"UI/hiddenToolBarsActive"_s, toolBarsActive );
@@ -7713,14 +7858,6 @@ void QgisApp::toggleReducedView( bool viewMapOnly )
         }
       }
     }
-    // Let's remove the menuBar's actions from the main window.
-    // They were only there for use while the menuBar was invisible
-    const QList<QAction *> actions = this->menuBar()->actions();
-    for ( QAction *action : actions )
-    {
-      this->removeAction( action );
-    }
-    this->menuBar()->setVisible( true );
     this->statusBar()->setVisible( true );
 
     settings.remove( u"UI/hiddenToolBarsActive"_s );
@@ -15912,11 +16049,11 @@ void QgisApp::activateDeactivateLayerRelatedActions( QgsMapLayer *layer )
 
         if ( vlayer->geometryType() == Qgis::GeometryType::Point )
         {
-          mActionAddFeature->setIcon( QgsApplication::getThemeIcon( u"/mActionCapturePoint.svg"_s ) );
+          mActionAddFeature->setIcon( QgsHakeIcons::actionIcon( u"/mActionCapturePoint.svg"_s, u"vector/hake-vector-add-point.svg"_s ) );
           addFeatureText = tr( "Add Point Feature" );
-          mActionMoveFeature->setIcon( QgsApplication::getThemeIcon( u"/mActionMoveFeaturePoint.svg"_s ) );
-          mActionMoveFeatureCopy->setIcon( QgsApplication::getThemeIcon( u"/mActionMoveFeatureCopyPoint.svg"_s ) );
-          mActionFeatureArray->setIcon( QgsApplication::getThemeIcon( u"/mActionFeatureArrayPoint.svg"_s ) );
+          mActionMoveFeature->setIcon( QgsHakeIcons::actionIcon( u"/mActionMoveFeaturePoint.svg"_s, u"vector/hake-vector-move-feature.svg"_s ) );
+          mActionMoveFeatureCopy->setIcon( QgsHakeIcons::actionIcon( u"/mActionMoveFeatureCopyPoint.svg"_s, u"vector/hake-vector-copy-move-feature.svg"_s ) );
+          mActionFeatureArray->setIcon( QgsHakeIcons::actionIcon( u"/mActionFeatureArrayPoint.svg"_s, u"vector/hake-vector-feature-array.svg"_s ) );
 
           mActionAddRing->setEnabled( false );
           mActionFillRing->setEnabled( false );
@@ -15944,11 +16081,11 @@ void QgisApp::activateDeactivateLayerRelatedActions( QgsMapLayer *layer )
         }
         else if ( vlayer->geometryType() == Qgis::GeometryType::Line )
         {
-          mActionAddFeature->setIcon( QgsApplication::getThemeIcon( u"/mActionCaptureLine.svg"_s ) );
+          mActionAddFeature->setIcon( QgsHakeIcons::actionIcon( u"/mActionCaptureLine.svg"_s, u"vector/hake-vector-add-line.svg"_s ) );
           addFeatureText = tr( "Add Line Feature" );
-          mActionMoveFeature->setIcon( QgsApplication::getThemeIcon( u"/mActionMoveFeatureLine.svg"_s ) );
-          mActionMoveFeatureCopy->setIcon( QgsApplication::getThemeIcon( u"/mActionMoveFeatureCopyLine.svg"_s ) );
-          mActionFeatureArray->setIcon( QgsApplication::getThemeIcon( u"/mActionFeatureArrayLine.svg"_s ) );
+          mActionMoveFeature->setIcon( QgsHakeIcons::actionIcon( u"/mActionMoveFeatureLine.svg"_s, u"vector/hake-vector-move-feature.svg"_s ) );
+          mActionMoveFeatureCopy->setIcon( QgsHakeIcons::actionIcon( u"/mActionMoveFeatureCopyLine.svg"_s, u"vector/hake-vector-copy-move-feature.svg"_s ) );
+          mActionFeatureArray->setIcon( QgsHakeIcons::actionIcon( u"/mActionFeatureArrayLine.svg"_s, u"vector/hake-vector-feature-array.svg"_s ) );
 
           mActionReshapeFeatures->setEnabled( isEditable && canChangeGeometry );
           mActionSplitFeatures->setEnabled( isEditable && canAddFeatures );
@@ -15965,11 +16102,11 @@ void QgisApp::activateDeactivateLayerRelatedActions( QgsMapLayer *layer )
         }
         else if ( vlayer->geometryType() == Qgis::GeometryType::Polygon )
         {
-          mActionAddFeature->setIcon( QgsApplication::getThemeIcon( u"/mActionCapturePolygon.svg"_s ) );
+          mActionAddFeature->setIcon( QgsHakeIcons::actionIcon( u"/mActionCapturePolygon.svg"_s, u"vector/hake-vector-add-polygon.svg"_s ) );
           addFeatureText = tr( "Add Polygon Feature" );
-          mActionMoveFeature->setIcon( QgsApplication::getThemeIcon( u"/mActionMoveFeature.svg"_s ) );
-          mActionMoveFeatureCopy->setIcon( QgsApplication::getThemeIcon( u"/mActionMoveFeatureCopy.svg"_s ) );
-          mActionFeatureArray->setIcon( QgsApplication::getThemeIcon( u"/mActionFeatureArray.svg"_s ) );
+          mActionMoveFeature->setIcon( QgsHakeIcons::actionIcon( u"/mActionMoveFeature.svg"_s, u"vector/hake-vector-move-feature.svg"_s ) );
+          mActionMoveFeatureCopy->setIcon( QgsHakeIcons::actionIcon( u"/mActionMoveFeatureCopy.svg"_s, u"vector/hake-vector-copy-move-feature.svg"_s ) );
+          mActionFeatureArray->setIcon( QgsHakeIcons::actionIcon( u"/mActionFeatureArray.svg"_s, u"vector/hake-vector-feature-array.svg"_s ) );
 
           mActionAddRing->setEnabled( isEditable && canChangeGeometry );
           mActionFillRing->setEnabled( isEditable && canChangeGeometry );
@@ -18028,6 +18165,8 @@ void QgisApp::showEvent( QShowEvent *event )
     // A saved state reflects the user's own View > Toolbars choices - keep it.
     if ( !hadSavedState )
       hideClassicToolBars();
+    else if ( mAppRibbonBar )
+      mAppRibbonBar->show();
   } );
 }
 

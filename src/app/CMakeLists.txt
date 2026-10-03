@@ -11,6 +11,9 @@ set(QGIS_APP_SRCS
   qgisappinterface.cpp
   qgisappstylesheet.cpp
   qgsappribbon.cpp
+  qgshakeicons.cpp
+  qgshaketheme.cpp
+  ${CMAKE_SOURCE_DIR}/resources/icons/hake/hake_icons.qrc
   qgsabout.cpp
   qgsappauthrequesthandler.cpp
   qgsappbrowserproviders.cpp
@@ -541,6 +544,7 @@ qt_add_qml_module(qgis_app
         qml/images/hake-gis.svg
         qml/images/hake-gis-icon.png
         qml/images/love.svg
+        qml/images/welcome-contours.svg
 )
 else()
 qt_add_qml_module(qgis_app
@@ -563,6 +567,7 @@ qt_add_qml_module(qgis_app
         qml/images/hake-gis.svg
         qml/images/hake-gis-icon.png
         qml/images/love.svg
+        qml/images/welcome-contours.svg
     NO_GENERATE_EXTRA_QMLDIRS
 )
 endif()
