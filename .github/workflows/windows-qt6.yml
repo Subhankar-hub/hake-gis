@@ -233,6 +233,13 @@ jobs:
         run: |
           cmake --build "${{ github.workspace }}/build" --target bundle --config Release
 
+      # The disk cleanup step removes the runner's Python toolcache; restore one only
+      # after the build so it is not on PATH while vcpkg/CMake run.
+      - name: Setup Python for packaging checks
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
       - name: Verify packaged GdalUtils decoder
         shell: pwsh
         run: |
