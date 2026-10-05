@@ -24,6 +24,7 @@ Item {
   property color textColor: welcomeTheme.textColor
   property color mutedTextColor: welcomeTheme.mutedTextColor
   property color borderColor: welcomeTheme.borderColor
+  property color surfaceBorderColor: welcomeTheme.surfaceBorderColor
   property color statusColor: welcomeTheme.statusColor
   property color onPrimaryTextColor: welcomeTheme.onPrimaryTextColor
 
@@ -44,6 +45,8 @@ Item {
   readonly property int cardRadius: 8
   readonly property int surfaceRadius: 10
   readonly property int buttonRadius: 4
+  // About 2 logical px, snapped to whole device pixels so the outer edge stays crisp at fractional scaling.
+  readonly property real surfaceBorderWidth: Math.max(1, Math.round(2 * Screen.devicePixelRatio)) / Screen.devicePixelRatio
   // Based on the root width (not homeSurface) to avoid a binding loop with narrowLayout.
   readonly property real surfaceMargin: width < unit * 44 ? unit : Math.round(unit * 1.5)
 
@@ -72,15 +75,15 @@ Item {
       anchors.fill: parent
       radius: welcomeScreen.surfaceRadius
       color: welcomeScreen.pageColor
-      border.width: 1
-      border.color: welcomeScreen.borderColor
+      border.width: welcomeScreen.surfaceBorderWidth
+      border.color: welcomeScreen.surfaceBorderColor
     }
 
     // Decorative contour motif behind the header band; images take no mouse input.
     Image {
       anchors.top: parent.top
       anchors.right: parent.right
-      anchors.margins: 1
+      anchors.margins: Math.ceil(welcomeScreen.surfaceBorderWidth)
       width: Math.round(Math.min(parent.width * 0.5, welcomeScreen.unit * 40))
       height: Math.round(width * 2 / 3)
       source: "images/welcome-contours.svg"

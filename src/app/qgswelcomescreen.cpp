@@ -235,6 +235,7 @@ void QgsWelcomeScreen::updateThemeColors()
     { "textColor", "#243B53", "#E6EDF5" },
     { "mutedTextColor", "#607D94", "#9FB3C8" },
     { "borderColor", "#C7D8E5", "#2A3B50" },
+    { "surfaceBorderColor", "#AFC7D8", "#3F5A76" },
     { "statusColor", "#25875F", "#5CC79A" },
     { "onPrimaryTextColor", "#FFFFFF", "#FFFFFF" },
     { "projectCardColor", "#FFFFFF", "#1A2533" },
