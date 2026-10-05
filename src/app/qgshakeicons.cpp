@@ -455,40 +455,6 @@ namespace
     { "mOptsPage_Digitizing", "properties/hake-properties-digitizing.svg" },
   };
 
-  struct HakePropertyPageIcon
-  {
-      const char *pageName;
-      const char *resource;
-  };
-
-  // Layer Properties sidebar pages, keyed by the objectName of the stacked page. Kept apart from
-  // HAKE_ICONS, which only lists entries from the Hake icon catalog. Pages not listed here (provider,
-  // plugin, 3D and layer-type specific pages) keep their own icons.
-  constexpr HakePropertyPageIcon HAKE_PROPERTY_PAGE_ICONS[] = {
-    { "mOptsPage_Information", "properties/hake-properties-information.svg" },
-    { "mOptsPage_Source", "properties/hake-properties-source.svg" },
-    { "mOptsPage_Style", "properties/hake-properties-symbology.svg" },
-    { "mOptsPage_Labels", "labels/hake-labels-labeling.svg" },
-    { "mOptsPage_Labeling", "labels/hake-labels-labeling.svg" },
-    { "mOptsPage_Masks", "properties/hake-properties-masks.svg" },
-    { "mOptsPage_Diagrams", "properties/hake-properties-diagrams.svg" },
-    { "mOptsPage_SourceFields", "properties/hake-properties-fields.svg" },
-    { "mOptsPage_AttributesForm", "properties/hake-properties-attributes-form.svg" },
-    { "mOptsPage_Joins", "properties/hake-properties-joins.svg" },
-    { "mOptsPage_AuxiliaryStorage", "properties/hake-properties-auxiliary-storage.svg" },
-    { "mOptsPage_Actions", "properties/hake-properties-actions.svg" },
-    { "mOptsPage_Display", "properties/hake-properties-display.svg" },
-    { "mOptsPage_Rendering", "properties/hake-properties-rendering.svg" },
-    { "mOptsPage_Temporal", "map/hake-map-temporal-controller.svg" },
-    { "mOptsPage_Variables", "properties/hake-properties-variables.svg" },
-    { "mOptsPage_Elevation", "map/hake-map-elevation-controller.svg" },
-    { "mOptsPage_Metadata", "properties/hake-properties-metadata.svg" },
-    { "mOptsPage_DataDependencies", "properties/hake-properties-dependencies.svg" },
-    { "mOptsPage_Legend", "properties/hake-properties-legend.svg" },
-    { "mOptsPage_Server", "properties/hake-properties-server.svg" },
-    { "mOptsPage_Digitizing", "properties/hake-properties-digitizing.svg" },
-  };
-
   // MetaSearch uses generic action names, so they are only recognised inside its own Web submenu.
   constexpr char METASEARCH_MENU[] = "MetaSearch";
   // Processing menu entries, and the Selection toolbar buttons for the same algorithms.

@@ -1384,7 +1384,7 @@ void QgsAppRibbon::addNamedAction( QgsAppRibbonGroup *group, const QString &obje
   if ( !mApp || !group )
     return;
   if ( QAction *action = mApp->findChild<QAction *>( objectName ) )
-    group->addEntry( { action, primary, QString() } );
+    group->addEntry( { action, primary, QString(), QString(), QString() } );
 }
 
 void QgsAppRibbon::addDockToggle( QgsAppRibbonGroup *group, const QString &dockObjectName, const QString &label, bool primary )
@@ -1396,13 +1396,13 @@ void QgsAppRibbon::addDockToggle( QgsAppRibbonGroup *group, const QString &dockO
 void QgsAppRibbon::addMenu( QgsAppRibbonGroup *group, QMenu *menu )
 {
   if ( group && menu )
-    group->addEntry( { menu->menuAction(), false, QString() } );
+    group->addEntry( { menu->menuAction(), false, QString(), QString(), QString() } );
 }
 
 void QgsAppRibbon::addDeferredMenu( QgsAppRibbonGroup *group, const QString &menuObjectName )
 {
   if ( group )
-    group->addEntry( { nullptr, false, QString(), menuObjectName } );
+    group->addEntry( { nullptr, false, QString(), menuObjectName, QString() } );
 }
 
 void QgsAppRibbon::mirrorToolbar( QgsAppRibbonGroup *group, QToolBar *toolbar )
@@ -1415,7 +1415,7 @@ void QgsAppRibbon::mirrorToolbar( QgsAppRibbonGroup *group, QToolBar *toolbar )
   for ( QAction *action : actions )
   {
     if ( QAction *presented = presentableToolbarAction( action ) )
-      group->addEntry( { presented, false, QString() } );
+      group->addEntry( { presented, false, QString(), QString(), QString() } );
   }
 }
 
@@ -1429,7 +1429,7 @@ void QgsAppRibbon::syncMirroredGroup( QToolBar *toolbar )
   for ( QAction *action : actions )
   {
     if ( QAction *presented = presentableToolbarAction( action ) )
-      entries.append( QgsAppRibbonGroup::Entry { presented, false, QString() } );
+      entries.append( QgsAppRibbonGroup::Entry { presented, false, QString(), QString(), QString() } );
   }
   group->setEntries( entries );
 }
@@ -1492,7 +1492,7 @@ void QgsAppRibbon::syncMenuBar()
 
     QMenu *menu = action->menu();
     if ( menu && !isStandardMenu( menu ) )
-      extensionEntries.append( QgsAppRibbonGroup::Entry { action, false, QString() } );
+      extensionEntries.append( QgsAppRibbonGroup::Entry { action, false, QString(), QString(), QString() } );
   }
 
   if ( mExtensionMenus )
