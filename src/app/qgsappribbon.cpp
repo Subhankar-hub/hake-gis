@@ -1210,6 +1210,9 @@ void QgsAppRibbon::updateMetrics()
 bool QgsAppRibbon::event( QEvent *event )
 {
   const bool result = QTabWidget::event( event );
+  // QTabWidget re-applies the style's corner rect on every layout pass.
+  if ( event->type() == QEvent::LayoutRequest )
+    syncChromeTabBarGeometry();
 #if QT_VERSION >= QT_VERSION_CHECK( 6, 6, 0 )
   if ( event->type() == QEvent::DevicePixelRatioChange )
     updateMetrics();
@@ -1305,11 +1308,17 @@ void QgsAppRibbon::syncChromeTabBarGeometry()
 
   if ( filler )
   {
-    const int fillerH = std::max( bar->height(), h );
+    // The style's corner rect is shorter than the tab bar, so a fixed-height filler placed
+    // there grows down into the command area; pin it to the tab bar's own row instead.
+    const QRect barRect = bar->geometry();
+    const int fillerH = barRect.height() > 0 ? barRect.height() : h;
     if ( filler->minimumHeight() != fillerH )
       filler->setMinimumHeight( fillerH );
     if ( filler->maximumHeight() != fillerH )
       filler->setMaximumHeight( fillerH );
+    const QRect target( barRect.right() + 1, barRect.top(), std::max( 0, stripWidth - barRect.width() ), fillerH );
+    if ( filler->geometry() != target )
+      filler->setGeometry( target );
   }
 }
 

@@ -126,6 +126,7 @@
 #include <QStyle>
 #include <QTextStream>
 #include <QThreadPool>
+#include <QToolTip>
 
 #include "moc_qgsapplication.cpp"
 
@@ -1392,7 +1393,11 @@ void QgsApplication::setUITheme( const QString &themeName )
     app->mIconCache.clear();
   }
   if ( hasPalette )
+  {
     qApp->setPalette( pal );
+    // Tooltips keep their own palette, seeded from the OS color scheme at startup.
+    QToolTip::setPalette( pal );
+  }
   qApp->setStyleSheet( styledata );
 
   setThemeName( themeName );

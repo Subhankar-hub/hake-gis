@@ -38,6 +38,7 @@ QWebView, QTextBrowser
 QToolTip
 {
     border: 1px solid @itemdarkbackground;
+    background-color: @itembackground;
     color: @text;
 }
 

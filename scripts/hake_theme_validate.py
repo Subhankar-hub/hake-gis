@@ -20,6 +20,8 @@ HAKE_ICON_DIR = ROOT / "resources/icons/hake"
 HAKE_QRC = HAKE_ICON_DIR / "hake_icons.qrc"
 
 STRICT_THEMES = {"Hake Night"}
+# Themes whose tooltips must not inherit the OS tooltip palette.
+TOOLTIP_THEMES = {"Hake Light", "Hake Night", "Hake Dark"}
 EXPECTED_THEMES = [
     "Hake Light",
     "Hake Dark",
@@ -75,6 +77,8 @@ TOKEN_RE = re.compile(r"@[A-Za-z_][A-Za-z0-9_]*")
 HEX_RE = re.compile(r"^#(?:[0-9A-Fa-f]{3}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$")
 RGB_TUPLE_RE = re.compile(r"^\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}(?:\s*,\s*\d{1,3})?$")
 URL_RE = re.compile(r"url\(\s*@theme_path/([^)\s]+)\s*\)")
+TOOLTIP_RE = re.compile(r"^[ \t]*QToolTip\s*\{([^}]*)\}", re.M)
+LAYOUT_TOOLTIP_RE = re.compile(r"^[ \t]*QgsLayoutView\s+QToolTip\s*\{([^}]*)\}", re.M)
 
 
 class Report:
@@ -163,6 +167,44 @@ def check_style(theme_dir, variables, strict, theme, report):
             )
 
 
+def block_properties(body):
+    props = {}
+    for decl in body.split(";"):
+        name, sep, value = decl.partition(":")
+        if sep:
+            props[name.strip().lower()] = value.strip().lower()
+    return props
+
+
+def check_tooltip(theme_dir, variables, theme, report):
+    """Tooltips must set their own background; otherwise the OS tooltip palette shows through."""
+    style = apply_variables(
+        strip_comments((theme_dir / "style.qss").read_text(encoding="utf-8")),
+        variables,
+        "THEME_PATH",
+    )
+    base = TOOLTIP_RE.search(style)
+    if not base:
+        report.issue(True, theme, "style.qss has no top-level QToolTip rule")
+        return
+    props = block_properties(base.group(1))
+    background = props.get("background-color") or props.get("background")
+    if not background:
+        report.issue(
+            True,
+            theme,
+            "QToolTip rule sets no background; the OS tooltip palette would show through",
+        )
+        return
+    if props.get("color") == background:
+        report.issue(True, theme, "QToolTip text color equals its background")
+    layout = LAYOUT_TOOLTIP_RE.search(style)
+    if layout and block_properties(layout.group(1)).get("color") == background:
+        report.issue(
+            True, theme, "QgsLayoutView QToolTip text color equals the tooltip background"
+        )
+
+
 def check_palette(path, strict, theme, report):
     seen = set()
     for n, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
@@ -233,6 +275,8 @@ def check_theme(theme_dir, report):
     if (theme_dir / "variables.qss").is_file():
         variables = parse_variables(theme_dir / "variables.qss", strict, theme, report)
     check_style(theme_dir, variables, strict, theme, report)
+    if theme in TOOLTIP_THEMES:
+        check_tooltip(theme_dir, variables, theme, report)
     if (theme_dir / "palette.txt").is_file():
         roles = check_palette(theme_dir / "palette.txt", strict, theme, report)
         if strict:

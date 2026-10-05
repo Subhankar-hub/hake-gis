@@ -38,6 +38,7 @@ QWebView, QTextBrowser
 QToolTip
 {
     border: 1px solid @itemdarkbackground;
+    background-color: @itemdarkbackground;
     color: @text;
 }
 
@@ -1476,7 +1477,7 @@ QgsLayoutRuler {
 
 QgsLayoutView QToolTip
 {
-    color: @itembackground;
+    color: @text;
 }
 
 QgsAttributeFormWidget QComboBox:disabled {
