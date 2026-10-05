@@ -4,6 +4,7 @@
 
 stages:
   - build
+  - install-smoke
 
 workflow:
   auto_cancel:
@@ -148,3 +149,52 @@ build_linux:
       - build/*.tar.gz
       - build/*.zip
       - logs/
+
+# Mirrors the deb-install-smoke job in linux-qt6.yml: install the .deb into a
+# pristine image with --no-install-recommends so Depends alone must provide the
+# runtime, then run the installed-runtime checks.
+.deb_install_smoke:
+  stage: install-smoke
+  tags:
+    - saas-linux-medium-amd64
+  image: ubuntu:${UBUNTU_VERSION}
+  interruptible: true
+  variables:
+    DEBIAN_FRONTEND: noninteractive
+    GIT_DEPTH: "1"
+  script:
+    - apt-get update
+    - apt-get install -y --no-install-recommends ./build/Hake-Geodesk-Installer-${SUFFIX}.deb
+    - apt-get install -y --no-install-recommends binutils
+    - bash scripts/ci/unix_runtime_smoke.sh --platform linux --root / --report-dir runtime-smoke
+  artifacts:
+    name: runtime-deps-linux-${SUFFIX}
+    when: always
+    expire_in: 1 week
+    paths:
+      - runtime-smoke/*.json
+      - runtime-smoke/*.log
+
+deb_install_smoke_ubuntu2404:
+  extends: .deb_install_smoke
+  variables:
+    UBUNTU_VERSION: "24.04"
+    SUFFIX: ubuntu2404
+  needs:
+    - job: build_linux
+      parallel:
+        matrix:
+          - UBUNTU_VERSION: "24.04"
+            SUFFIX: ubuntu2404
+
+deb_install_smoke_ubuntu2604:
+  extends: .deb_install_smoke
+  variables:
+    UBUNTU_VERSION: "26.04"
+    SUFFIX: ubuntu2604
+  needs:
+    - job: build_linux
+      parallel:
+        matrix:
+          - UBUNTU_VERSION: "26.04"
+            SUFFIX: ubuntu2604

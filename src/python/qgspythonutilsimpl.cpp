@@ -26,6 +26,7 @@
 
 #include "qgis.h"
 #include "qgsapplication.h"
+#include "qgsconfig.h"
 #include "qgslogger.h"
 #include "qgsmessageoutput.h"
 #include "qgssettings.h"
@@ -292,6 +293,12 @@ void QgsPythonUtilsImpl::init()
 
   PyConfig config;
   PyConfig_InitPythonConfig( &config );
+
+#if defined( Q_OS_WIN ) || defined( QGIS_MAC_BUNDLE )
+  // The bundled interpreter must not pick up packages from the user's own Python
+  // installation (%APPDATA%\Python, ~/.local, ~/Library/Python).
+  config.user_site_directory = 0;
+#endif
 
 #ifdef QGIS_MAC_BUNDLE
   // If we package QGIS as a mac app, we deploy Qt plugins into [app]/Contents/PlugIns

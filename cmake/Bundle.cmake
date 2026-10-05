@@ -54,7 +54,48 @@ if(CREATE_DEB)
   set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Hake Technologies")
   set(CPACK_DEBIAN_PACKAGE_NAME "hake-geodesk")
   set(CPACK_DEBIAN_FILE_NAME "${HAKE_INSTALLER_FILE_NAME}.deb")
+  # Linked shared libraries come from dpkg-shlibdeps; CPack merges them with the
+  # explicit lists below. Those cover what shlibdeps cannot see: Python modules,
+  # Qt plugins loaded at runtime, PROJ/GDAL data and the GDAL utilities that
+  # Processing runs as child processes. Validated by the deb-install-smoke CI job
+  # (apt-get install --no-install-recommends in a clean container).
   set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+  set(_HAKE_DEB_DEPENDS
+    "gdal-bin"
+    "gdal-data"
+    "proj-data"
+    "qt6-qpa-plugins | libqt6gui6"
+    "qt6-svg-plugins | libqt6svg6"
+    "libqt6sql6-sqlite"
+    "libqca-qt6-plugins"
+  )
+  if(WITH_SPATIALITE)
+    list(APPEND _HAKE_DEB_DEPENDS "libsqlite3-mod-spatialite")
+  endif()
+  if(WITH_BINDINGS)
+    list(APPEND _HAKE_DEB_DEPENDS
+      "python3"
+      "python3-pyqt6"
+      "python3-pyqt6.qsci"
+      "python3-pyqt6.qtsvg"
+      "python3-pyqt6.qtpositioning"
+      "python3-pyqt6.qtserialport"
+      "python3-pyqt6.sip"
+      "python3-gdal"
+      "python3-numpy"
+      "python3-psycopg2"
+      "python3-owslib"
+      "python3-packaging"
+      "python3-jinja2"
+    )
+    set(CPACK_DEBIAN_PACKAGE_RECOMMENDS "qt6-image-formats-plugins, python3-plotly, python3-psutil, python3-matplotlib, python3-shapely, python3-pyproj")
+    set(CPACK_DEBIAN_PACKAGE_SUGGESTS "python3-pygments")
+  else()
+    set(CPACK_DEBIAN_PACKAGE_RECOMMENDS "qt6-image-formats-plugins")
+  endif()
+  set(HAKE_DEB_EXTRA_DEPENDS "" CACHE STRING "Additional Debian Depends entries (semicolon-separated) for release-specific packages")
+  list(APPEND _HAKE_DEB_DEPENDS ${HAKE_DEB_EXTRA_DEPENDS})
+  list(JOIN _HAKE_DEB_DEPENDS ", " CPACK_DEBIAN_PACKAGE_DEPENDS)
 endif()
 
 

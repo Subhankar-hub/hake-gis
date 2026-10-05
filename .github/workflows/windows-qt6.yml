@@ -209,7 +209,6 @@ jobs:
                 -D ENABLE_TESTS=OFF \
                 -D USE_CCACHE=ON \
                 -D ENABLE_UNITY_BUILDS=OFF \
-                -D CREATE_NSIS=ON \
                 -D FLEX_EXECUTABLE="${SOURCE_DIR}/win_flex.exe" \
                 -D BISON_EXECUTABLE="${SOURCE_DIR}/win_bison.exe" \
                 -D WITH_QTWEBENGINE=OFF \
@@ -307,8 +306,9 @@ jobs:
           python scripts/hake_theme_validate.py --installed $root
           if ($LASTEXITCODE -ne 0) { throw "Installed Hake Night theme validation failed" }
 
-      # Issue #10: prove the packaged Windows runtime can locate proj.db and run
-      # GDAL Polygonize without machine-global PROJ_DATA / OSGeo4W.
+      # Issue #10: the packaged layout must carry proj.db, GDAL data, the bundled
+      # Python and license notices. Runtime validation happens in package-smoke
+      # on a fresh runner that has neither vcpkg nor the build tree.
       - name: Assert packaged PROJ/GDAL/Python layout
         shell: pwsh
         run: |
@@ -316,24 +316,6 @@ jobs:
             -BuildDir "${{ github.workspace }}\build" `
             -RepoRoot "${{ github.workspace }}" `
             -Mode AssertZip
-
-      - name: Install NSIS artifact and run PROJ/GDAL smoke tests
-        shell: pwsh
-        run: |
-          & "${{ github.workspace }}\scripts\ci\windows_runtime_smoke.ps1" `
-            -BuildDir "${{ github.workspace }}\build" `
-            -RepoRoot "${{ github.workspace }}" `
-            -ReportDir "${{ github.workspace }}\build\runtime-smoke" `
-            -Mode Runtime
-
-      - name: 📤 Upload runtime smoke diagnostics
-        if: failure()
-        uses: actions/upload-artifact@v7
-        with:
-          name: windows-runtime-smoke-diagnostics
-          path: |
-            build/runtime-smoke/**
-          if-no-files-found: ignore
 
       - name: 📦 Create SDK
 #        if: github.event_name == 'workflow_dispatch' || github.event_name == 'release'
@@ -409,3 +391,58 @@ jobs:
             Or download [Windows Qt6 ZIP builds of this PR for testing](${{ steps.artifact-win64-qt6.outputs.artifact-url }}).
             *(Built from commit ${{ github.event.pull_request.head.sha }})*
           pr: ${{ github.event.number }}
+
+  # Clean-machine approximation: a fresh runner with no vcpkg tree, no build tree
+  # and no Hake/QGIS install. Only the NSIS artifact is installed; every check
+  # runs with PATH reduced to system32 plus a decoy directory of fake GDAL/PROJ/
+  # Python dependencies, so any non-bundled dependency fails the job.
+  package-smoke:
+    name: package smoke (windows)
+    needs: build
+    runs-on: windows-2022
+    steps:
+      - name: 🐣 Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Setup Python for the dependency manifest
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: 📥 Download NSIS installer
+        uses: actions/download-artifact@v8
+        with:
+          name: hake-geodesk-installer-win64
+          path: dist
+
+      - name: Install and validate packaged runtime
+        shell: pwsh
+        run: |
+          & "${{ github.workspace }}\scripts\ci\windows_runtime_smoke.ps1" `
+            -BuildDir "${{ github.workspace }}\dist" `
+            -RepoRoot "${{ github.workspace }}" `
+            -ReportDir "${{ github.workspace }}\runtime-smoke" `
+            -ManifestPython (Get-Command python).Source `
+            -Mode Runtime
+
+      - name: Unicode install path diagnostic (non-blocking)
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          & "${{ github.workspace }}\scripts\ci\windows_runtime_smoke.ps1" `
+            -BuildDir "${{ github.workspace }}\dist" `
+            -RepoRoot "${{ github.workspace }}" `
+            -ReportDir "${{ github.workspace }}\runtime-smoke" `
+            -Mode UnicodeDiag
+
+      - name: 📤 Upload runtime dependency report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: runtime-deps-windows
+          path: |
+            runtime-smoke/*.json
+            runtime-smoke/*.log
+          if-no-files-found: ignore

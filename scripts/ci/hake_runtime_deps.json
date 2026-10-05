@@ -1,0 +1,232 @@
+{
+  "schema": 1,
+  "description": "Authoritative Hake GeoDesk runtime dependency model. Consumed by hake_dependency_manifest.py and hake_runtime_smoke.py. Paths are relative to the install root: the NSIS install directory on Windows, '/' for the Linux .deb, and the .app bundle on macOS. Globs use fnmatch syntax ('**' matches across directories).",
+  "classification": {
+    "build_only": [
+      "compiler toolchain (MSVC, gcc, clang)",
+      "cmake, ninja, ccache",
+      "bison/flex (winflexbison)",
+      "sip-tools, python3-pyqtbuild, pyqt6-dev, pyqt6-dev-tools",
+      "development headers (lib*-dev, qt6-*-dev)",
+      "protobuf-compiler",
+      "vcpkg host tools, Strawberry Perl, gfortran",
+      "NSIS, create-dmg"
+    ],
+    "test_only": ["yaml", "nose2", "mock", "termcolor"],
+    "development_only": ["sipbuild", "pyqtbuild", "paver"]
+  },
+  "python": {
+    "runtime": [
+      "qgis.core",
+      "qgis.gui",
+      "qgis.analysis",
+      "PyQt6.QtCore",
+      "PyQt6.QtGui",
+      "PyQt6.QtWidgets",
+      "PyQt6.QtSvg",
+      "PyQt6.QtNetwork",
+      "PyQt6.QtSql",
+      "PyQt6.QtXml",
+      "PyQt6.Qsci",
+      "osgeo.gdal",
+      "osgeo.ogr",
+      "osgeo.osr",
+      "osgeo.gdal_array",
+      "numpy",
+      "psycopg2",
+      "owslib",
+      "packaging",
+      "jinja2"
+    ],
+    "native_extensions": [
+      "qgis._core",
+      "osgeo._gdal",
+      "osgeo._ogr",
+      "osgeo._osr",
+      "osgeo._gdal_array",
+      "numpy.core._multiarray_umath",
+      "psycopg2._psycopg",
+      "PyQt6.QtCore",
+      "PyQt6.QtGui",
+      "PyQt6.QtWidgets",
+      "PyQt6.Qsci"
+    ],
+    "optional": [
+      "plotly",
+      "psutil",
+      "pygments",
+      "matplotlib",
+      "shapely",
+      "pyproj"
+    ],
+    "usage": {
+      "osgeo": "Processing GDAL provider, raster tools, DB Manager",
+      "numpy": "osgeo.gdal_array, GDAL Python utilities (gdal_calc), PolarPlot",
+      "psycopg2": "imported at module level by processing/algs/gdal/GdalUtils.py; the GDAL provider fails to load without it",
+      "owslib": "MetaSearch",
+      "jinja2": "MetaSearch",
+      "packaging": "Plugin installer version comparison",
+      "plotly": "Processing plot algorithms (lazy import)",
+      "psutil": "Python console process wrapper (lazy import)",
+      "pygments": "DB Manager Oracle info view"
+    }
+  },
+  "epsg": [4326, 2193, 3978, 5936, 5482],
+  "required_processing_providers": ["native", "gdal"],
+  "platforms": {
+    "windows": {
+      "prefix": ".",
+      "python_executable": "bin/python.exe",
+      "python_path": ["python"],
+      "allowed_module_roots": ["."],
+      "executables": [
+        "bin/hake-geodesk.exe",
+        "bin/hake-geodesk-process.exe",
+        "bin/python.exe",
+        "bin/*gis_app.dll",
+        "bin/*gis_core.dll",
+        "bin/*gis_gui.dll"
+      ],
+      "process_tool": "bin/hake-geodesk-process.exe",
+      "gui_executable": "bin/hake-geodesk.exe",
+      "dll_search_dirs": ["bin"],
+      "must_bundle_dlls": ["vcruntime140.dll", "msvcp140.dll"],
+      "data": [
+        "share/proj/proj.db",
+        "share/gdal/gdalvrt.xsd",
+        "bin/hake-geodesk.env",
+        "bin/qt.conf",
+        "bin/Lib/os.py"
+      ],
+      "qt_plugins": [
+        "bin/Qt6/plugins/platforms/qwindows.dll",
+        "bin/Qt6/plugins/platforms/qoffscreen.dll",
+        "bin/Qt6/plugins/sqldrivers/qsqlite.dll",
+        "bin/Qt6/plugins/imageformats/qsvg.dll",
+        "bin/Qt6/plugins/imageformats/qjpeg.dll",
+        "bin/Qt6/plugins/iconengines/qsvgicon.dll",
+        "bin/Qt6/plugins/tls/*.dll",
+        "bin/Qt6/plugins/crypto/*.dll"
+      ],
+      "native_module_globs": [
+        "python/qgis/*.pyd",
+        "bin/Lib/site-packages/osgeo/*.pyd",
+        "bin/Lib/site-packages/psycopg2/*.pyd",
+        "bin/Lib/site-packages/numpy/**/*.pyd",
+        "bin/Lib/site-packages/PyQt6/*.pyd",
+        "bin/DLLs/*.pyd",
+        "plugins/*.dll"
+      ],
+      "gdal_tools": [
+        "bin/gdalinfo.exe",
+        "bin/gdal_translate.exe",
+        "bin/gdalwarp.exe",
+        "bin/ogr2ogr.exe",
+        "bin/gdal_polygonize.bat",
+        "bin/gdal_calc.bat",
+        "bin/Scripts/gdal_polygonize.py",
+        "bin/Scripts/gdal_calc.py"
+      ],
+      "polygonize_command": ["bin/gdal_polygonize.bat"],
+      "licenses": [
+        "share/doc/hake-geodesk/third-party/gdal/copyright",
+        "share/doc/hake-geodesk/third-party/proj/copyright",
+        "share/doc/hake-geodesk/third-party/geos/copyright",
+        "share/doc/hake-geodesk/third-party/qtbase/copyright",
+        "share/doc/hake-geodesk/third-party/python3/copyright"
+      ]
+    },
+    "linux": {
+      "prefix": "usr",
+      "python_executable": "/usr/bin/python3",
+      "python_path": ["usr/share/hake-gis/python"],
+      "allowed_module_roots": ["usr/lib", "usr/share/hake-gis"],
+      "forbidden_prefixes": ["/usr/local", "/home", "/opt", "/__w", "/github", "/root"],
+      "deb_package": "hake-geodesk",
+      "executables": [
+        "usr/bin/hake-geodesk",
+        "usr/bin/hake-geodesk-process",
+        "usr/lib/lib*gis_app.so*",
+        "usr/lib/lib*gis_core.so*",
+        "usr/lib/lib*gis_gui.so*"
+      ],
+      "process_tool": "usr/bin/hake-geodesk-process",
+      "gui_executable": "usr/bin/hake-geodesk",
+      "data": [
+        "usr/share/proj/proj.db",
+        "usr/share/gdal/gdalvrt.xsd",
+        "usr/share/hake-gis/python/qgis/__init__.py",
+        "usr/share/hake-gis/python/plugins/processing/__init__.py"
+      ],
+      "qt_plugins": [
+        "usr/lib/*/qt6/plugins/platforms/libqxcb.so",
+        "usr/lib/*/qt6/plugins/platforms/libqoffscreen.so",
+        "usr/lib/*/qt6/plugins/sqldrivers/libqsqlite.so",
+        "usr/lib/*/qt6/plugins/imageformats/libqsvg.so",
+        "usr/lib/*/qt6/plugins/imageformats/libqjpeg.so",
+        "usr/lib/*/qt6/plugins/iconengines/libqsvgicon.so",
+        "usr/lib/*/qt6/plugins/crypto/*.so"
+      ],
+      "native_module_globs": [
+        "usr/share/hake-gis/python/qgis/*.so",
+        "usr/lib/hake-gis/plugins/*.so"
+      ],
+      "gdal_tools": [
+        "usr/bin/gdalinfo",
+        "usr/bin/gdal_translate",
+        "usr/bin/gdalwarp",
+        "usr/bin/ogr2ogr",
+        "usr/bin/gdal_polygonize*"
+      ],
+      "polygonize_command": ["usr/bin/gdal_polygonize.py", "usr/bin/gdal_polygonize"],
+      "licenses": []
+    },
+    "macos": {
+      "prefix": ".",
+      "python_executable": "Contents/MacOS/python",
+      "python_path": [],
+      "allowed_module_roots": ["."],
+      "allowed_system_prefixes": ["/usr/lib/", "/System/Library/"],
+      "executables": [
+        "Contents/MacOS/hake-geodesk-process",
+        "@CFBundleExecutable"
+      ],
+      "process_tool": "Contents/MacOS/hake-geodesk-process",
+      "gui_executable": "@CFBundleExecutable",
+      "data": [
+        "Contents/Resources/hake-gis/proj/proj.db",
+        "Contents/Resources/hake-gis/gdal/gdalvrt.xsd",
+        "Contents/Info.plist"
+      ],
+      "qt_plugins": [
+        "Contents/PlugIns/platforms/libqcocoa.dylib",
+        "Contents/PlugIns/platforms/libqoffscreen.dylib",
+        "Contents/PlugIns/sqldrivers/libqsqlite.dylib",
+        "Contents/PlugIns/imageformats/libqsvg.dylib",
+        "Contents/PlugIns/imageformats/libqjpeg.dylib",
+        "Contents/PlugIns/iconengines/libqsvgicon.dylib"
+      ],
+      "native_module_globs": [
+        "Contents/Frameworks/lib/python3*/site-packages/qgis/*.so",
+        "Contents/Frameworks/lib/python3*/site-packages/osgeo/*.so",
+        "Contents/Frameworks/lib/python3*/site-packages/psycopg2/*.so",
+        "Contents/Frameworks/lib/python3*/site-packages/PyQt6/*.so",
+        "Contents/PlugIns/hake-gis/*.so"
+      ],
+      "gdal_tools": [
+        "Contents/MacOS/gdalinfo",
+        "Contents/MacOS/gdal_translate",
+        "Contents/MacOS/gdalwarp",
+        "Contents/MacOS/ogr2ogr",
+        "Contents/MacOS/gdal_polygonize*"
+      ],
+      "polygonize_command": ["Contents/MacOS/gdal_polygonize.py", "Contents/MacOS/gdal_polygonize"],
+      "licenses": [
+        "Contents/Resources/hake-gis/doc/third-party/gdal/copyright",
+        "Contents/Resources/hake-gis/doc/third-party/proj/copyright",
+        "Contents/Resources/hake-gis/doc/third-party/qtbase/copyright",
+        "Contents/Resources/hake-gis/doc/third-party/python3/copyright"
+      ]
+    }
+  }
+}

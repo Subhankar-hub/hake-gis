@@ -185,3 +185,54 @@ jobs:
           path: |
             build/CMakeFiles/CMakeOutput.log
             build/CMakeFiles/CMakeError.log
+
+  # Installs the .deb into a pristine container of the same Ubuntu release with
+  # --no-install-recommends, so the package's Depends alone must provide every
+  # runtime dependency (Python modules, PROJ/GDAL data, GDAL utilities, Qt plugins).
+  deb-install-smoke:
+    name: deb install smoke (${{ matrix.suffix }})
+    needs: build
+    runs-on: ubuntu-latest
+    container: ${{ matrix.image }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: ubuntu:24.04
+            suffix: ubuntu2404
+          - image: ubuntu:26.04
+            suffix: ubuntu2604
+    steps:
+      - name: 🐣 Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: 📥 Download .deb
+        uses: actions/download-artifact@v8
+        with:
+          name: hake-geodesk-installer-linux-${{ matrix.suffix }}
+          path: dist
+
+      - name: Install .deb (Depends only)
+        run: |
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ./dist/Hake-Geodesk-Installer-*.deb
+          dpkg -s hake-geodesk | sed -n '/^Depends:/p;/^Recommends:/p;/^Suggests:/p'
+
+      # Test-only tooling, installed after the package so it cannot satisfy a runtime dependency.
+      - name: Install test tooling
+        run: DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends binutils
+
+      - name: Validate installed runtime
+        run: bash scripts/ci/unix_runtime_smoke.sh --platform linux --root / --report-dir runtime-smoke
+
+      - name: 📤 Upload runtime dependency report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: runtime-deps-linux-${{ matrix.suffix }}
+          path: |
+            runtime-smoke/*.json
+            runtime-smoke/*.log
+          if-no-files-found: ignore

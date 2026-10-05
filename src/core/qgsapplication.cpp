@@ -529,32 +529,74 @@ void QgsApplication::init( QString profileFolder )
   QStringList currentProjSearchPaths = QgsProjUtils::searchPaths();
   currentProjSearchPaths.append( qgisSettingsDirPath() + u"proj"_s );
 #if defined( Q_OS_MACOS ) || defined( Q_OS_WIN )
-  // Point PROJ_DATA (and PROJ_LIB) at the bundled database so Processing child
-  // processes (gdal_polygonize.bat → python → GDAL → PROJ) and pyproj resolve
-  // EPSG codes without a machine-global PROJ_LIB (e.g. PostGIS). On Windows the
-  // vcpkg install layout is {prefix}/share/proj; on macOS bundle it is
-  // {pkgDataPath}/proj. See GitHub issue #10.
+  // Point PROJ_DATA/PROJ_LIB, GDAL_DATA and GDAL_DRIVER_PATH at the bundled
+  // runtime so Processing child processes (gdal_polygonize.bat → python → GDAL → PROJ)
+  // and pyproj never resolve a machine-global PROJ_LIB (e.g. PostGIS) or GDAL_DATA.
+  // On Windows the vcpkg install layout is {prefix}/share/{proj,gdal}; on the macOS
+  // bundle it is {pkgDataPath}/{proj,gdal}. See GitHub issue #10.
 #if defined( Q_OS_WIN )
   const QString projData( QDir::cleanPath( prefixPath() + u"/share/proj"_s ) );
   const QString gdalData( QDir::cleanPath( prefixPath() + u"/share/gdal"_s ) );
+  const QString gdalPlugins( QDir::cleanPath( applicationDirPath() + u"/gdalplugins"_s ) );
 #else
-  const QString projData( QDir::cleanPath( pkgDataPath().append( "/proj" ) ) );
-  const QString gdalData;
+  const QString projData( QDir::cleanPath( pkgDataPath() + u"/proj"_s ) );
+  const QString gdalData( QDir::cleanPath( pkgDataPath() + u"/gdal"_s ) );
+  const QString gdalPlugins( QDir::cleanPath( libraryPath() + u"/gdalplugins"_s ) );
 #endif
+  const auto setRuntimeEnv = []( const char *name, const QString &value ) {
+#ifdef Q_OS_WIN
+    _wputenv_s( QString::fromLatin1( name ).toStdWString().c_str(), value.toStdWString().c_str() );
+#else
+    qputenv( name, value.toUtf8() );
+#endif
+  };
   if ( QFile::exists( projData ) )
   {
-#ifdef Q_OS_WIN
-    _wputenv_s( L"PROJ_DATA", projData.toStdWString().c_str() );
-    _wputenv_s( L"PROJ_LIB", projData.toStdWString().c_str() );
-#else
-    qputenv( "PROJ_DATA", projData.toUtf8() );
-#endif
+    setRuntimeEnv( "PROJ_DATA", projData );
+    setRuntimeEnv( "PROJ_LIB", projData );
     currentProjSearchPaths.append( projData );
   }
-#ifdef Q_OS_WIN
-  if ( QFile::exists( gdalData ) && qgetenv( "GDAL_DATA" ).isEmpty() )
+  if ( QFile::exists( gdalData ) )
   {
-    _wputenv_s( L"GDAL_DATA", gdalData.toStdWString().c_str() );
+    setRuntimeEnv( "GDAL_DATA", gdalData );
+  }
+  if ( QFile::exists( gdalPlugins ) )
+  {
+    setRuntimeEnv( "GDAL_DRIVER_PATH", gdalPlugins );
+  }
+#ifdef Q_OS_WIN
+  // Packaged layout (bundled Python next to the executables). hake-geodesk-process and
+  // Processing child processes do not go through the launcher's hake-geodesk.env, so
+  // pin the same Python and PATH values here.
+  const QString appDir = QDir::cleanPath( applicationDirPath() );
+  if ( QFile::exists( appDir + u"/Lib/os.py"_s ) )
+  {
+    const QString nativeAppDir = QDir::toNativeSeparators( appDir );
+    setRuntimeEnv( "PYTHONHOME", nativeAppDir );
+    setRuntimeEnv( "PYTHONPATH", QDir::toNativeSeparators( QStringList { prefixPath() + u"/python"_s, appDir + u"/Lib"_s, appDir + u"/Lib/site-packages"_s, appDir + u"/DLLs"_s }.join( ';' ) ) );
+
+    const QString path = qEnvironmentVariable( "PATH" );
+    if ( !path.startsWith( nativeAppDir + ';', Qt::CaseInsensitive ) && path.compare( nativeAppDir, Qt::CaseInsensitive ) != 0 )
+    {
+      // Windows caps a single environment variable at 32767 characters.
+      const QString systemRoot = qEnvironmentVariable( "SystemRoot", u"C:\\Windows"_s );
+      setRuntimeEnv( "PATH", path.length() + nativeAppDir.length() < 30000 ? QString( nativeAppDir + ';' + path ) : u"%1;%2\\system32;%2"_s.arg( nativeAppDir, systemRoot ) );
+    }
+  }
+#elif defined( QGIS_MAC_BUNDLE )
+  // The bundled interpreter lives in Contents/Frameworks/lib/python3.x and the qgis,
+  // osgeo and PyQt6 packages in its site-packages; a PYTHONPATH from the user's shell
+  // would shadow them in the embedded interpreter and in GDAL utility scripts.
+  const QString frameworksDir = QDir::cleanPath( libraryPath() );
+  const QStringList pythonLibs = QDir( frameworksDir + u"/lib"_s ).entryList( { u"python3*"_s }, QDir::Dirs );
+  for ( const QString &pythonLib : pythonLibs )
+  {
+    if ( QFile::exists( frameworksDir + u"/lib/"_s + pythonLib + u"/os.py"_s ) )
+    {
+      setRuntimeEnv( "PYTHONHOME", frameworksDir );
+      qunsetenv( "PYTHONPATH" );
+      break;
+    }
   }
 #endif
 #endif // Q_OS_MACOS || Q_OS_WIN

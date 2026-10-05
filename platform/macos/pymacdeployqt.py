@@ -191,16 +191,25 @@ def is_macho(filepath: str) -> bool:
     # Mach-O magic numbers
     MAGIC_64 = 0xCFFAEDFE  # 64-bit mach-o
     MAGIC_32 = 0xCEFAEDFE  # 32-bit mach-o
+    FAT_MAGIC = 0xCAFEBABE  # universal binary (big-endian header)
+    FAT_CIGAM = 0xBEBAFECA
 
     try:
-        # Open file in binary mode and read first 4 bytes
+        # Open file in binary mode and read the first 8 bytes
         with open(filepath, "rb") as f:
-            magic = int.from_bytes(f.read(4), byteorder="big")
+            header = f.read(8)
+        if len(header) < 8:
+            return False
+        magic = int.from_bytes(header[:4], byteorder="big")
 
         if magic in (MAGIC_64, MAGIC_32):
             return True
-        else:
-            return False
+        if magic in (FAT_MAGIC, FAT_CIGAM):
+            # Java class files share 0xCAFEBABE; their second word is the class
+            # file version (>= 45), a fat header's is the small architecture count.
+            byteorder = "big" if magic == FAT_MAGIC else "little"
+            return int.from_bytes(header[4:8], byteorder=byteorder) < 45
+        return False
 
     except OSError:
         return False
@@ -224,7 +233,7 @@ def handle_resources_binaries(app_bundle: str) -> None:
         for file in files:
             path = os.path.join(root, file)
             try:
-                if is_macho(file):
+                if not os.path.islink(path) and is_macho(path):
                     # Calculate relative path from Resources root
                     rel_path = os.path.relpath(path, resources_dir)
                     new_path = os.path.join(plugins_resources_dir, rel_path)
@@ -379,6 +388,35 @@ def deploy_libraries(app_bundle: str, lib_dirs: list[str]) -> None:
             raise
 
 
+def codesign_bundle(app_bundle: str, identity: str, notarize: bool) -> None:
+    """
+    Re-sign every Mach-O file after install_name_tool invalidated the linker
+    signatures (arm64 refuses to load unsigned or invalidly signed code), then
+    sign the bundle itself. identity "-" produces an ad-hoc signature.
+    """
+    base = ["codesign", "--force", "--sign", identity]
+    if notarize:
+        base += ["--options", "runtime", "--timestamp"]
+
+    binaries = []
+    for root, _, files in os.walk(app_bundle):
+        for file in files:
+            path = os.path.join(root, file)
+            if not os.path.islink(path) and is_macho(path):
+                binaries.append(path)
+    # Nested code must be signed before anything that contains it.
+    binaries.sort(key=lambda p: p.count(os.sep), reverse=True)
+    print(f"Signing {len(binaries)} Mach-O files (identity {identity})")
+    for path in binaries:
+        subprocess.run(base + [path], check=True, capture_output=True, text=True)
+
+    result = subprocess.run(base + [app_bundle], capture_output=True, text=True)
+    if result.returncode != 0:
+        # Every Mach-O is already signed; a bundle-level failure (e.g. a nested
+        # framework layout codesign does not accept) is reported, not fatal.
+        print(f"Bundle signature failed (non-fatal): {result.stderr}")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Enhanced macdeployqt implementation")
     parser.add_argument("app_bundle", help="Path to the app bundle")
@@ -388,11 +426,25 @@ def main():
         default=[],
         help="Additional library search directories",
     )
+    parser.add_argument(
+        "--codesign",
+        "-codesign",
+        default="-",
+        help="Signing identity; '-' (default) signs ad-hoc",
+    )
+    parser.add_argument(
+        "--sign-for-notarization",
+        "-sign-for-notarization",
+        default="",
+        help="Signing identity; also enables the hardened runtime and a secure timestamp",
+    )
 
     args = parser.parse_args()
 
     lib_dirs = args.libdir + [os.path.join(args.app_bundle, "Contents", "Frameworks")]
     deploy_libraries(args.app_bundle, lib_dirs)
+    identity = args.sign_for_notarization or args.codesign or "-"
+    codesign_bundle(args.app_bundle, identity, bool(args.sign_for_notarization))
 
 
 if __name__ == "__main__":

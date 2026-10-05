@@ -40,6 +40,27 @@ else()
   install(DIRECTORY "${VCPKG_BASE_DIR}/Qt6/qml/" DESTINATION "${APP_PLUGINS_DIR}/../Qt6/qml/") # qml plugins
 endif()
 
+# GDAL drivers built as plugins live in a subdirectory the *.dll / *.dylib globs above
+# do not cover; QgsApplication points GDAL_DRIVER_PATH at the installed copy.
+if(MSVC AND EXISTS "${VCPKG_BASE_DIR}/bin/gdalplugins")
+  install(DIRECTORY "${VCPKG_BASE_DIR}/bin/gdalplugins/" DESTINATION "${QGIS_BIN_SUBDIR}/gdalplugins")
+elseif(NOT MSVC AND EXISTS "${VCPKG_BASE_DIR}/lib/gdalplugins")
+  install(DIRECTORY "${VCPKG_BASE_DIR}/lib/gdalplugins/" DESTINATION "${QGIS_LIB_SUBDIR}/gdalplugins")
+endif()
+
+# Third-party license notices for every bundled vcpkg port (Qt, GDAL, PROJ, GEOS,
+# Python, ...). vcpkg installs each port's license as share/<port>/copyright.
+if(MSVC)
+  set(_THIRD_PARTY_LICENSE_DIR "share/doc/hake-geodesk/third-party")
+else()
+  set(_THIRD_PARTY_LICENSE_DIR "${QGIS_DATA_SUBDIR}/doc/third-party")
+endif()
+file(GLOB _VCPKG_COPYRIGHT_FILES RELATIVE "${VCPKG_BASE_DIR}/share" "${VCPKG_BASE_DIR}/share/*/copyright")
+foreach(_copyright ${_VCPKG_COPYRIGHT_FILES})
+  get_filename_component(_port "${_copyright}" DIRECTORY)
+  install(FILES "${VCPKG_BASE_DIR}/share/${_copyright}" DESTINATION "${_THIRD_PARTY_LICENSE_DIR}/${_port}")
+endforeach()
+
 if(WITH_BINDINGS)
   if(MSVC)
     set(_SOURCE_PYTHON_DIR "${VCPKG_BASE_DIR}/tools/python3/")
@@ -147,12 +168,17 @@ if(NOT EMSCRIPTEN)
   list(TRANSFORM PYTHON_SCRIPTS PREPEND "${VCPKG_BASE_DIR}/")
   if(MSVC)
     list(TRANSFORM BUNDLED_PROGRAMS APPEND ".exe")
-    foreach(FILE ${PYTHON_SCRIPTS})      
+    # PROJ command-line tools (projinfo, cs2cs) for diagnostics, when the port provides them
+    file(GLOB _PROJ_TOOLS "${VCPKG_BASE_DIR}/tools/proj/projinfo.exe" "${VCPKG_BASE_DIR}/tools/proj/cs2cs.exe")
+    list(APPEND BUNDLED_PROGRAMS ${_PROJ_TOOLS})
+    # -E -s: the GDAL utility scripts only need the bundled stdlib and site-packages,
+    # never PYTHONPATH/PYTHONHOME or the user's site-packages.
+    foreach(FILE ${PYTHON_SCRIPTS})
       get_filename_component(py_name ${FILE} NAME_WE)
       set(bat_file "${CMAKE_BINARY_DIR}/bundled_program/${py_name}.bat")
       file(WRITE "${bat_file}"
 "@echo off
-\"%~dp0python.exe\" -u \"%~dp0Scripts\\${py_name}.py\" %*
+\"%~dp0python.exe\" -E -s -u \"%~dp0Scripts\\${py_name}.py\" %*
 "
     )
     

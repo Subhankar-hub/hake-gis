@@ -273,3 +273,60 @@ jobs:
             _This app is not notarized, run `sudo xattr -d com.apple.quarantine /Applications/HAKE-GIS*.app` to avoid the warning_
             *(Built from commit ${{ github.event.pull_request.head.sha }})*
           pr: ${{ github.event.number }}
+
+  # Validates the .app exactly as users receive it: copied out of the published
+  # DMG on a fresh runner without the vcpkg tree or build directory, with every
+  # check under a sanitized environment (see scripts/ci/unix_runtime_smoke.sh).
+  app-smoke:
+    name: app smoke (macos)
+    needs: schedule_download_comment
+    runs-on: macos-15
+    steps:
+      - name: 🐣 Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: 📥 Download DMG
+        uses: actions/download-artifact@v8
+        with:
+          name: hake-geodesk-installer-macos
+          path: dist
+
+      - name: Copy app out of the DMG
+        run: |
+          mnt="$(mktemp -d)"
+          hdiutil attach -nobrowse -readonly -mountpoint "$mnt" dist/Hake-Geodesk-Installer.dmg
+          app_src="$(find "$mnt" -maxdepth 1 -name '*.app' -type d | head -1)"
+          [ -n "$app_src" ] || { echo "No .app in DMG"; ls -la "$mnt"; exit 1; }
+          mkdir -p "$RUNNER_TEMP/install"
+          ditto "$app_src" "$RUNNER_TEMP/install/$(basename "$app_src")"
+          hdiutil detach "$mnt"
+          echo "HAKE_APP=$RUNNER_TEMP/install/$(basename "$app_src")" >> "$GITHUB_ENV"
+
+      - name: Verify code signatures
+        run: |
+          failed=0
+          while IFS= read -r -d '' f; do
+            if file -b "$f" | grep -q 'Mach-O'; then
+              if ! codesign --verify --strict "$f" 2>/tmp/cs.err; then
+                echo "INVALID SIGNATURE: $f"; cat /tmp/cs.err; failed=1
+              fi
+            fi
+          done < <(find "$HAKE_APP" -type f -print0)
+          # Bundle-level seal is diagnostic only: scripts in Contents/MacOS are not sealed.
+          codesign --verify --deep --strict --verbose=2 "$HAKE_APP" || echo "::warning::bundle-level codesign verification failed"
+          exit $failed
+
+      - name: Validate packaged runtime
+        run: bash scripts/ci/unix_runtime_smoke.sh --platform macos --root "$HAKE_APP" --report-dir runtime-smoke
+
+      - name: 📤 Upload runtime dependency report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: runtime-deps-macos
+          path: |
+            runtime-smoke/*.json
+            runtime-smoke/*.log
+          if-no-files-found: ignore

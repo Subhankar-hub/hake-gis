@@ -1167,6 +1167,11 @@ if(WIN32)
   install(FILES "${CMAKE_SOURCE_DIR}/ms-windows/installer/hake-gis.env.in"
           DESTINATION "${QGIS_BIN_SUBDIR}"
           RENAME "hake-geodesk.env")
+  # Qt plugin lookup for executables that bypass the launcher (hake-geodesk-process, python.exe)
+  if(WITH_VCPKG)
+    install(FILES "${CMAKE_SOURCE_DIR}/ms-windows/installer/qt.conf"
+            DESTINATION "${QGIS_BIN_SUBDIR}")
+  endif()
 endif()
 
 # manual page - makes sense only on unix systems
