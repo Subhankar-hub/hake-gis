@@ -64,6 +64,13 @@ class APP_EXPORT QgsHakeIcons
     static void applyToDataSourceManager( QWidget *dialog, const QString &themeName );
 
     /**
+     * Applies the Hake icons to the shared sidebar pages of a layer properties \a dialog when
+     * \a themeName is a Hake theme, otherwise restores the icons those pages had before.
+     * Call after all pages, including factory-provided ones, have been added.
+     */
+    static void applyToLayerProperties( QWidget *dialog, const QString &themeName );
+
+    /**
      * Re-applies the Hake icons to actions under \a root whenever an action is added to one of
      * \a menus (or their submenus), so plugins loaded or reloaded later are covered.
      */

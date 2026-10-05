@@ -138,6 +138,16 @@ def parse_registry(path):
     ]
 
 
+def parse_property_pages(path):
+    text = path.read_text(encoding="utf-8")
+    body = re.search(r"HAKE_PROPERTY_PAGE_ICONS\[\]\s*=\s*\{(.*?)\n\s*\};", text, re.S)
+    if not body:
+        return []
+    return re.findall(
+        r'\{\s*"(mOptsPage_[A-Za-z]+)"\s*,\s*"([^"]+)"\s*\}', body.group(1)
+    )
+
+
 def parse_qrc(path):
     root = ET.parse(path).getroot()
     entries = []
@@ -335,10 +345,19 @@ def main():
             fail(f"{kind} {key}: resource {res} missing on disk")
         elif res not in qrc_set:
             fail(f"{kind} {key}: resource {res} not in qrc")
+    property_pages = parse_property_pages(REGISTRY)
+    for page, n in Counter(p for p, _ in property_pages).items():
+        if n > 1:
+            fail(f"property page {page} mapped {n} times")
+    for page, res in property_pages:
+        if res not in on_disk:
+            fail(f"property page {page}: resource {res} missing on disk")
+        elif res not in qrc_set:
+            fail(f"property page {page}: resource {res} not in qrc")
     extra_refs = source_references()
     for res in sorted(extra_refs - on_disk):
         fail(f"source references {res} which does not exist")
-    used = {r for _, _, r in registry} | extra_refs
+    used = {r for _, _, r in registry} | extra_refs | {r for _, r in property_pages}
     unused = sorted(qrc_set - used)
     for f in unused:
         fail(f"{f} is compiled but never referenced")
@@ -346,6 +365,7 @@ def main():
         fail("hake_icons.qrc is not listed in src/app/CMakeLists.txt")
     print(
         f"  qrc entries: {len(qrc)}  SVGs on disk: {len(on_disk)}  referenced outside registry: {len(extra_refs)}"
+        f"  layer properties pages: {len(property_pages)}"
     )
 
     print("\n-- Reuse (one SVG serving several mappings)")

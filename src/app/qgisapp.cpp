@@ -17326,6 +17326,7 @@ void QgisApp::showLayerProperties( QgsMapLayer *mapLayer, const QString &page )
       {
         rasterLayerPropertiesDialog->addPropertiesPageFactory( factory );
       }
+      QgsHakeIcons::applyToLayerProperties( rasterLayerPropertiesDialog, QgsApplication::themeName() );
 
       if ( !page.isEmpty() )
         rasterLayerPropertiesDialog->setCurrentPage( page );
@@ -17354,6 +17355,7 @@ void QgisApp::showLayerProperties( QgsMapLayer *mapLayer, const QString &page )
       {
         meshLayerPropertiesDialog.addPropertiesPageFactory( factory );
       }
+      QgsHakeIcons::applyToLayerProperties( &meshLayerPropertiesDialog, QgsApplication::themeName() );
 
       if ( !page.isEmpty() )
         meshLayerPropertiesDialog.setCurrentPage( page );
@@ -17391,6 +17393,7 @@ void QgisApp::showLayerProperties( QgsMapLayer *mapLayer, const QString &page )
       {
         vectorLayerPropertiesDialog->addPropertiesPageFactory( factory );
       }
+      QgsHakeIcons::applyToLayerProperties( vectorLayerPropertiesDialog, QgsApplication::themeName() );
 
       if ( !page.isEmpty() )
         vectorLayerPropertiesDialog->setCurrentPage( page );
@@ -17412,6 +17415,7 @@ void QgisApp::showLayerProperties( QgsMapLayer *mapLayer, const QString &page )
     case Qgis::LayerType::VectorTile:
     {
       QgsVectorTileLayerProperties vectorTileLayerPropertiesDialog( qobject_cast<QgsVectorTileLayer *>( mapLayer ), mMapCanvas, visibleMessageBar(), this );
+      QgsHakeIcons::applyToLayerProperties( &vectorTileLayerPropertiesDialog, QgsApplication::themeName() );
       if ( !page.isEmpty() )
         vectorTileLayerPropertiesDialog.setCurrentPage( page );
       else
@@ -17435,6 +17439,7 @@ void QgisApp::showLayerProperties( QgsMapLayer *mapLayer, const QString &page )
       {
         pointCloudLayerPropertiesDialog.addPropertiesPageFactory( factory );
       }
+      QgsHakeIcons::applyToLayerProperties( &pointCloudLayerPropertiesDialog, QgsApplication::themeName() );
 
       if ( !page.isEmpty() )
         pointCloudLayerPropertiesDialog.setCurrentPage( page );
@@ -17459,6 +17464,7 @@ void QgisApp::showLayerProperties( QgsMapLayer *mapLayer, const QString &page )
       {
         TiledSceneLayerPropertiesDialog.addPropertiesPageFactory( factory );
       }
+      QgsHakeIcons::applyToLayerProperties( &TiledSceneLayerPropertiesDialog, QgsApplication::themeName() );
 
       if ( !page.isEmpty() )
         TiledSceneLayerPropertiesDialog.setCurrentPage( page );
@@ -17505,6 +17511,7 @@ void QgisApp::showLayerProperties( QgsMapLayer *mapLayer, const QString &page )
       {
         annotationLayerPropertiesDialog.addPropertiesPageFactory( factory );
       }
+      QgsHakeIcons::applyToLayerProperties( &annotationLayerPropertiesDialog, QgsApplication::themeName() );
 
       mMapStyleWidget->blockUpdates( true );
       if ( annotationLayerPropertiesDialog.exec() )

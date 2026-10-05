@@ -171,6 +171,24 @@
     <file>project/hake-project-save-as.svg</file>
     <file>project/hake-project-save.svg</file>
     <file>project/hake-project-snapping-options.svg</file>
+    <file>properties/hake-properties-actions.svg</file>
+    <file>properties/hake-properties-attributes-form.svg</file>
+    <file>properties/hake-properties-auxiliary-storage.svg</file>
+    <file>properties/hake-properties-dependencies.svg</file>
+    <file>properties/hake-properties-diagrams.svg</file>
+    <file>properties/hake-properties-digitizing.svg</file>
+    <file>properties/hake-properties-display.svg</file>
+    <file>properties/hake-properties-fields.svg</file>
+    <file>properties/hake-properties-information.svg</file>
+    <file>properties/hake-properties-joins.svg</file>
+    <file>properties/hake-properties-legend.svg</file>
+    <file>properties/hake-properties-masks.svg</file>
+    <file>properties/hake-properties-metadata.svg</file>
+    <file>properties/hake-properties-rendering.svg</file>
+    <file>properties/hake-properties-server.svg</file>
+    <file>properties/hake-properties-source.svg</file>
+    <file>properties/hake-properties-symbology.svg</file>
+    <file>properties/hake-properties-variables.svg</file>
     <file>raster/hake-raster-align-rasters.svg</file>
     <file>raster/hake-raster-aspect.svg</file>
     <file>raster/hake-raster-assign-projection.svg</file>
