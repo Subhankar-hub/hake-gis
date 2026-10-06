@@ -132,7 +132,7 @@ def parse_registry(path):
     return [
         (m.group(1), m.group(2), m.group(3))
         for m in re.finditer(
-            r'\{\s*(A|ALG|PLUGIN|DOCK|DSM)\s*,\s*"([^"]+)"\s*,\s*"([^"]+)"\s*\}',
+            r'\{\s*(A|ALG|PLUGIN|DOCK|DSM|MENU)\s*,\s*"([^"]+)"\s*,\s*"([^"]+)"\s*\}',
             body.group(1),
         )
     ]
@@ -321,11 +321,15 @@ def main():
 
     print("\n-- Orphan registry entries (not in catalog)")
     reference = [(k, key, r) for k, key, r in registry if (k, key) not in catalog_keys]
-    orphans = [e for e in reference if e[0] != "A"]
+    # Ribbon menu drop-downs are not menu commands, so the catalog does not list them.
+    orphans = [e for e in reference if e[0] not in ("A", "MENU")]
     for kind, key, _ in orphans:
         fail(f"{kind} {key} is registered but not in the catalog")
     print(
         f"  pre-existing Action mappings outside the catalog (reference set): {sum(1 for e in reference if e[0] == 'A')}"
+    )
+    print(
+        f"  ribbon menu drop-down mappings (MENU): {sum(1 for e in reference if e[0] == 'MENU')}"
     )
     if not orphans:
         print("  no non-Action orphans")

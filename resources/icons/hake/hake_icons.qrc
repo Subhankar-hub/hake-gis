@@ -138,6 +138,19 @@
     <file>measurement/hake-measurement-area.svg</file>
     <file>measurement/hake-measurement-bearing.svg</file>
     <file>measurement/hake-measurement-line.svg</file>
+    <file>menus/hake-menu-database.svg</file>
+    <file>menus/hake-menu-edit.svg</file>
+    <file>menus/hake-menu-help.svg</file>
+    <file>menus/hake-menu-layer.svg</file>
+    <file>menus/hake-menu-mesh.svg</file>
+    <file>menus/hake-menu-plugins.svg</file>
+    <file>menus/hake-menu-processing.svg</file>
+    <file>menus/hake-menu-project.svg</file>
+    <file>menus/hake-menu-raster.svg</file>
+    <file>menus/hake-menu-settings.svg</file>
+    <file>menus/hake-menu-vector.svg</file>
+    <file>menus/hake-menu-view.svg</file>
+    <file>menus/hake-menu-web.svg</file>
     <file>mesh/hake-mesh-mesh-calculator.svg</file>
     <file>mesh/hake-mesh-new-mesh-layer.svg</file>
     <file>navigation/hake-navigation-full-extent.svg</file>

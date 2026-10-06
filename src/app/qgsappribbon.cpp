@@ -89,6 +89,16 @@ namespace
     return true;
   }
 
+  /**
+   * Ribbon commands show only their icon; the action's tooltip (which QAction derives from
+   * its text when unset) is the description. Commands without an icon or any description keep
+   * their label so they never become an unidentifiable blank or unexplained button.
+   */
+  bool presentsIconOnly( const QAction *action )
+  {
+    return action && !action->icon().isNull() && !action->toolTip().isEmpty();
+  }
+
   //! Toolbar widgets such as drop-down tool buttons are presented through their default action.
   QAction *presentableToolbarAction( QAction *action )
   {
@@ -137,9 +147,11 @@ class QgsAppRibbonCaption : public QWidget
 };
 
 /**
- * The one command button used everywhere in the ribbon, in two tiers: Large (text under
- * icon) and Compact (text beside icon, or icon only). Size depends only on tier, icon and
- * label, never on enabled/checked state, so the ribbon does not move when actions change state.
+ * The one command button used everywhere in the ribbon, in two tiers: Large (tall primary)
+ * and Compact (one row). In icon-only mode only the icon is painted (plus a caret for menu
+ * drop-downs); the button keeps the action's text and tooltip for accessibility and hover help.
+ * Size depends only on tier, icon and label, never on enabled/checked state, so the ribbon does
+ * not move when actions change state.
  * Styled through #HakeAppRibbonButton and the "ribbonSize" property in the theme QSS.
  */
 class QgsAppRibbonButton : public QToolButton
@@ -170,6 +182,19 @@ class QgsAppRibbonButton : public QToolButton
       mDropDown = dropDown;
       if ( dropDown )
         setPopupMode( QToolButton::InstantPopup );
+    }
+
+    /**
+     * Shows the icon without the label. \a labelledStyle is used when \a iconOnly is false.
+     * Call after setDropDown().
+     */
+    void setPresentation( bool iconOnly, Qt::ToolButtonStyle labelledStyle )
+    {
+      mIconOnly = iconOnly;
+      if ( !iconOnly )
+        setToolButtonStyle( labelledStyle );
+      else
+        setToolButtonStyle( mDropDown ? Qt::ToolButtonTextBesideIcon : Qt::ToolButtonIconOnly );
     }
 
     QSize sizeHint() const override
@@ -224,6 +249,12 @@ class QgsAppRibbonButton : public QToolButton
     void initPresentationOption( QStyleOptionToolButton *opt ) const
     {
       initStyleOption( opt );
+      if ( mIconOnly )
+      {
+        // The theme QSS hides ::menu-indicator, so the caret is the drop-down affordance.
+        opt->text = mDropDown ? u"\u25BE"_s : QString();
+        return;
+      }
       const QString text = mLabel.isEmpty() ? opt->text : mLabel;
       opt->text = fontMetrics().elidedText( text, Qt::ElideRight, mLabelMax );
       if ( mDropDown )
@@ -241,6 +272,7 @@ class QgsAppRibbonButton : public QToolButton
     int mLabelMax = 0;
     QString mLabel;
     bool mDropDown = false;
+    bool mIconOnly = false;
 };
 
 //! Subtle vertical group separator, inset from the page edges; color from the theme QSS via the palette.
@@ -323,8 +355,9 @@ class QgsAppRibbonGroup : public QWidget
 
   private:
     void watchAction( QAction *action );
+    void actionChanged();
     QWidget *buildVariant( Level level );
-    QgsAppRibbonButton *makeButton( QWidget *parent, const Entry &entry, QgsAppRibbonButton::Tier tier, Qt::ToolButtonStyle style ) const;
+    QgsAppRibbonButton *makeButton( QWidget *parent, const Entry &entry, QgsAppRibbonButton::Tier tier ) const;
 
     QString mTitle;
     QList<Entry> mEntries;
@@ -335,6 +368,8 @@ class QgsAppRibbonGroup : public QWidget
     QHBoxLayout *mContentLayout = nullptr;
     QgsAppRibbonCaption *mCaption = nullptr;
     std::array<QWidget *, 4> mVariants { { nullptr, nullptr, nullptr, nullptr } };
+    //! Icon-only decision each action was last built with
+    QHash<const QAction *, bool> mBuiltIconOnly;
     bool mRebuildPending = false;
 };
 
@@ -398,9 +433,20 @@ void QgsAppRibbonGroup::watchAction( QAction *action )
   if ( !action )
     return;
   connect( action, &QAction::visibleChanged, this, &QgsAppRibbonGroup::scheduleRebuild, Qt::UniqueConnection );
+  // Icons can arrive after the ribbon is built (plugin menus, theme switches).
+  connect( action, &QAction::changed, this, &QgsAppRibbonGroup::actionChanged, Qt::UniqueConnection );
   // Menu drop-downs appear/disappear as plugins populate or empty the menu.
   if ( QMenu *menu = dropDownMenu( action ) )
     menu->installEventFilter( this );
+}
+
+void QgsAppRibbonGroup::actionChanged()
+{
+  // Enabled/checked changes are frequent; only a change of presentation needs a rebuild.
+  const auto *action = qobject_cast<const QAction *>( sender() );
+  const auto it = mBuiltIconOnly.constFind( action );
+  if ( it != mBuiltIconOnly.constEnd() && *it != presentsIconOnly( action ) )
+    scheduleRebuild();
 }
 
 bool QgsAppRibbonGroup::eventFilter( QObject *watched, QEvent *event )
@@ -504,6 +550,13 @@ void QgsAppRibbonGroup::rebuild()
     }
   }
 
+  mBuiltIconOnly.clear();
+  for ( const Entry &entry : std::as_const( mEntries ) )
+  {
+    if ( entry.action )
+      mBuiltIconOnly.insert( entry.action, presentsIconOnly( entry.action ) );
+  }
+
   mCaption->setFont( ribbonCaptionFont( font() ) );
   for ( int l = Full; l <= Collapsed; ++l )
   {
@@ -514,18 +567,18 @@ void QgsAppRibbonGroup::rebuild()
   setLevel( mLevel );
 }
 
-QgsAppRibbonButton *QgsAppRibbonGroup::makeButton( QWidget *parent, const Entry &entry, QgsAppRibbonButton::Tier tier, Qt::ToolButtonStyle style ) const
+QgsAppRibbonButton *QgsAppRibbonGroup::makeButton( QWidget *parent, const Entry &entry, QgsAppRibbonButton::Tier tier ) const
 {
   const bool large = tier == QgsAppRibbonButton::Large;
   auto *button = new QgsAppRibbonButton( parent, tier, large ? mMetrics.largeLabelMax : mMetrics.compactLabelMax );
   button->setDefaultAction( entry.action );
   button->setLabel( entry.label );
   button->setDropDown( dropDownMenu( entry.action ) != nullptr );
-  button->setToolButtonStyle( style );
+  button->setPresentation( presentsIconOnly( entry.action ), large ? Qt::ToolButtonTextUnderIcon : Qt::ToolButtonTextBesideIcon );
   const int iconSize = large ? mMetrics.largeIcon : mMetrics.smallIcon;
   button->setIconSize( QSize( iconSize, iconSize ) );
-  // Buttons stretch to their grid column so equivalent controls share one width.
-  button->setSizePolicy( QSizePolicy::Preferred, QSizePolicy::Fixed );
+  // Width comes from the button's own content, so a hidden label never widens a column.
+  button->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
   button->setFixedHeight( large ? mMetrics.buttonAreaHeight : mMetrics.rowHeight );
   return button;
 }
@@ -597,28 +650,14 @@ QWidget *QgsAppRibbonGroup::buildVariant( Level level )
         ++col;
         row = 0;
       }
-      QgsAppRibbonButton *button = makeButton( variant, entry, QgsAppRibbonButton::Large, Qt::ToolButtonTextUnderIcon );
+      QgsAppRibbonButton *button = makeButton( variant, entry, QgsAppRibbonButton::Large );
       grid->addWidget( button, 0, col, m.rows, 1, Qt::AlignTop );
       ++col;
       continue;
     }
 
-    Qt::ToolButtonStyle style = Qt::ToolButtonIconOnly;
-    // Menu-only commands may have no icon; an icon-only button would be blank, so they keep
-    // their label (with a reserved icon slot) at every compression level.
-    if ( level == Full || ( level == Compact && entry.primary ) || entry.action->icon().isNull() )
-      style = Qt::ToolButtonTextBesideIcon;
-
-    QgsAppRibbonButton *button = makeButton( variant, entry, QgsAppRibbonButton::Compact, style );
-    if ( style == Qt::ToolButtonIconOnly )
-    {
-      button->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
-      grid->addWidget( button, row, col, Qt::AlignLeft | Qt::AlignVCenter );
-    }
-    else
-    {
-      grid->addWidget( button, row, col, Qt::AlignVCenter );
-    }
+    QgsAppRibbonButton *button = makeButton( variant, entry, QgsAppRibbonButton::Compact );
+    grid->addWidget( button, row, col, Qt::AlignLeft | Qt::AlignVCenter );
     if ( ++row >= m.rows )
     {
       row = 0;
@@ -778,14 +817,14 @@ void QgsAppRibbonPage::relayout()
   auto fits = [&] { return requiredWidth( levels, hidden, overflow ) <= available; };
 
   // Compress one level at a time, rightmost group first, so the most-used
-  // commands on the left keep their labels longest.
+  // commands on the left keep their large primary buttons longest.
   bool done = fits();
   for ( int level = QgsAppRibbonGroup::Compact; !done && level <= QgsAppRibbonGroup::Collapsed; ++level )
   {
     for ( int i = n - 1; !done && i >= 0; --i )
     {
       // A collapsed drop-down carries a text label, so for small groups it can
-      // be wider than the icon-only layout; only collapse when it saves space.
+      // be wider than the expanded layout; only collapse when it saves space.
       const bool saves = level != QgsAppRibbonGroup::Collapsed
                          || mGroups[i]->widthForLevel( QgsAppRibbonGroup::Collapsed ) < mGroups[i]->widthForLevel( levels[i] );
       if ( levels[i] < level && saves )
@@ -1153,18 +1192,28 @@ void QgsAppRibbon::updateMetrics()
   {
     QPixmap pixmap( m.largeIcon, m.largeIcon );
     pixmap.fill( Qt::transparent );
-    QgsAppRibbonButton compactProbe( mPages.first(), QgsAppRibbonButton::Compact, m.compactLabelMax );
-    compactProbe.setIcon( QIcon( pixmap ) );
-    compactProbe.setText( u"Wg"_s );
-    compactProbe.setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
-    compactProbe.setIconSize( QSize( m.smallIcon, m.smallIcon ) );
-    m.rowHeight = compactProbe.sizeHint().height();
+    // A labelled large button defines the command-area height, which buttons keep
+    // even though they are presented icon-only.
     QgsAppRibbonButton largeProbe( mPages.first(), QgsAppRibbonButton::Large, m.largeLabelMax );
     largeProbe.setIcon( QIcon( pixmap ) );
     largeProbe.setText( u"Wg"_s );
     largeProbe.setToolButtonStyle( Qt::ToolButtonTextUnderIcon );
     largeProbe.setIconSize( QSize( m.largeIcon, m.largeIcon ) );
     m.tallHeight = largeProbe.sizeHint().height();
+
+    // Compact icons are as large as two rows in that height allow.
+    QgsAppRibbonButton compactProbe( mPages.first(), QgsAppRibbonButton::Compact, m.compactLabelMax );
+    compactProbe.setIcon( QIcon( pixmap ) );
+    compactProbe.setToolButtonStyle( Qt::ToolButtonIconOnly );
+    compactProbe.setIconSize( QSize( m.smallIcon, m.smallIcon ) );
+    const int compactChrome = compactProbe.sizeHint().height() - m.smallIcon;
+    m.smallIcon = std::clamp( m.tallHeight / 2 - compactChrome, m.smallIcon, std::max( m.smallIcon, m.largeIcon ) );
+
+    // Labelled exceptions share the rows, so the row also fits one line of text.
+    compactProbe.setText( u"Wg"_s );
+    compactProbe.setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
+    compactProbe.setIconSize( QSize( m.smallIcon, m.smallIcon ) );
+    m.rowHeight = compactProbe.sizeHint().height();
   }
   m.captionHeight = QFontMetrics( ribbonCaptionFont( font() ) ).height();
 

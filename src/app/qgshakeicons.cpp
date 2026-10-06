@@ -51,6 +51,7 @@ namespace
     PluginAction, //!< Cataloged action of a bundled plugin, keyed by objectName
     DockPanel,    //!< Dock toggle presented as a ribbon panel, keyed by dock objectName
     DataSource,   //!< Data Source Manager page, keyed by source select provider name
+    Menu,         //!< Core menu presented as a ribbon drop-down, keyed by menu objectName
   };
 
   struct HakeIcon
@@ -65,6 +66,7 @@ namespace
   constexpr HakeIconKind PLUGIN = HakeIconKind::PluginAction;
   constexpr HakeIconKind DOCK = HakeIconKind::DockPanel;
   constexpr HakeIconKind DSM = HakeIconKind::DataSource;
+  constexpr HakeIconKind MENU = HakeIconKind::Menu;
 
   // The single authoritative Hake icon mapping (validated by scripts/hake_icon_coverage.py).
   // Only core actions and the plugin commands named in the Hake icon catalog may be listed;
@@ -299,6 +301,21 @@ namespace
     { DOCK, "ProcessingToolbox", "processing/hake-processing-toolbox.svg" },
     { DOCK, "Browser", "map/hake-map-browser-panel.svg" },
     { DOCK, "Layers", "map/hake-map-layers-panel.svg" },
+
+    // Ribbon menu drop-downs (core menus only; extension menus keep their own icons)
+    { MENU, "mProjectMenu", "menus/hake-menu-project.svg" },
+    { MENU, "mEditMenu", "menus/hake-menu-edit.svg" },
+    { MENU, "mViewMenu", "menus/hake-menu-view.svg" },
+    { MENU, "mLayerMenu", "menus/hake-menu-layer.svg" },
+    { MENU, "mSettingsMenu", "menus/hake-menu-settings.svg" },
+    { MENU, "mPluginMenu", "menus/hake-menu-plugins.svg" },
+    { MENU, "mVectorMenu", "menus/hake-menu-vector.svg" },
+    { MENU, "mRasterMenu", "menus/hake-menu-raster.svg" },
+    { MENU, "mDatabaseMenu", "menus/hake-menu-database.svg" },
+    { MENU, "mWebMenu", "menus/hake-menu-web.svg" },
+    { MENU, "mMeshMenu", "menus/hake-menu-mesh.svg" },
+    { MENU, "mHelpMenu", "menus/hake-menu-help.svg" },
+    { MENU, "processing", "menus/hake-menu-processing.svg" },
 
     // Catalog: Data Source Manager pages ("browser" is the built-in page without a provider)
     { DSM, "browser", "map/hake-map-browser-panel.svg" },
@@ -802,6 +819,13 @@ void QgsHakeIcons::applyToActions( QObject *root, const QString &themeName )
       {
         if ( QDockWidget *dock = root->findChild<QDockWidget *>( key ) )
           applyToAction( dock->toggleViewAction(), entry.resource, hakeTheme );
+        break;
+      }
+
+      case HakeIconKind::Menu:
+      {
+        if ( QMenu *menu = root->findChild<QMenu *>( key ) )
+          applyToAction( menu->menuAction(), entry.resource, hakeTheme );
         break;
       }
 
