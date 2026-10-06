@@ -213,6 +213,7 @@ jobs:
                 -D FLEX_EXECUTABLE="${SOURCE_DIR}/win_flex.exe" \
                 -D BISON_EXECUTABLE="${SOURCE_DIR}/win_bison.exe" \
                 -D WITH_QTWEBENGINE=OFF \
+                -D HAKE_GIT_REVISION=${{ github.sha }} \
                 -D VCPKG_INSTALL_OPTIONS="--x-buildtrees-root=C:/src" \
                 -D NUGET_USERNAME=${{ github.actor }} \
                 -D NUGET_SOURCE="https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
@@ -325,6 +326,15 @@ jobs:
             -RepoRoot "${{ github.workspace }}" `
             -ReportDir "${{ github.workspace }}\build\runtime-smoke" `
             -Mode Runtime
+
+      - name: Verify installed code revision
+        shell: pwsh
+        run: |
+          python scripts/ci/hake_verify_revision.py `
+            --expected "${{ github.sha }}" `
+            --package-root "C:\Hake GeoDesk" `
+            --process-exe "C:\Hake GeoDesk\bin\hake-geodesk-process.exe"
+          if ($LASTEXITCODE -ne 0) { throw "Code revision verification failed" }
 
       - name: 📤 Upload runtime smoke diagnostics
         if: failure()

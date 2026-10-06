@@ -243,6 +243,7 @@ using namespace Qt::StringLiterals;
 #include "qgisappinterface.h"
 #include "qgisappstylesheet.h"
 #include "qgsappribbon.h"
+#include "qgshakebuildinfo.h"
 #include "qgshakeicons.h"
 #include "qgis.h"
 #include "qgsabout.h"
@@ -6005,7 +6006,15 @@ QString QgisApp::getVersionString()
   }
   else
   {
-    versionString += u"<td>%1</td><td><a href=\"https://github.com/qgis/QGIS/commit/%2\">%2</a></td>"_s.arg( tr( "Hake Geospatial code revision" ), Qgis::devVersion() );
+    const QString commitUrl = QgsHakeBuildInfo::commitUrl();
+    if ( commitUrl.isEmpty() )
+    {
+      versionString += u"<td>%1</td><td>%2</td>"_s.arg( tr( "Hake Geospatial code revision" ), QgsHakeBuildInfo::shortRevision() );
+    }
+    else
+    {
+      versionString += u"<td>%1</td><td><a href=\"%2\">%3</a></td>"_s.arg( tr( "Hake Geospatial code revision" ), commitUrl, QgsHakeBuildInfo::shortRevision() );
+    }
   }
   versionString += "</tr><tr>"_L1;
 

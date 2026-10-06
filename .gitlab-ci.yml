@@ -121,6 +121,7 @@ build_linux:
       -D CREATE_ZIP=ON
       -D CREATE_DEB=ON
       -D HAKE_INSTALLER_FILE_NAME=Hake-Geodesk-Installer-${SUFFIX}
+      -D HAKE_GIT_REVISION=${CI_COMMIT_SHA}
     - cmake --build build --config Release
     - cmake --build build --target bundle --config Release
     - |
