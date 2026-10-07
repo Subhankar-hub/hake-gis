@@ -19,6 +19,7 @@
 
 #include "qgis.h"
 #include "qgsapplication.h"
+#include "qgshakeicons.h"
 #include "qgslogger.h"
 #include "qgsnetworkaccessmanager.h"
 
@@ -30,6 +31,7 @@
 #include <QFileInfo>
 #include <QNetworkReply>
 #include <QNetworkRequest>
+#include <QPixmap>
 #include <QRegularExpression>
 #include <QString>
 #include <QUrl>
@@ -57,6 +59,14 @@ QgsAbout::QgsAbout( QWidget *parent )
   : QgsOptionsDialogBase( u"about"_s, parent, kAboutWindowFlags )
 {
   setupUi( this );
+  if ( QgsHakeIcons::isHakeTheme( QgsApplication::themeName() ) )
+  {
+    // Sidebar rows follow the page order in qgsabout.ui.
+    const QStringList pageIcons { u"about:about"_s, u"about:whats-new"_s, u"about:license"_s };
+    for ( int row = 0; row < std::min( static_cast<int>( pageIcons.size() ), mOptionsListWidget->count() ); ++row )
+      mOptionsListWidget->item( row )->setIcon( QgsHakeIcons::iconFor( pageIcons.at( row ), QString() ) );
+  }
+  updateLogo();
   setWindowTitle( tr( "About %1" ).arg( Qgis::productDisplayName() ) );
   connect( btnQgisUser, &QPushButton::clicked, this, &QgsAbout::btnQgisUser_clicked );
   connect( btnQgisHome, &QPushButton::clicked, this, &QgsAbout::btnQgisHome_clicked );
@@ -77,6 +87,24 @@ void QgsAbout::init()
 {
   setWhatsNew();
   setLicence();
+}
+
+void QgsAbout::updateLogo()
+{
+  const qreal dpr = qgisIcon->devicePixelRatioF();
+  QPixmap logo( u":/images/icons/hake-gis-full.png"_s );
+  logo = logo.scaled( qgisIcon->maximumSize() * dpr, Qt::KeepAspectRatio, Qt::SmoothTransformation );
+  logo.setDevicePixelRatio( dpr );
+  qgisIcon->setPixmap( logo );
+}
+
+bool QgsAbout::event( QEvent *e )
+{
+#if QT_VERSION >= QT_VERSION_CHECK( 6, 6, 0 )
+  if ( e->type() == QEvent::DevicePixelRatioChange )
+    updateLogo();
+#endif
+  return QgsOptionsDialogBase::event( e );
 }
 
 void QgsAbout::updateWindowTitle()

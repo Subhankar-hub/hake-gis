@@ -124,6 +124,7 @@ jobs:
                 -D CMAKE_OSX_DEPLOYMENT_TARGET=${{ matrix.deployment-target }} \
                 -D CMAKE_OSX_ARCHITECTURES=${{ matrix.osx-architecture }} \
                 -D ENABLE_UNITY_BUILDS=OFF \
+                -D HAKE_GIT_REVISION=${{ github.sha }} \
                 -D NUGET_USERNAME=${{ github.actor }} \
                 -D NUGET_SOURCE="https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
                 -D NUGET_READ_SOURCE="https://nuget.pkg.github.com/qgis/index.json" \
@@ -132,7 +133,7 @@ jobs:
 
                 fdupes -q -r -1 build/vcpkg_installed/${{ matrix.triplet }}/lib | grep -E '\.(so|dylib)' | while read line; do master=""; for file in ${line[*]}; do if  [[ "x${master}" == "x" ]]; then master=$file; else rm "${file}"; ln -s $(basename "${master}") "${file}"; fi; done; done
 
-                cmake -D VCPKG_INSTALL_OPTIONS="" build
+                cmake -D VCPKG_INSTALL_OPTIONS="" -D HAKE_GIT_REVISION=${{ github.sha }} build
 
       - name: 📑 Upload vcpkg build logs
         uses: actions/upload-artifact@v7
@@ -161,6 +162,29 @@ jobs:
           # Ideally, we would specify each target that is required to be installed, but this workaround is sufficient for now
           cmake --build build
           cmake --build build --target bundle
+
+      - name: Verify packaged Hake Night theme
+        run: |
+          found=0
+          for app in ./build/_CPack_Packages/Darwin/External/*/*.app; do
+            find "$app" -path "*resources/themes/Hake Night/style.qss" | grep -q . || { echo "Hake Night theme missing in $app"; exit 1; }
+            python3 scripts/hake_theme_validate.py --installed "$app"
+            found=1
+          done
+          [ "$found" -eq 1 ] || { echo "No .app bundle found"; exit 1; }
+
+      - name: Verify packaged code revision
+        run: |
+          found=0
+          for app in ./build/_CPack_Packages/Darwin/External/*/*.app; do
+            process_exe="$(find "$app" -type f -name hake-geodesk-process | head -1)"
+            python3 scripts/ci/hake_verify_revision.py \
+              --expected "${{ github.sha }}" \
+              --package-root "$app" \
+              --process-exe "$process_exe"
+            found=1
+          done
+          [ "$found" -eq 1 ] || { echo "No .app bundle found"; exit 1; }
 
       - name: Archive app
         run: |
