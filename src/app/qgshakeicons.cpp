@@ -17,6 +17,8 @@
 #include "qgshakeicons.h"
 
 #include "qgsapplication.h"
+#include "qgsbrowsermodel.h"
+#include "qgsdataitem.h"
 #include "qgsgui.h"
 #include "qgssourceselectprovider.h"
 #include "qgssourceselectproviderregistry.h"
@@ -472,6 +474,37 @@ namespace
     { "mOptsPage_Digitizing", "properties/hake-properties-digitizing.svg" },
   };
 
+  struct HakeBrowserIcon
+  {
+      const char *providerKey;
+      const char *path;
+      const char *resource;
+  };
+
+  // Top-level Browser items, keyed by the provider key and root path their data item provider
+  // gives them. Directory items (Home, drives, Project Home) draw their icon per state in core,
+  // and roots of any other provider keep their own icons.
+  constexpr HakeBrowserIcon HAKE_BROWSER_ICONS[] = {
+    { "special:Favorites", "favorites:", "browser/hake-browser-favorites.svg" },
+    { "", "bookmarks:", "map/hake-map-show-bookmarks.svg" },
+    { "GPKG", "gpkg:", "layers/hake-layers-source-geopackage.svg" },
+    { "spatialite", "spatialite:", "layers/hake-layers-source-spatialite.svg" },
+    { "PostGIS", "pg:", "layers/hake-layers-source-postgresql.svg" },
+    { "special:Stac", "stac:", "layers/hake-layers-source-stac.svg" },
+    { "MSSQL", "mssql:", "layers/hake-layers-source-mssql.svg" },
+    { "ORACLE", "oracle:", "layers/hake-layers-source-oracle.svg" },
+    { "SAP HANA", "hana:", "layers/hake-layers-source-hana.svg" },
+    { "WMS", "wms:", "layers/hake-layers-source-wms.svg" },
+    { "WMS", "xyz:", "layers/hake-layers-source-xyz.svg" },
+    { "cloud", "cloud:", "layers/hake-layers-source-cloud.svg" },
+    { "tiled-scene", "tiled-scene:", "layers/hake-layers-source-scene.svg" },
+    { "sensorthings", "sensorthings:", "layers/hake-layers-source-sensorthings.svg" },
+    { "vectortile", "vectortile:", "layers/hake-layers-source-vector-tile.svg" },
+    { "WCS", "wcs:", "layers/hake-layers-source-wcs.svg" },
+    { "WFS", "wfs:", "layers/hake-layers-source-wfs.svg" },
+    { "AFS", "arcgisfeatureserver:", "layers/hake-layers-source-arcgis-rest.svg" },
+  };
+
   // MetaSearch uses generic action names, so they are only recognised inside its own Web submenu.
   constexpr char METASEARCH_MENU[] = "MetaSearch";
   // Processing menu entries, and the Selection toolbar buttons for the same algorithms.
@@ -480,6 +513,7 @@ namespace
 
   constexpr char STOCK_ICON_PROPERTY[] = "hakeStockIcon";
   constexpr char HAKE_ICON_KEY_PROPERTY[] = "hakeIconKey";
+  constexpr char PANEL_ICON_PROPERTY[] = "hakePanelIcon";
 
   // The SVGs are authored with these exact colors so state variants can be derived by substitution.
   constexpr char HAKE_STROKE[] = "#164A73";
@@ -556,10 +590,7 @@ namespace
         renderer.render( painter, QRectF( rect ) );
       }
 
-      QPixmap pixmap( const QSize &size, QIcon::Mode mode, QIcon::State state ) override
-      {
-        return scaledPixmap( size, mode, state, 1.0 );
-      }
+      QPixmap pixmap( const QSize &size, QIcon::Mode mode, QIcon::State state ) override { return scaledPixmap( size, mode, state, 1.0 ); }
 
       QPixmap scaledPixmap( const QSize &size, QIcon::Mode mode, QIcon::State state, qreal scale ) override
       {
@@ -584,20 +615,11 @@ namespace
         return pm;
       }
 
-      QSize actualSize( const QSize &size, QIcon::Mode, QIcon::State ) override
-      {
-        return size;
-      }
+      QSize actualSize( const QSize &size, QIcon::Mode, QIcon::State ) override { return size; }
 
-      QIconEngine *clone() const override
-      {
-        return new QgsHakeIconEngine( *this );
-      }
+      QIconEngine *clone() const override { return new QgsHakeIconEngine( *this ); }
 
-      QString key() const override
-      {
-        return u"QgsHakeIconEngine"_s;
-      }
+      QString key() const override { return u"QgsHakeIconEngine"_s; }
 
     private:
       QByteArray svgFor( QIcon::Mode mode, QIcon::State state ) const
@@ -662,25 +684,27 @@ namespace
   // Holds the stock icon of a Layer Properties sidebar item currently showing a Hake icon.
   constexpr int PROPERTY_PAGE_STOCK_ICON_ROLE = Qt::UserRole + 0x4842;
 
-  void applyToAction( QAction *action, const char *resource, QgsHakeTheme::Variant variant )
+  //! Swaps the "icon" property of \a target (a QAction or a button) between its own icon and the Hake icon.
+  void applyIcon( QObject *target, const QString &resource, QgsHakeTheme::Variant variant )
   {
-    if ( !action )
+    if ( !target )
       return;
-    const QVariant hakeKey = action->property( HAKE_ICON_KEY_PROPERTY );
-    const bool showingHakeIcon = hakeKey.isValid() && hakeKey.toLongLong() == action->icon().cacheKey();
+    const QIcon current = target->property( "icon" ).value<QIcon>();
+    const QVariant hakeKey = target->property( HAKE_ICON_KEY_PROPERTY );
+    const bool showingHakeIcon = hakeKey.isValid() && hakeKey.toLongLong() == current.cacheKey();
 
     if ( variant != QgsHakeTheme::Variant::None )
     {
-      const QIcon hakeIcon = QgsHakeIcons::icon( QLatin1String( resource ), variant );
+      const QIcon hakeIcon = QgsHakeIcons::icon( resource, variant );
       if ( hakeIcon.isNull() )
         return;
-      // When the action still shows a Hake icon (Light <-> Night switch) the stored stock icon is kept.
+      // When the target still shows a Hake icon (Light <-> Night switch) the stored stock icon is kept.
       if ( !showingHakeIcon )
-        action->setProperty( STOCK_ICON_PROPERTY, QVariant::fromValue( action->icon() ) );
+        target->setProperty( STOCK_ICON_PROPERTY, QVariant::fromValue( current ) );
       if ( showingHakeIcon && hakeKey.toLongLong() == hakeIcon.cacheKey() )
         return;
-      action->setIcon( hakeIcon );
-      action->setProperty( HAKE_ICON_KEY_PROPERTY, hakeIcon.cacheKey() );
+      target->setProperty( "icon", QVariant::fromValue( hakeIcon ) );
+      target->setProperty( HAKE_ICON_KEY_PROPERTY, hakeIcon.cacheKey() );
     }
     else if ( hakeKey.isValid() )
     {
@@ -688,10 +712,15 @@ namespace
       // (those defined solely in qgisapp.ui, plugin actions, dock toggles) are still
       // showing the Hake icon here.
       if ( showingHakeIcon )
-        action->setIcon( action->property( STOCK_ICON_PROPERTY ).value<QIcon>() );
-      action->setProperty( STOCK_ICON_PROPERTY, QVariant() );
-      action->setProperty( HAKE_ICON_KEY_PROPERTY, QVariant() );
+        target->setProperty( "icon", target->property( STOCK_ICON_PROPERTY ) );
+      target->setProperty( STOCK_ICON_PROPERTY, QVariant() );
+      target->setProperty( HAKE_ICON_KEY_PROPERTY, QVariant() );
     }
+  }
+
+  void applyToAction( QAction *action, const char *resource, QgsHakeTheme::Variant variant )
+  {
+    applyIcon( action, QLatin1String( resource ), variant );
   }
 
   bool isInMenu( const QAction *action, const QString &menuObjectName )
@@ -933,6 +962,87 @@ void QgsHakeIcons::watchMenus( QObject *root, const QList<QWidget *> &menus )
     sWatcher = new QgsHakeMenuWatcher( root );
   for ( QWidget *menu : menus )
     sWatcher->watch( menu );
+}
+
+void QgsHakeIcons::setPanelIcon( QObject *target, const QString &resource )
+{
+  if ( target )
+    target->setProperty( PANEL_ICON_PROPERTY, resource );
+}
+
+void QgsHakeIcons::applyToPanel( QWidget *panel, const QString &themeName )
+{
+  if ( !panel )
+    return;
+
+  // Toolbar actions are often owned by the main window, so also look at the actions added to the panel's widgets.
+  QSet<QObject *> targets;
+  const QList<QObject *> children = panel->findChildren<QObject *>();
+  for ( QObject *child : children )
+  {
+    if ( child->property( PANEL_ICON_PROPERTY ).isValid() )
+      targets.insert( child );
+    if ( const QWidget *widget = qobject_cast<const QWidget *>( child ) )
+    {
+      const QList<QAction *> actions = widget->actions();
+      for ( QAction *action : actions )
+      {
+        if ( action->property( PANEL_ICON_PROPERTY ).isValid() )
+          targets.insert( action );
+      }
+    }
+  }
+
+  const QgsHakeTheme::Variant variant = QgsHakeTheme::variantForTheme( themeName );
+  for ( QObject *target : std::as_const( targets ) )
+    applyIcon( target, target->property( PANEL_ICON_PROPERTY ).toString(), variant );
+}
+
+void QgsHakeIcons::applyToBrowserModel( QgsBrowserModel *model, const QString &themeName )
+{
+  if ( !model )
+    return;
+
+  const QgsHakeTheme::Variant variant = QgsHakeTheme::variantForTheme( themeName );
+  for ( int row = 0; row < model->rowCount(); ++row )
+  {
+    QgsDataItem *item = model->dataItem( model->index( row, 0 ) );
+    if ( !item )
+      continue;
+
+    const char *resource = nullptr;
+    for ( const HakeBrowserIcon &entry : HAKE_BROWSER_ICONS )
+    {
+      if ( item->providerKey() == QLatin1String( entry.providerKey ) && item->path() == QLatin1String( entry.path ) )
+      {
+        resource = entry.resource;
+        break;
+      }
+    }
+    if ( !resource )
+      continue;
+
+    const QVariant hakeKey = item->property( HAKE_ICON_KEY_PROPERTY );
+    if ( variant != QgsHakeTheme::Variant::None )
+    {
+      const QIcon hakeIcon = icon( QLatin1String( resource ), variant );
+      if ( hakeIcon.isNull() || ( hakeKey.isValid() && hakeKey.toLongLong() == hakeIcon.cacheKey() ) )
+        continue;
+      item->setIcon( hakeIcon );
+      item->setProperty( HAKE_ICON_KEY_PROPERTY, hakeIcon.cacheKey() );
+    }
+    else if ( hakeKey.isValid() )
+    {
+      // A null icon makes the item fall back to its provider's icon name.
+      item->setIcon( QIcon() );
+      item->setProperty( HAKE_ICON_KEY_PROPERTY, QVariant() );
+    }
+    else
+    {
+      continue;
+    }
+    emit item->dataChanged( item );
+  }
 }
 
 QIcon QgsHakeIcons::actionIcon( const QString &stockThemeIcon, const QString &resource )

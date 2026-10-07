@@ -16,6 +16,8 @@
 #ifndef QGSAPPRIBBON_H
 #define QGSAPPRIBBON_H
 
+#include "qgis_app.h"
+
 #include <QHash>
 #include <QList>
 #include <QPointer>
@@ -24,6 +26,7 @@
 
 class QAction;
 class QLabel;
+class QLineEdit;
 class QMenu;
 class QMenuBar;
 class QToolBar;
@@ -32,6 +35,8 @@ class QWidget;
 class QgisApp;
 class QgsAppRibbonGroup;
 class QgsAppRibbonPage;
+class QgsFloatingWidget;
+class QgsLocatorWidget;
 
 /**
  * Logical-pixel sizes for the ribbon, measured from the current font, style
@@ -39,9 +44,13 @@ class QgsAppRibbonPage;
  */
 struct QgsAppRibbonMetrics
 {
-    int smallIcon = 16;
-    int largeIcon = 24;
-    int rowHeight = 24;
+    //! Icon size drawn in every command cell
+    int cellIcon = 24;
+    //! Side of the square cell every ribbon command occupies, on every tab
+    int cellSize = 36;
+    //! Width reserved beside the cell for the caret of a menu drop-down
+    int caretWidth = 12;
+    //! Height of a labelled large reference button; sets the command-area height
     int tallHeight = 52;
     int captionHeight = 14;
     int buttonAreaHeight = 52;
@@ -50,11 +59,8 @@ struct QgsAppRibbonMetrics
     int spaceSm = 4;
     int spaceMd = 6;
     int spaceLg = 8;
-    //! Widest label text before eliding, per button tier
-    int largeLabelMax = 120;
-    int compactLabelMax = 150;
-    int rows = 2;
-    bool tallPrimary = true;
+    //! Widest label text before eliding, for commands that cannot be shown icon-only
+    int labelMax = 150;
     bool captions = true;
 
     bool operator==( const QgsAppRibbonMetrics &other ) const = default;
@@ -64,7 +70,7 @@ struct QgsAppRibbonMetrics
  * Tabbed ribbon that reuses existing QgisApp QActions via QToolButton::setDefaultAction.
  * Does not take ownership of those actions.
  */
-class QgsAppRibbon : public QTabWidget
+class APP_EXPORT QgsAppRibbon : public QTabWidget
 {
     Q_OBJECT
 
@@ -83,6 +89,26 @@ class QgsAppRibbon : public QTabWidget
      */
     void setThemeToggleAction( QAction *action );
 
+    /**
+     * Presents the application \a locator in the tab strip, between the tabs and the theme toggle.
+     * When the strip is too narrow it collapses to a search button that shows the same locator in
+     * a floating overlay. The locator is reparented, never copied, and keeps its own search,
+     * results and filters.
+     */
+    void setSearchWidget( QgsLocatorWidget *locator );
+
+    //! Opens the search overlay when the search is collapsed to its button; does nothing otherwise.
+    void revealSearch();
+
+    //! Shows or hides the search entry point (field or button) in the tab strip.
+    void setSearchVisible( bool visible );
+
+    //! Returns TRUE unless the search entry point was hidden with setSearchVisible().
+    bool isSearchVisible() const { return mSearchVisible; }
+
+    //! Returns the tab-strip widget that hosts the search entry point, or NULLPTR without a search.
+    QWidget *searchEntryWidget() const { return mSearchHost; }
+
     QSize sizeHint() const override;
     QSize minimumSizeHint() const override;
 
@@ -95,6 +121,10 @@ class QgsAppRibbon : public QTabWidget
 
   private:
     void syncChromeTabBarGeometry();
+    //! Picks field or button for the search from the room left beside the tabs at \a stripWidth.
+    void syncSearchGeometry( int stripWidth, int rowHeight );
+    void setSearchCollapsed( bool collapsed );
+    void hideSearchOverlay( bool restoreFocus );
     void updateMetrics();
     QgsAppRibbonPage *addPage( const QString &title );
     QgsAppRibbonGroup *addGroup( QgsAppRibbonPage *page, const QString &title );
@@ -120,6 +150,17 @@ class QgsAppRibbon : public QTabWidget
     QgisApp *mApp = nullptr;
     QLabel *mBrand = nullptr;
     QToolButton *mThemeToggle = nullptr;
+    QWidget *mSearchHost = nullptr;
+    QToolButton *mSearchButton = nullptr;
+    QgsFloatingWidget *mSearchOverlay = nullptr;
+    QPointer<QgsLocatorWidget> mSearchWidget;
+    QPointer<QLineEdit> mSearchField;
+    QPointer<QWidget> mFocusBeforeSearch;
+    int mSearchMin = 0;
+    int mSearchMax = 0;
+    bool mSearchCollapsed = false;
+    bool mSearchVisible = true;
+    bool mSearchEscArmed = false;
     QList<QgsAppRibbonPage *> mPages;
     QHash<QToolBar *, QgsAppRibbonGroup *> mMirroredToolbars;
     QList<QPointer<QToolBar>> mPendingMirrorSyncs;

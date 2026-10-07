@@ -1494,6 +1494,28 @@ QgisApp::QgisApp(
   connect( mBrowserWidget2, &QgsBrowserDockWidget::openFile, this, [this]( const QString &file ) { openFile( file ); } );
   connect( mBrowserWidget2, &QgsBrowserDockWidget::handleDropUriList, this, [this]( const QgsMimeDataUtils::UriList &list ) { handleDropUriList( list ); } );
 
+  // Hake icons for the Browser panels. Root items are created silently when a view first
+  // initializes the shared model, and later as providers are added, so re-apply at each point.
+  const auto applyBrowserIcons = [this] { QgsHakeIcons::applyToBrowserModel( mBrowserModel, QgsApplication::themeName() ); };
+  connect( mBrowserModel, &QAbstractItemModel::rowsInserted, this, [applyBrowserIcons]( const QModelIndex &parent ) {
+    if ( !parent.isValid() )
+      applyBrowserIcons();
+  } );
+  connect( mBrowserModel, &QAbstractItemModel::modelReset, this, applyBrowserIcons );
+  for ( QgsBrowserDockWidget *browserDock : { mBrowserWidget, mBrowserWidget2 } )
+  {
+    QgsHakeIcons::setPanelIcon( browserDock->findChild<QObject *>( u"mActionAddLayers"_s ), u"browser/hake-browser-add-layer.svg"_s );
+    QgsHakeIcons::setPanelIcon( browserDock->findChild<QObject *>( u"mActionRefresh"_s ), u"navigation/hake-navigation-refresh.svg"_s );
+    QgsHakeIcons::setPanelIcon( browserDock->findChild<QObject *>( u"mActionShowFilter"_s ), u"layers/hake-layers-filter.svg"_s );
+    QgsHakeIcons::setPanelIcon( browserDock->findChild<QObject *>( u"mActionCollapse"_s ), u"layers/hake-layers-collapse-all.svg"_s );
+    QgsHakeIcons::setPanelIcon( browserDock->findChild<QObject *>( u"mActionPropertiesWidget"_s ), u"layers/hake-layers-properties.svg"_s );
+    QgsHakeIcons::setPanelIcon( browserDock->findChild<QObject *>( u"mBtnFilterOptions"_s ), u"settings/hake-settings-options.svg"_s );
+    connect( browserDock, &QDockWidget::visibilityChanged, this, [applyBrowserIcons]( bool visible ) {
+      if ( visible )
+        applyBrowserIcons();
+    } );
+  }
+
   addDockWidget( Qt::LeftDockWidgetArea, mAdvancedDigitizingDockWidget );
   mAdvancedDigitizingDockWidget->hide();
 
@@ -2886,6 +2908,8 @@ void QgisApp::dataSourceManager( const QString &pageName, const QString &layerUr
 
   QgsHakeIcons::applyToDataSourceManager( mDataSourceManagerDialog, QgsApplication::themeName() );
   mDataSourceManagerDialog->show();
+  // Its Browser page may be the first view to initialize the shared Browser model.
+  QgsHakeIcons::applyToBrowserModel( mBrowserModel, QgsApplication::themeName() );
   mDataSourceManagerDialog->activate();
 }
 
@@ -3290,8 +3314,11 @@ void QgisApp::createActions()
   mActionToolSearch->setObjectName( u"mActionToolSearch"_s );
   mActionToolSearch->setToolTip( tr( "Tool Search" ) );
   connect( mActionToolSearch, &QAction::triggered, this, [this] {
-    if ( mLocatorWidget )
-      mLocatorWidget->search( QString() );
+    if ( !mLocatorWidget )
+      return;
+    if ( mAppRibbon )
+      mAppRibbon->revealSearch();
+    mLocatorWidget->search( QString() );
   } );
 
   // Two-state Hake Light / Hake Night toggle shown at the top-right of the ribbon; no shortcut.
@@ -4177,6 +4204,28 @@ void QgisApp::hideClassicToolBars()
     mAppRibbonBar->show();
 }
 
+QWidget *QgisApp::locatorEntryWidget()
+{
+  if ( mAppRibbon && mAppRibbon->searchEntryWidget() )
+    return mAppRibbon->searchEntryWidget();
+  return mLocatorWidget;
+}
+
+void QgisApp::setLocatorEntryVisible( bool visible )
+{
+  if ( mAppRibbon && mAppRibbon->searchEntryWidget() )
+    mAppRibbon->setSearchVisible( visible );
+  else if ( mLocatorWidget )
+    mLocatorWidget->setVisible( visible );
+}
+
+bool QgisApp::isLocatorEntryVisible() const
+{
+  if ( mAppRibbon && mAppRibbon->searchEntryWidget() )
+    return mAppRibbon->isSearchVisible();
+  return mLocatorWidget && !mLocatorWidget->isHidden();
+}
+
 void QgisApp::createStatusBar()
 {
   //remove borders from children under Windows
@@ -4305,10 +4354,26 @@ void QgisApp::createStatusBar()
   mMessageButton->setCheckable( true );
   mStatusBar->addPermanentWidget( mMessageButton, 0 );
 
-  mLocatorWidget = new QgsLocatorWidget( mStatusBar );
-  mStatusBar->addPermanentWidget( mLocatorWidget, 0, QgsStatusBar::AnchorLeft );
+  // The locator's visible entry point is the Ribbon tab strip; the status bar only without a Ribbon.
+  mLocatorWidget = new QgsLocatorWidget( mAppRibbon ? static_cast<QWidget *>( mAppRibbon ) : mStatusBar );
+  if ( mAppRibbon )
+  {
+    mAppRibbon->setSearchWidget( mLocatorWidget );
+    // The locator adds its leading search/filter-menu action last, after the clear button.
+    if ( QLineEdit *locatorField = mLocatorWidget->findChild<QLineEdit *>(); locatorField && !locatorField->actions().isEmpty() )
+      QgsHakeIcons::setPanelIcon( locatorField->actions().constLast(), u"help/hake-help-tool-search.svg"_s );
+    QgsHakeIcons::setPanelIcon( mAppRibbon->searchEntryWidget()->findChild<QToolButton *>( u"HakeAppRibbonSearchButton"_s ), u"help/hake-help-tool-search.svg"_s );
+  }
+  else
+  {
+    mStatusBar->addPermanentWidget( mLocatorWidget, 0, QgsStatusBar::AnchorLeft );
+  }
   QShortcut *locatorShortCut = new QShortcut( QKeySequence( tr( "Ctrl+K" ) ), this );
-  connect( locatorShortCut, &QShortcut::activated, mLocatorWidget, [this] { mLocatorWidget->search( QString() ); } );
+  connect( locatorShortCut, &QShortcut::activated, mLocatorWidget, [this] {
+    if ( mAppRibbon )
+      mAppRibbon->revealSearch();
+    mLocatorWidget->search( QString() );
+  } );
   locatorShortCut->setObjectName( u"Locator"_s );
   locatorShortCut->setWhatsThis( tr( "Trigger Locator" ) );
 
@@ -4592,8 +4657,16 @@ void QgisApp::setTheme( const QString &themeName )
   QgsHakeIcons::applyToActions( this, theme );
   if ( mDataSourceManagerDialog )
     QgsHakeIcons::applyToDataSourceManager( mDataSourceManagerDialog, theme );
+  QgsHakeIcons::applyToBrowserModel( mBrowserModel, theme );
+  QgsHakeIcons::applyToPanel( mBrowserWidget, theme );
+  QgsHakeIcons::applyToPanel( mBrowserWidget2, theme );
+  QgsHakeIcons::applyToPanel( mLayerTreeDock, theme );
+  QgsHakeIcons::applyToPanel( mLocatorWidget, theme );
   if ( mAppRibbon )
+  {
+    QgsHakeIcons::applyToPanel( mAppRibbon->searchEntryWidget(), theme );
     mAppRibbon->refreshIcons();
+  }
 
   // The geometry-specific digitizing icons are chosen per active layer; refresh them on live switches.
   if ( mThemeApplied && mLayerTreeView )
@@ -5192,7 +5265,7 @@ void QgisApp::addUserInputWidget( QWidget *widget )
 
 void QgisApp::initLayerTreeView()
 {
-  mLayerTreeDock = new QgsDockWidget( tr( "Layers" ).toUpper(), this );
+  mLayerTreeDock = new QgsDockWidget( tr( "GIS Layer" ).toUpper(), this );
   mLayerTreeDock->setObjectName( u"Layers"_s );
   mLayerTreeDock->setAllowedAreas( Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea );
 
@@ -5305,6 +5378,14 @@ void QgisApp::initLayerTreeView()
   toolbar->addAction( actionExpandAll );
   toolbar->addAction( actionCollapseAll );
   toolbar->addAction( mActionRemoveLayer );
+
+  QgsHakeIcons::setPanelIcon( mActionStyleDock, u"properties/hake-properties-symbology.svg"_s );
+  QgsHakeIcons::setPanelIcon( actionAddGroup, u"layers/hake-layers-add-group.svg"_s );
+  QgsHakeIcons::setPanelIcon( btnVisibilityPresets, u"layers/hake-layers-show-all.svg"_s );
+  QgsHakeIcons::setPanelIcon( mFilterLegendToolButton, u"layers/hake-layers-filter.svg"_s );
+  QgsHakeIcons::setPanelIcon( mLegendExpressionFilterButton, u"layers/hake-layers-filter-expression.svg"_s );
+  QgsHakeIcons::setPanelIcon( actionExpandAll, u"layers/hake-layers-expand-all.svg"_s );
+  QgsHakeIcons::setPanelIcon( actionCollapseAll, u"layers/hake-layers-collapse-all.svg"_s );
 
   QVBoxLayout *vboxLayout = new QVBoxLayout;
   vboxLayout->setContentsMargins( 0, 0, 0, 0 );
@@ -7167,8 +7248,8 @@ bool QgisApp::fileSave()
     const QString qgsProjectExt = tr( "Hake Geospatial XML Project Format" ) + " (*.qgs *.QGS)";
 
     QString filter;
-    QString path
-      = QFileDialog::getSaveFileName( this, tr( "Choose a Hake Geospatial project file" ), lastUsedDir + '/' + QgsProject::instance()->title(), qgisProjectExt + u";;"_s + qgzProjectExt + u";;"_s + qgsProjectExt, &filter );
+    QString path = QFileDialog::
+      getSaveFileName( this, tr( "Choose a Hake Geospatial project file" ), lastUsedDir + '/' + QgsProject::instance()->title(), qgisProjectExt + u";;"_s + qgzProjectExt + u";;"_s + qgsProjectExt, &filter );
     if ( path.isEmpty() )
       return false;
 
@@ -8200,6 +8281,7 @@ void QgisApp::changeDataSource( QgsMapLayer *layer )
   Qgis::LayerType layerType( layer->type() );
 
   QgsDataSourceSelectDialog dlg( mBrowserModel, true, layerType );
+  QgsHakeIcons::applyToBrowserModel( mBrowserModel, QgsApplication::themeName() );
   if ( !layer->isValid() )
     dlg.setWindowTitle( tr( "Repair Data Source" ) );
 
@@ -14229,8 +14311,24 @@ bool QgisApp::saveDirty()
     markDirty();
 
     // prompt user to save
-    answer = QMessageBox::
-      question( this, tr( "Save Project" ), tr( "Do you want to save the current project? %1" ).arg( whyDirty ), QMessageBox::Save | QMessageBox::Cancel | QMessageBox::Discard, hasUnsavedEdits ? QMessageBox::Cancel : QMessageBox::Save );
+    QMessageBox
+      saveBox( QMessageBox::Question, tr( "Save Project" ), tr( "Do you want to save the current project? %1" ).arg( whyDirty ), QMessageBox::Save | QMessageBox::Cancel | QMessageBox::Discard, this );
+    saveBox.setDefaultButton( hasUnsavedEdits ? QMessageBox::Cancel : QMessageBox::Save );
+#ifndef Q_OS_MACOS
+    // Keep the macOS native alert untouched; elsewhere only the icons change, not the layout.
+    if ( QgsHakeIcons::isHakeTheme( QgsApplication::themeName() ) )
+    {
+      const int boxIconSize = saveBox.style()->pixelMetric( QStyle::PM_MessageBoxIconSize, nullptr, &saveBox );
+      saveBox.setIconPixmap( QgsHakeIcons::icon( u"dialog/hake-dialog-question.svg"_s ).pixmap( QSize( boxIconSize, boxIconSize ), devicePixelRatioF() ) );
+      if ( saveBox.style()->styleHint( QStyle::SH_DialogButtonBox_ButtonsHaveIcons, nullptr, &saveBox ) )
+      {
+        saveBox.button( QMessageBox::Save )->setIcon( QgsHakeIcons::icon( u"project/hake-project-save.svg"_s ) );
+        saveBox.button( QMessageBox::Discard )->setIcon( QgsHakeIcons::icon( u"dialog/hake-dialog-discard.svg"_s ) );
+        saveBox.button( QMessageBox::Cancel )->setIcon( QgsHakeIcons::icon( u"dialog/hake-dialog-cancel.svg"_s ) );
+      }
+    }
+#endif
+    answer = saveBox.exec() == -1 ? QMessageBox::Cancel : saveBox.standardButton( saveBox.clickedButton() );
     if ( QMessageBox::Save == answer )
     {
       if ( !fileSave() )

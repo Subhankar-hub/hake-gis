@@ -28,3 +28,4 @@
 @ribbonSurface: #FFFFFF
 @ribbonCaption: #607D94
 @ribbonDisabled: #9DB0C0
+@ribbonSearchText: #243B53

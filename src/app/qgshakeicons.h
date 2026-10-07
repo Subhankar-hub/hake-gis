@@ -25,6 +25,7 @@
 
 class QObject;
 class QWidget;
+class QgsBrowserModel;
 
 /**
  * Hake GeoDesk icon family for the application's own (Hake-owned) actions.
@@ -33,7 +34,8 @@ class QWidget;
  * under the "Hake Light" and "Hake Night" UI themes (light and dark color
  * substitution of the same SVGs) and only for the fixed set of targets listed
  * in qgshakeicons.cpp: core actions, ribbon panel dock toggles, Data Source
- * Manager pages, and the bundled plugin commands named in the Hake icon catalog.
+ * Manager pages, Browser root items of core providers, the Browser and Layers panel
+ * toolbars, and the bundled plugin commands named in the Hake icon catalog.
  * Any other plugin or extension action keeps its own icon.
  */
 class APP_EXPORT QgsHakeIcons
@@ -75,6 +77,26 @@ class APP_EXPORT QgsHakeIcons
      * \a menus (or their submenus), so plugins loaded or reloaded later are covered.
      */
     static void watchMenus( QObject *root, const QList<QWidget *> &menus );
+
+    /**
+     * Marks a panel toolbar \a action or button (anything with an "icon" property) to show the
+     * Hake icon \a resource under the Hake themes. Takes effect on the next applyToPanel() call.
+     */
+    static void setPanelIcon( QObject *target, const QString &resource );
+
+    /**
+     * Applies the Hake icons to the toolbar actions and buttons of \a panel (and the actions of
+     * its toolbars) marked with setPanelIcon() when \a themeName is a Hake theme, otherwise
+     * restores the icons they had before.
+     */
+    static void applyToPanel( QWidget *panel, const QString &themeName );
+
+    /**
+     * Applies the Hake icons to the top-level Browser items of \a model whose provider the Hake
+     * icon family covers when \a themeName is a Hake theme, otherwise restores the provider icons.
+     * Items of other providers, including plugin ones, keep their own icons.
+     */
+    static void applyToBrowserModel( QgsBrowserModel *model, const QString &themeName );
 
     /**
      * Returns the Hake icon for \a resource under the Hake theme, otherwise the

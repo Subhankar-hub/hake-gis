@@ -24,8 +24,13 @@
     <file>analysis/hake-analysis-regular-points.svg</file>
     <file>analysis/hake-analysis-statistical-summary.svg</file>
     <file>analysis/hake-analysis-sum-line-lengths.svg</file>
+    <file>browser/hake-browser-add-layer.svg</file>
+    <file>browser/hake-browser-favorites.svg</file>
     <file>database/hake-database-db-manager.svg</file>
     <file>database/hake-database-query-history.svg</file>
+    <file>dialog/hake-dialog-cancel.svg</file>
+    <file>dialog/hake-dialog-discard.svg</file>
+    <file>dialog/hake-dialog-question.svg</file>
     <file>editing/hake-editing-redo.svg</file>
     <file>editing/hake-editing-undo.svg</file>
     <file>extensions/hake-extensions-manage-plugins.svg</file>
@@ -49,6 +54,7 @@
     <file>layers/hake-layers-add-arcgis-rest.svg</file>
     <file>layers/hake-layers-add-delimited-text.svg</file>
     <file>layers/hake-layers-add-gpx.svg</file>
+    <file>layers/hake-layers-add-group.svg</file>
     <file>layers/hake-layers-add-hana.svg</file>
     <file>layers/hake-layers-add-layer-definition.svg</file>
     <file>layers/hake-layers-add-mesh.svg</file>
@@ -70,11 +76,14 @@
     <file>layers/hake-layers-attribute-table-selected.svg</file>
     <file>layers/hake-layers-attribute-table-visible.svg</file>
     <file>layers/hake-layers-attribute-table.svg</file>
+    <file>layers/hake-layers-collapse-all.svg</file>
     <file>layers/hake-layers-copy-layer.svg</file>
     <file>layers/hake-layers-copy-style.svg</file>
     <file>layers/hake-layers-data-source-manager.svg</file>
     <file>layers/hake-layers-duplicate.svg</file>
     <file>layers/hake-layers-embed.svg</file>
+    <file>layers/hake-layers-expand-all.svg</file>
+    <file>layers/hake-layers-filter-expression.svg</file>
     <file>layers/hake-layers-filter.svg</file>
     <file>layers/hake-layers-hide-all-from-overview.svg</file>
     <file>layers/hake-layers-hide-all.svg</file>
@@ -99,9 +108,22 @@
     <file>layers/hake-layers-show-all.svg</file>
     <file>layers/hake-layers-show-in-overview.svg</file>
     <file>layers/hake-layers-show-selected.svg</file>
+    <file>layers/hake-layers-source-arcgis-rest.svg</file>
+    <file>layers/hake-layers-source-cloud.svg</file>
     <file>layers/hake-layers-source-geopackage.svg</file>
+    <file>layers/hake-layers-source-hana.svg</file>
+    <file>layers/hake-layers-source-mssql.svg</file>
+    <file>layers/hake-layers-source-oracle.svg</file>
+    <file>layers/hake-layers-source-postgresql.svg</file>
     <file>layers/hake-layers-source-scene.svg</file>
     <file>layers/hake-layers-source-sensorthings.svg</file>
+    <file>layers/hake-layers-source-spatialite.svg</file>
+    <file>layers/hake-layers-source-stac.svg</file>
+    <file>layers/hake-layers-source-vector-tile.svg</file>
+    <file>layers/hake-layers-source-wcs.svg</file>
+    <file>layers/hake-layers-source-wfs.svg</file>
+    <file>layers/hake-layers-source-wms.svg</file>
+    <file>layers/hake-layers-source-xyz.svg</file>
     <file>layers/hake-layers-toggle-selected-independently.svg</file>
     <file>layers/hake-layers-toggle-selected.svg</file>
     <file>map/hake-map-bookmark-manager.svg</file>

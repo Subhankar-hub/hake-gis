@@ -819,6 +819,15 @@ class APP_EXPORT QgisApp : public QMainWindow, private Ui::MainWindow
 
     QgsLocatorWidget *locatorWidget() { return mLocatorWidget; }
 
+    //! Returns the visible locator entry point: the Ribbon search host, or the status-bar locator without a Ribbon.
+    QWidget *locatorEntryWidget();
+
+    //! Shows or hides the locator entry point (Interface Customization "LocatorWidget").
+    void setLocatorEntryVisible( bool visible );
+
+    //! Returns TRUE unless the locator entry point was hidden with setLocatorEntryVisible().
+    bool isLocatorEntryVisible() const;
+
     //! show layer properties
     void showLayerProperties( QgsMapLayer *mapLayer, const QString &page = QString() );
 

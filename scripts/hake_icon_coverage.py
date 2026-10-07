@@ -161,14 +161,11 @@ def parse_qrc(path):
 def source_references():
     refs = set()
     for src in (ROOT / "src/app").rglob("*.cpp"):
+        text = src.read_text(encoding="utf-8", errors="replace")
         if src == REGISTRY:
-            continue
-        refs.update(
-            re.findall(
-                r'"((?:[a-z]+)/hake-[a-z0-9-]+\.svg)"',
-                src.read_text(encoding="utf-8", errors="replace"),
-            )
-        )
+            # Only the presentation tables outside HAKE_ICONS (Browser roots) count here.
+            text = re.sub(r"HAKE_ICONS\[\]\s*=\s*\{.*?\n\s*\};", "", text, flags=re.S)
+        refs.update(re.findall(r'"((?:[a-z]+)/hake-[a-z0-9-]+\.svg)"', text))
     return refs
 
 
