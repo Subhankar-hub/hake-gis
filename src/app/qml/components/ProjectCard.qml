@@ -57,7 +57,8 @@ Rectangle {
       anchors.topMargin: 15
       anchors.right: parent.right
       anchors.rightMargin: 15
-      source: welcomeTheme.hakeIcons ? "image://hakeicon/welcome:pin/" + welcomeTheme.iconRevision : "qrc:/images/themes/default/pin.svg"      width: 24
+      source: welcomeTheme.hakeIcons ? "image://hakeicon/welcome:pin/" + welcomeTheme.iconRevision : "qrc:/images/themes/default/pin.svg"
+      width: 24
       height: 24
       layer.enabled: true
       opacity: root.isPinned ? 1 : 0
