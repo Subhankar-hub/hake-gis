@@ -30,3 +30,6 @@ jobs:
 
       - name: Validate theme resources
         run: python3 scripts/hake_theme_validate.py
+
+      - name: Validate Options sidebar icon coverage
+        run: python3 scripts/hake_options_icon_coverage.py

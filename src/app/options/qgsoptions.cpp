@@ -40,6 +40,7 @@
 #include "qgsfilebaseddataitemprovider.h"
 #include "qgsgdalutils.h"
 #include "qgsgui.h"
+#include "qgshakeicons.h"
 #include "qgshaketheme.h"
 #include "qgslayertreemodellegendnode.h"
 #include "qgslayout.h"
@@ -1500,6 +1501,7 @@ void QgsOptions::uiThemeChanged( const QString &theme )
     return;
 
   QgisApp::instance()->setTheme( theme );
+  QgsHakeIcons::applyToOptions( this, theme );
 }
 
 void QgsOptions::appearanceModeChanged()

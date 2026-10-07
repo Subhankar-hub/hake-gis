@@ -13289,7 +13289,9 @@ QgsOptions *QgisApp::createOptionsDialog( QWidget *parent )
     if ( f )
       factories << f;
   }
-  return new QgsOptions( parent, QgsGuiUtils::ModalDialogFlags, factories );
+  QgsOptions *dialog = new QgsOptions( parent, QgsGuiUtils::ModalDialogFlags, factories );
+  QgsHakeIcons::applyToOptions( dialog, QgsApplication::themeName() );
+  return dialog;
 }
 
 

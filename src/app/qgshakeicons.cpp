@@ -20,6 +20,7 @@
 #include "qgsbrowsermodel.h"
 #include "qgsdataitem.h"
 #include "qgsgui.h"
+#include "qgsoptionsdialogbase.h"
 #include "qgssourceselectprovider.h"
 #include "qgssourceselectproviderregistry.h"
 
@@ -37,10 +38,13 @@
 #include <QPointer>
 #include <QSet>
 #include <QStackedWidget>
+#include <QStandardItemModel>
 #include <QString>
 #include <QSvgRenderer>
 #include <QTimer>
+#include <QTreeView>
 #include <QVariant>
+#include <functional>
 
 using namespace Qt::StringLiterals;
 
@@ -474,6 +478,44 @@ namespace
     { "mOptsPage_Digitizing", "properties/hake-properties-digitizing.svg" },
   };
 
+  // Application Options sidebar, keyed by the factory or group key of the item, else by its stacked
+  // page objectName (validated by scripts/hake_options_icon_coverage.py). Pages registered by
+  // third-party plugins are not listed and keep their own icons.
+  constexpr HakePropertyPageIcon HAKE_OPTIONS_PAGE_ICONS[] = {
+    { "mOptionsPageGeneral", "settings/hake-settings-options.svg" },
+    { "mOptionsPageSystem", "options/hake-options-system.svg" },
+    { "QgsUserProfileOptionsWidgetBase", "options/hake-options-user-profiles.svg" },
+    { "crs_and_transforms", "options/hake-options-crs-transforms.svg" },
+    { "mOptionsPageCRS", "options/hake-options-crs-handling.svg" },
+    { "mOptionsPageTransformations", "vector/hake-vector-reproject-layer.svg" },
+    { "user_defined_crs", "settings/hake-settings-custom-projection.svg" },
+    { "mOptionsPageDataSources", "layers/hake-layers-data-source-manager.svg" },
+    { "mOptionsPageGDAL", "options/hake-options-gdal.svg" },
+    { "rendering", "properties/hake-properties-rendering.svg" },
+    { "vector", "options/hake-options-vector.svg" },
+    { "raster", "options/hake-options-raster.svg" },
+    { "mOptionsPageMapCanvas", "options/hake-options-canvas-legend.svg" },
+    { "mOptionsPageMapTools", "navigation/hake-navigation-pan.svg" },
+    { "mOptionsPageDigitizing", "properties/hake-properties-digitizing.svg" },
+    { "elevation", "map/hake-map-elevation-controller.svg" },
+    { "mOptionsPageColors", "options/hake-options-colors.svg" },
+    { "3d", "map/hake-map-manage-3d-views.svg" },
+    { "fonts", "options/hake-options-fonts.svg" },
+    { "mOptionsPageComposer", "map/hake-map-layout-manager.svg" },
+    { "mOptionsPageVariables", "properties/hake-properties-variables.svg" },
+    { "mOptionsPageAuth", "options/hake-options-authentication.svg" },
+    { "mOptionsPageNetwork", "options/hake-options-network.svg" },
+    { "gps", "options/hake-options-gps.svg" },
+    { "gpsbabel", "options/hake-options-gpsbabel.svg" },
+    { "mOptionsLocatorSettings", "help/hake-help-tool-search.svg" },
+    { "mOptionsPageAcceleration", "options/hake-options-acceleration.svg" },
+    { "processingOptions", "processing/hake-processing-toolbox.svg" },
+    { "ide", "options/hake-options-ide.svg" },
+    { "code_editor", "options/hake-options-code-editor.svg" },
+    { "consoleOptions", "analysis/hake-analysis-python-console.svg" },
+    { "advanced", "options/hake-options-advanced.svg" },
+  };
+
   struct HakeBrowserIcon
   {
       const char *providerKey;
@@ -679,10 +721,32 @@ namespace
 {
   // Marks Data Source Manager list items currently showing a Hake icon.
   constexpr int DSM_HAKE_ICON_ROLE = Qt::UserRole + 0x4841;
-  // Holds the stock icon of a layer properties sidebar item currently showing a Hake icon.
+  // Holds the stock icon of a layer properties or Options sidebar item currently showing a Hake icon.
   constexpr int PROPERTIES_STOCK_ICON_ROLE = Qt::UserRole + 0x4842;
-  // Holds the stock icon of a Layer Properties sidebar item currently showing a Hake icon.
-  constexpr int PROPERTY_PAGE_STOCK_ICON_ROLE = Qt::UserRole + 0x4842;
+
+  // QListWidgetItem and QStandardItem take setData() arguments in opposite order.
+  void setStockIcon( QListWidgetItem *item, const QVariant &value ) { item->setData( PROPERTIES_STOCK_ICON_ROLE, value ); }
+  void setStockIcon( QStandardItem *item, const QVariant &value ) { item->setData( value, PROPERTIES_STOCK_ICON_ROLE ); }
+
+  //! Swaps a sidebar \a item (QListWidgetItem or QStandardItem) between its stock icon and the Hake icon.
+  template<typename Item> void applyToSidebarItem( Item *item, const QString &resource, QgsHakeTheme::Variant variant )
+  {
+    const QVariant stockIcon = item->data( PROPERTIES_STOCK_ICON_ROLE );
+    if ( variant != QgsHakeTheme::Variant::None )
+    {
+      const QIcon hakeIcon = QgsHakeIcons::icon( resource, variant );
+      if ( hakeIcon.isNull() )
+        return;
+      if ( !stockIcon.isValid() )
+        setStockIcon( item, QVariant::fromValue( item->icon() ) );
+      item->setIcon( hakeIcon );
+    }
+    else if ( stockIcon.isValid() )
+    {
+      item->setIcon( stockIcon.value<QIcon>() );
+      setStockIcon( item, QVariant() );
+    }
+  }
 
   //! Swaps the "icon" property of \a target (a QAction or a button) between its own icon and the Hake icon.
   void applyIcon( QObject *target, const QString &resource, QgsHakeTheme::Variant variant )
@@ -935,22 +999,42 @@ void QgsHakeIcons::applyToLayerProperties( QWidget *dialog, const QString &theme
     if ( it == resources.constEnd() )
       continue;
 
-    const QVariant stockIcon = item->data( PROPERTIES_STOCK_ICON_ROLE );
-    if ( variant != QgsHakeTheme::Variant::None )
-    {
-      const QIcon hakeIcon = icon( QLatin1String( *it ), variant );
-      if ( hakeIcon.isNull() )
-        continue;
-      if ( !stockIcon.isValid() )
-        item->setData( PROPERTIES_STOCK_ICON_ROLE, QVariant::fromValue( item->icon() ) );
-      item->setIcon( hakeIcon );
-    }
-    else if ( stockIcon.isValid() )
-    {
-      item->setIcon( stockIcon.value<QIcon>() );
-      item->setData( PROPERTIES_STOCK_ICON_ROLE, QVariant() );
-    }
+    applyToSidebarItem( item, QLatin1String( *it ), variant );
   }
+}
+
+void QgsHakeIcons::applyToOptions( QWidget *dialog, const QString &themeName )
+{
+  if ( !dialog )
+    return;
+  QTreeView *tree = dialog->findChild<QTreeView *>( u"mOptionsTreeView"_s );
+  QStackedWidget *stack = dialog->findChild<QStackedWidget *>( u"mOptionsStackedWidget"_s );
+  QgsOptionsProxyModel *proxy = tree ? qobject_cast<QgsOptionsProxyModel *>( tree->model() ) : nullptr;
+  QStandardItemModel *model = proxy ? qobject_cast<QStandardItemModel *>( proxy->sourceModel() ) : nullptr;
+  if ( !stack || !model )
+    return;
+
+  QHash<QString, const char *> resources;
+  for ( const HakePropertyPageIcon &entry : HAKE_OPTIONS_PAGE_ICONS )
+    resources.insert( QLatin1String( entry.page ), entry.resource );
+
+  const QgsHakeTheme::Variant variant = QgsHakeTheme::variantForTheme( themeName );
+  std::function<void( QStandardItem * )> visit = [&]( QStandardItem *item ) {
+    // Factory pages and groups carry their registered key; built-in and keyless pages are identified by their page objectName.
+    QString id = item->data( Qt::UserRole + 1 ).toString();
+    if ( id.isEmpty() && item->isSelectable() )
+    {
+      if ( const QWidget *page = stack->widget( proxy->sourceIndexToPageNumber( item->index() ) ) )
+        id = page->objectName();
+    }
+    const auto it = resources.constFind( id );
+    if ( !id.isEmpty() && it != resources.constEnd() )
+      applyToSidebarItem( item, QLatin1String( *it ), variant );
+    for ( int row = 0; row < item->rowCount(); ++row )
+      visit( item->child( row ) );
+  };
+  for ( int row = 0; row < model->rowCount(); ++row )
+    visit( model->item( row ) );
 }
 
 void QgsHakeIcons::watchMenus( QObject *root, const QList<QWidget *> &menus )

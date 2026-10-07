@@ -34,8 +34,9 @@ class QgsBrowserModel;
  * under the "Hake Light" and "Hake Night" UI themes (light and dark color
  * substitution of the same SVGs) and only for the fixed set of targets listed
  * in qgshakeicons.cpp: core actions, ribbon panel dock toggles, Data Source
- * Manager pages, Browser root items of core providers, the Browser and Layers panel
- * toolbars, and the bundled plugin commands named in the Hake icon catalog.
+ * Manager pages, Layer Properties and Options dialog sidebar pages, Browser root items of
+ * core providers, the Browser and Layers panel toolbars, and the bundled plugin commands
+ * named in the Hake icon catalog.
  * Any other plugin or extension action keeps its own icon.
  */
 class APP_EXPORT QgsHakeIcons
@@ -71,6 +72,14 @@ class APP_EXPORT QgsHakeIcons
      * Call after all pages, including factory-provided ones, have been added.
      */
     static void applyToLayerProperties( QWidget *dialog, const QString &themeName );
+
+    /**
+     * Applies the Hake icons to the application-owned sidebar pages of the Options \a dialog when
+     * \a themeName is a Hake theme, otherwise restores the icons those pages had before.
+     * Pages registered by third-party plugins keep their own icons.
+     * Call after all pages, including factory-provided ones, have been added.
+     */
+    static void applyToOptions( QWidget *dialog, const QString &themeName );
 
     /**
      * Re-applies the Hake icons to actions under \a root whenever an action is added to one of

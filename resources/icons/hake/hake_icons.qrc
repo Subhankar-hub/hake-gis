@@ -187,6 +187,24 @@
     <file>navigation/hake-navigation-zoom-out.svg</file>
     <file>navigation/hake-navigation-zoom-to-layers.svg</file>
     <file>navigation/hake-navigation-zoom-to-selection.svg</file>
+    <file>options/hake-options-acceleration.svg</file>
+    <file>options/hake-options-advanced.svg</file>
+    <file>options/hake-options-authentication.svg</file>
+    <file>options/hake-options-canvas-legend.svg</file>
+    <file>options/hake-options-code-editor.svg</file>
+    <file>options/hake-options-colors.svg</file>
+    <file>options/hake-options-crs-handling.svg</file>
+    <file>options/hake-options-crs-transforms.svg</file>
+    <file>options/hake-options-fonts.svg</file>
+    <file>options/hake-options-gdal.svg</file>
+    <file>options/hake-options-gps.svg</file>
+    <file>options/hake-options-gpsbabel.svg</file>
+    <file>options/hake-options-ide.svg</file>
+    <file>options/hake-options-network.svg</file>
+    <file>options/hake-options-raster.svg</file>
+    <file>options/hake-options-system.svg</file>
+    <file>options/hake-options-user-profiles.svg</file>
+    <file>options/hake-options-vector.svg</file>
     <file>processing/hake-processing-edit-in-place.svg</file>
     <file>processing/hake-processing-history.svg</file>
     <file>processing/hake-processing-model-designer.svg</file>
