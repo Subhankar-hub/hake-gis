@@ -42,6 +42,7 @@
 #include <QString>
 #include <QSvgRenderer>
 #include <QTimer>
+#include <QToolButton>
 #include <QTreeView>
 #include <QVariant>
 #include <functional>
@@ -58,6 +59,11 @@ namespace
     DockPanel,    //!< Dock toggle presented as a ribbon panel, keyed by dock objectName
     DataSource,   //!< Data Source Manager page, keyed by source select provider name
     Menu,         //!< Core menu presented as a ribbon drop-down, keyed by menu objectName
+    Snapping,     //!< Snapping widget action (toolbar and dialog copies), keyed by objectName
+    SnappingType, //!< Snapping widget type action, keyed by the Qgis::SnappingType key
+    ShapeTool,    //!< Shape digitizing tool action, keyed by the shape map tool id
+    Annotation,   //!< Annotation item creation action, keyed by the annotation item type
+    Widget,       //!< Non-action app widget icon, keyed by a semantic id (see QgsHakeIcons::iconFor())
   };
 
   struct HakeIcon
@@ -73,6 +79,11 @@ namespace
   constexpr HakeIconKind DOCK = HakeIconKind::DockPanel;
   constexpr HakeIconKind DSM = HakeIconKind::DataSource;
   constexpr HakeIconKind MENU = HakeIconKind::Menu;
+  constexpr HakeIconKind SNAP = HakeIconKind::Snapping;
+  constexpr HakeIconKind SNAPTYPE = HakeIconKind::SnappingType;
+  constexpr HakeIconKind SHAPE = HakeIconKind::ShapeTool;
+  constexpr HakeIconKind ANNOT = HakeIconKind::Annotation;
+  constexpr HakeIconKind W = HakeIconKind::Widget;
 
   // The single authoritative Hake icon mapping (validated by scripts/hake_icon_coverage.py).
   // Only core actions and the plugin commands named in the Hake icon catalog may be listed;
@@ -442,7 +453,129 @@ namespace
     { ALG, "gdal:gdalinfo", "raster/hake-raster-information.svg" },
     { ALG, "gdal:overviews", "raster/hake-raster-build-overviews.svg" },
     { ALG, "gdal:tileindex", "raster/hake-raster-tile-index.svg" },
+
+    // Layer > Current Edits submenu
+    { A, "mActionSaveEdits", "vector/hake-vector-save-selected-edits.svg" },
+    { A, "mActionRollbackEdits", "vector/hake-vector-rollback-selected-edits.svg" },
+    { A, "mActionCancelEdits", "vector/hake-vector-cancel-selected-edits.svg" },
+    { A, "mActionSaveAllEdits", "vector/hake-vector-save-all-edits.svg" },
+    { A, "mActionRollbackAllEdits", "vector/hake-vector-rollback-all-edits.svg" },
+    { A, "mActionCancelAllEdits", "vector/hake-vector-cancel-all-edits.svg" },
+    // View, Layer and layer tree extras
+    { A, "mActionElevationProfile", "map/hake-map-elevation-profile.svg" },
+    { A, "mActionZoomToLayer", "navigation/hake-navigation-zoom-to-layers.svg" },
+    // Mesh toolbar (mirrored in the Mesh ribbon tab) and Mesh menu
+    { A, "mActionDigitizing", "mesh/hake-mesh-digitize.svg" },
+    { A, "ActionMeshSelectByPolygon", "mesh/hake-mesh-select-polygon.svg" },
+    { A, "ActionMeshSelectByExpression", "mesh/hake-mesh-select-expression.svg" },
+    { A, "mActionSelectIsolatedVertices", "mesh/hake-mesh-select-isolated-vertices.svg" },
+    { A, "mActionSelectAllVertices", "mesh/hake-mesh-select-all-vertices.svg" },
+    { A, "mActionTransformCoordinates", "mesh/hake-mesh-transform-vertices.svg" },
+    { A, "mActionForceByLines", "mesh/hake-mesh-force-by-lines.svg" },
+    { A, "mActionReindexMesh", "mesh/hake-mesh-reindex.svg" },
+    // Label toolbar
+    { A, "mActionPinLabels", "labels/hake-labels-pin-unpin.svg" },
+    { A, "mActionShowUnplacedLabels", "labels/hake-labels-show-unplaced.svg" },
+    { A, "mActionChangeLabelProperties", "labels/hake-labels-change-properties.svg" },
+    { A, "mActionDiagramProperties", "properties/hake-properties-diagrams.svg" },
+    // Digitizing, Advanced Digitizing and Attributes toolbars
+    { A, "mActionVertexToolActiveLayer", "vector/hake-vector-vertex-tool-active-layer.svg" },
+    { A, "mActionDigitizeWithSegment", "vector/hake-vector-digitize-segment.svg" },
+    { A, "mActionDigitizeWithCurve", "vector/hake-vector-digitize-curve.svg" },
+    { A, "mActionStreamDigitize", "vector/hake-vector-digitize-stream.svg" },
+    { A, "mActionDigitizeShape", "vector/hake-vector-digitize-shape.svg" },
+    { A, "mActionDigitizeWithBezier", "vector/hake-vector-digitize-bezier.svg" },
+    { A, "mActionDigitizeWithNurbs", "vector/hake-vector-digitize-nurbs.svg" },
+    { A, "mEnableAction", "vector/hake-vector-advanced-digitizing.svg" },
+    { A, "mActionFeatureAction", "properties/hake-properties-actions.svg" },
+    // Annotations toolbar
+    { A, "mActionCreateAnnotationLayer", "annotations/hake-annotations-new-layer.svg" },
+    { A, "mActionSelectAnnotation", "annotations/hake-annotations-select.svg" },
+    { A, "mActionModifyAnnotation", "annotations/hake-annotations-edit-nodes.svg" },
+    { ANNOT, "polygon", "annotations/hake-annotations-polygon.svg" },
+    { ANNOT, "linestring", "annotations/hake-annotations-line.svg" },
+    { ANNOT, "marker", "annotations/hake-annotations-marker.svg" },
+    { ANNOT, "pointtext", "annotations/hake-annotations-text-point.svg" },
+    { ANNOT, "linetext", "annotations/hake-annotations-text-line.svg" },
+    { ANNOT, "recttext", "annotations/hake-annotations-text-rect.svg" },
+    { ANNOT, "picture", "annotations/hake-annotations-picture.svg" },
+    // Shape Digitizing toolbar
+    { SHAPE, "circle-from-2-points", "shapes/hake-shape-circle-2-points.svg" },
+    { SHAPE, "circle-from-2-tangents-1-point", "shapes/hake-shape-circle-2-tangents-point.svg" },
+    { SHAPE, "circle-from-3-points", "shapes/hake-shape-circle-3-points.svg" },
+    { SHAPE, "circle-from-3-tangents", "shapes/hake-shape-circle-3-tangents.svg" },
+    { SHAPE, "circle-by-a-center-point-and-another-point", "shapes/hake-shape-circle-center-point.svg" },
+    { SHAPE, "circular-string-by-radius", "shapes/hake-shape-circular-string-radius.svg" },
+    { SHAPE, "ellipse-center-2-points", "shapes/hake-shape-ellipse-center-2-points.svg" },
+    { SHAPE, "ellipse-center-point", "shapes/hake-shape-ellipse-center-point.svg" },
+    { SHAPE, "ellipse-from-extent", "shapes/hake-shape-ellipse-extent.svg" },
+    { SHAPE, "ellipse-from-foci", "shapes/hake-shape-ellipse-foci.svg" },
+    { SHAPE, "rectangle-from-3-points-distance", "shapes/hake-shape-rectangle-3-points-distance.svg" },
+    { SHAPE, "rectangle-from-3-points-projected", "shapes/hake-shape-rectangle-3-points-projected.svg" },
+    { SHAPE, "rectangle-from-center-and-a-point", "shapes/hake-shape-rectangle-center.svg" },
+    { SHAPE, "rectangle-from-extent", "shapes/hake-shape-rectangle-extent.svg" },
+    { SHAPE, "regular-polygon-from-2-points", "shapes/hake-shape-regular-polygon-2-points.svg" },
+    { SHAPE, "regular-polygon-from-center-and-a-corner", "shapes/hake-shape-regular-polygon-center-corner.svg" },
+    { SHAPE, "regular-polygon-from-center-point", "shapes/hake-shape-regular-polygon-center-point.svg" },
+    // Snapping toolbar and Snapping Options dialog
+    { SNAP, "EnableSnappingAction", "snapping/hake-snapping-enable.svg" },
+    { SNAP, "mAllLayersAction", "snapping/hake-snapping-all-layers.svg" },
+    { SNAP, "mActiveLayerAction", "snapping/hake-snapping-active-layer.svg" },
+    { SNAP, "mAdvancedModeAction", "snapping/hake-snapping-advanced.svg" },
+    { SNAP, "mAllowIntersectionsAction", "snapping/hake-snapping-allow-overlap.svg" },
+    { SNAP, "mAvoidIntersectionsCurrentLayerAction", "snapping/hake-snapping-avoid-overlap-active.svg" },
+    { SNAP, "mAvoidIntersectionsLayersAction", "snapping/hake-snapping-avoid-overlap-advanced.svg" },
+    { SNAP, "TopologicalEditingAction", "snapping/hake-snapping-topological-editing.svg" },
+    { SNAP, "IntersectionSnappingAction", "snapping/hake-snapping-intersection.svg" },
+    { SNAP, "EnableTracingAction", "snapping/hake-snapping-tracing.svg" },
+    { SNAP, "SelfSnappingAction", "snapping/hake-snapping-self.svg" },
+    { SNAP, "mDefaultSnappingScaleAct", "snapping/hake-snapping-scale.svg" },
+    { SNAP, "mGlobalSnappingScaleAct", "snapping/hake-snapping-scale.svg" },
+    { SNAP, "mPerLayerSnappingScaleAct", "snapping/hake-snapping-scale.svg" },
+    { SNAP, "EditAdvancedConfigurationButton", "snapping/hake-snapping-advanced.svg" },
+    { SNAPTYPE, "Vertex", "snapping/hake-snapping-vertex.svg" },
+    { SNAPTYPE, "Segment", "snapping/hake-snapping-segment.svg" },
+    { SNAPTYPE, "Area", "snapping/hake-snapping-area.svg" },
+    { SNAPTYPE, "Centroid", "snapping/hake-snapping-centroid.svg" },
+    { SNAPTYPE, "MiddleOfSegment", "snapping/hake-snapping-middle.svg" },
+    { SNAPTYPE, "LineEndpoint", "snapping/hake-snapping-endpoint.svg" },
+
+    // App widgets that are not actions (status bar, About, Welcome screen, layer tree context menu)
+    { W, "statusbar:crs", "options/hake-options-crs-handling.svg" },
+    { W, "statusbar:crs-none", "app/hake-status-crs-none.svg" },
+    { W, "statusbar:messages", "app/hake-status-messages.svg" },
+    { W, "statusbar:messages-read", "app/hake-status-messages-read.svg" },
+    { W, "statusbar:magnifier-lock", "app/hake-status-magnifier-lock.svg" },
+    { W, "statusbar:coordinate-tracking", "app/hake-status-coordinate-tracking.svg" },
+    { W, "statusbar:coordinate-extents", "app/hake-status-coordinate-extents.svg" },
+    { W, "about:about", "help/hake-help-about.svg" },
+    { W, "about:whats-new", "help/hake-help-whats-new.svg" },
+    { W, "about:license", "help/hake-help-license.svg" },
+    { W, "welcome:pin", "app/hake-welcome-pin.svg" },
+    { W, "welcome:close", "dialog/hake-dialog-cancel.svg" },
+    { W, "layertree:expand-all", "layers/hake-layers-expand-all.svg" },
+    { W, "layertree:collapse-all", "layers/hake-layers-collapse-all.svg" },
+    { W, "layertree:add-group", "layers/hake-layers-add-group.svg" },
+    { W, "layertree:execute-sql", "database/hake-database-db-manager.svg" },
+    { W, "layertree:show-labels", "labels/hake-labels-show-hide-labels.svg" },
+    { W, "layertree:make-permanent", "project/hake-project-save.svg" },
   };
+
+  // Digitizing actions whose icon follows the geometry type of the active layer. Geometry types
+  // not listed here use the action's HAKE_ICONS entry.
+  struct HakeGeometryIcon
+  {
+      const char *action;
+      Qgis::GeometryType geometry;
+      const char *resource;
+  };
+
+  constexpr HakeGeometryIcon HAKE_GEOMETRY_ICONS[] = {
+    { "mActionAddFeature", Qgis::GeometryType::Line, "vector/hake-vector-add-line.svg" },
+    { "mActionAddFeature", Qgis::GeometryType::Polygon, "vector/hake-vector-add-polygon.svg" },
+    { "mActionAddFeature", Qgis::GeometryType::Null, "vector/hake-vector-add-record.svg" },
+  };
+  constexpr const char *GEOMETRY_ACTIONS[] = { "mActionAddFeature", "mActionMoveFeature", "mActionMoveFeatureCopy", "mActionFeatureArray" };
 
   struct HakePropertyPageIcon
   {
@@ -451,8 +584,8 @@ namespace
   };
 
   // Layer properties sidebar pages, keyed by the stacked page objectName shared by all layer
-  // properties dialogs. Pages not listed here (provider, plugin, 3D and layer-type specific
-  // pages) keep their own icons.
+  // properties dialogs (factory pages are keyed by the objectName their widget sets). Pages not
+  // listed here, including provider and plugin pages, keep their own icons.
   constexpr HakePropertyPageIcon HAKE_PROPERTY_PAGE_ICONS[] = {
     { "mOptsPage_Information", "properties/hake-properties-information.svg" },
     { "mOptsPage_Source", "properties/hake-properties-source.svg" },
@@ -476,6 +609,35 @@ namespace
     { "mOptsPage_Legend", "properties/hake-properties-legend.svg" },
     { "mOptsPage_Server", "properties/hake-properties-server.svg" },
     { "mOptsPage_Digitizing", "properties/hake-properties-digitizing.svg" },
+    { "mOptsPage_3DView", "map/hake-map-manage-3d-views.svg" },
+    { "mOptsPage_Transparency", "properties/hake-properties-transparency.svg" },
+    { "mOptsPage_Histogram", "properties/hake-properties-histogram.svg" },
+    { "mOptsPage_Pyramids", "raster/hake-raster-build-overviews.svg" },
+    { "mOptsPage_RasterAttributeTable", "layers/hake-layers-attribute-table.svg" },
+    { "mOptsPage_Statistics", "analysis/hake-analysis-basic-statistics.svg" },
+    { "QgsPointCloudRendererPropsDialogBase", "properties/hake-properties-symbology.svg" },
+    { "QgsTiledSceneRendererPropsDialogBase", "properties/hake-properties-symbology.svg" },
+  };
+
+  // Project Properties sidebar pages, keyed by the stacked page objectName, else (for the
+  // application's own factory pages, whose objectName is their translated title) by the page
+  // class name. Pages registered by plugins keep their own icons.
+  constexpr HakePropertyPageIcon HAKE_PROJECT_PAGE_ICONS[] = {
+    { "mProjOptsGeneral", "project/hake-project-properties.svg" },
+    { "mMetadataPage", "properties/hake-properties-metadata.svg" },
+    { "mViewSettingsPage", "properties/hake-properties-display.svg" },
+    { "mProjOptsCRS", "options/hake-options-crs-handling.svg" },
+    { "mProjTransformations", "vector/hake-vector-reproject-layer.svg" },
+    { "mProjOptsSymbols", "settings/hake-settings-style-manager.svg" },
+    { "mTabColors", "options/hake-options-colors.svg" },
+    { "mTab_DataSources", "layers/hake-layers-data-source-manager.svg" },
+    { "mTabRelations", "properties/hake-properties-relations.svg" },
+    { "mTab_Variables", "properties/hake-properties-variables.svg" },
+    { "mProjOptsMacros", "properties/hake-properties-actions.svg" },
+    { "mProjOptsOWS", "properties/hake-properties-server.svg" },
+    { "mTemporalOptions", "map/hake-map-temporal-controller.svg" },
+    { "QgsProjectElevationSettingsWidget", "map/hake-map-elevation-controller.svg" },
+    { "QgsProjectSensorSettingsWidget", "properties/hake-properties-sensors.svg" },
   };
 
   // Application Options sidebar, keyed by the factory or group key of the item, else by its stacked
@@ -552,6 +714,9 @@ namespace
   // Processing menu entries, and the Selection toolbar buttons for the same algorithms.
   constexpr char PROCESSING_MENU_PREFIX[] = "mProcessingUserMenu_";
   constexpr char PROCESSING_TOOLBAR_PREFIX[] = "mProcessingAlg_";
+
+  constexpr char SHAPE_TOOLBAR[] = "mShapeDigitizeToolBar";
+  constexpr char ANNOTATION_ITEM_TYPE_PROPERTY[] = "annotationItemType";
 
   constexpr char STOCK_ICON_PROPERTY[] = "hakeStockIcon";
   constexpr char HAKE_ICON_KEY_PROPERTY[] = "hakeIconKey";
@@ -787,6 +952,40 @@ namespace
     applyIcon( action, QLatin1String( resource ), variant );
   }
 
+  //! Returns the HAKE_ICONS resource mapped to \a key for \a kind, or NULLPTR.
+  const char *resourceFor( HakeIconKind kind, const QString &key )
+  {
+    for ( const HakeIcon &entry : HAKE_ICONS )
+    {
+      if ( entry.kind == kind && key == QLatin1String( entry.key ) )
+        return entry.resource;
+    }
+    return nullptr;
+  }
+
+  bool isInSnappingWidget( const QObject *object )
+  {
+    for ( const QObject *o = object; o; o = o->parent() )
+    {
+      if ( o->inherits( "QgsSnappingWidget" ) )
+        return true;
+    }
+    return false;
+  }
+
+  //! Shape tool actions live in the per-category menus (or, for single-tool categories, the buttons) of the Shape Digitizing toolbar.
+  bool isShapeToolAction( const QAction *action )
+  {
+    if ( !qobject_cast<const QMenu *>( action->parent() ) && !qobject_cast<const QToolButton *>( action->parent() ) )
+      return false;
+    for ( const QObject *o = action->parent(); o; o = o->parent() )
+    {
+      if ( o->objectName() == SHAPE_TOOLBAR )
+        return true;
+    }
+    return false;
+  }
+
   bool isInMenu( const QAction *action, const QString &menuObjectName )
   {
     const QList<QObject *> objects = action->associatedObjects();
@@ -922,9 +1121,78 @@ void QgsHakeIcons::applyToActions( QObject *root, const QString &themeName )
         break;
       }
 
+      case HakeIconKind::Snapping:
+      {
+        // The snapping toolbar and the Snapping Options dialog each hold a copy of these controls.
+        const QList<QObject *> targets = root->findChildren<QObject *>( key );
+        for ( QObject *target : targets )
+        {
+          if ( isInSnappingWidget( target ) )
+            applyIcon( target, QLatin1String( entry.resource ), hakeTheme );
+        }
+        break;
+      }
+
+      case HakeIconKind::SnappingType:
+      {
+        for ( QAction *action : allActions )
+        {
+          if ( action->data().canConvert<Qgis::SnappingType>() && isInSnappingWidget( action )
+               && qgsEnumValueToKey( action->data().value<Qgis::SnappingType>() ) == key )
+            applyToAction( action, entry.resource, hakeTheme );
+        }
+        break;
+      }
+
+      case HakeIconKind::ShapeTool:
+      {
+        for ( QAction *action : allActions )
+        {
+          if ( isShapeToolAction( action ) && action->data().toString() == key )
+            applyToAction( action, entry.resource, hakeTheme );
+        }
+        break;
+      }
+
+      case HakeIconKind::Annotation:
+      {
+        for ( QAction *action : allActions )
+        {
+          if ( action->property( ANNOTATION_ITEM_TYPE_PROPERTY ).toString() == key )
+            applyToAction( action, entry.resource, hakeTheme );
+        }
+        break;
+      }
+
       case HakeIconKind::DataSource:
+      case HakeIconKind::Widget:
         break;
     }
+  }
+}
+
+void QgsHakeIcons::applyGeometryIcons( QObject *root, Qgis::GeometryType geometryType )
+{
+  if ( !root )
+    return;
+
+  const QgsHakeTheme::Variant variant = QgsHakeTheme::variantForTheme( QgsApplication::themeName() );
+  for ( const char *name : GEOMETRY_ACTIONS )
+  {
+    QAction *action = root->findChild<QAction *>( QLatin1String( name ) );
+    if ( !action )
+      continue;
+
+    const char *resource = nullptr;
+    for ( const HakeGeometryIcon &entry : HAKE_GEOMETRY_ICONS )
+    {
+      if ( qstrcmp( entry.action, name ) == 0 && entry.geometry == geometryType )
+        resource = entry.resource;
+    }
+    if ( !resource )
+      resource = resourceFor( HakeIconKind::Action, QLatin1String( name ) );
+    if ( resource )
+      applyToAction( action, resource, variant );
   }
 }
 
@@ -975,32 +1243,52 @@ void QgsHakeIcons::applyToDataSourceManager( QWidget *dialog, const QString &the
   }
 }
 
+namespace
+{
+  /**
+   * Applies \a table to a list-based properties sidebar (layer and project properties), keyed by
+   * the stacked page objectName or, when \a matchClassName is set, also by the page class name.
+   */
+  template<std::size_t N> void applyToListSidebar( QWidget *dialog, const HakePropertyPageIcon ( &table )[N], const QString &themeName, bool matchClassName )
+  {
+    if ( !dialog )
+      return;
+    QListWidget *list = dialog->findChild<QListWidget *>( u"mOptionsListWidget"_s );
+    QStackedWidget *stack = dialog->findChild<QStackedWidget *>( u"mOptionsStackedWidget"_s );
+    if ( !list || !stack )
+      return;
+
+    QHash<QString, const char *> resources;
+    for ( const HakePropertyPageIcon &entry : table )
+      resources.insert( QLatin1String( entry.page ), entry.resource );
+
+    const QgsHakeTheme::Variant variant = QgsHakeTheme::variantForTheme( themeName );
+    // Sidebar rows and stacked pages are kept in the same order by QgsOptionsDialogBase.
+    const int rows = std::min( list->count(), stack->count() );
+    for ( int row = 0; row < rows; ++row )
+    {
+      const QWidget *page = stack->widget( row );
+      if ( !page )
+        continue;
+      auto it = resources.constFind( page->objectName() );
+      if ( it == resources.constEnd() && matchClassName )
+        it = resources.constFind( QLatin1String( page->metaObject()->className() ) );
+      if ( it == resources.constEnd() )
+        continue;
+
+      applyToSidebarItem( list->item( row ), QLatin1String( *it ), variant );
+    }
+  }
+} // namespace
+
 void QgsHakeIcons::applyToLayerProperties( QWidget *dialog, const QString &themeName )
 {
-  if ( !dialog )
-    return;
-  QListWidget *list = dialog->findChild<QListWidget *>( u"mOptionsListWidget"_s );
-  QStackedWidget *stack = dialog->findChild<QStackedWidget *>( u"mOptionsStackedWidget"_s );
-  if ( !list || !stack )
-    return;
+  applyToListSidebar( dialog, HAKE_PROPERTY_PAGE_ICONS, themeName, false );
+}
 
-  QHash<QString, const char *> resources;
-  for ( const HakePropertyPageIcon &entry : HAKE_PROPERTY_PAGE_ICONS )
-    resources.insert( QLatin1String( entry.page ), entry.resource );
-
-  const QgsHakeTheme::Variant variant = QgsHakeTheme::variantForTheme( themeName );
-  // Sidebar rows and stacked pages are kept in the same order by QgsOptionsDialogBase.
-  const int rows = std::min( list->count(), stack->count() );
-  for ( int row = 0; row < rows; ++row )
-  {
-    QListWidgetItem *item = list->item( row );
-    const QWidget *page = stack->widget( row );
-    const auto it = resources.constFind( page ? page->objectName() : QString() );
-    if ( it == resources.constEnd() )
-      continue;
-
-    applyToSidebarItem( item, QLatin1String( *it ), variant );
-  }
+void QgsHakeIcons::applyToProjectProperties( QWidget *dialog, const QString &themeName )
+{
+  applyToListSidebar( dialog, HAKE_PROJECT_PAGE_ICONS, themeName, true );
 }
 
 void QgsHakeIcons::applyToOptions( QWidget *dialog, const QString &themeName )
@@ -1129,13 +1417,19 @@ void QgsHakeIcons::applyToBrowserModel( QgsBrowserModel *model, const QString &t
   }
 }
 
-QIcon QgsHakeIcons::actionIcon( const QString &stockThemeIcon, const QString &resource )
+QIcon QgsHakeIcons::iconFor( const QString &key, const QString &stockThemeIcon )
 {
   if ( isHakeTheme( QgsApplication::themeName() ) )
   {
-    const QIcon hakeIcon = icon( resource );
-    if ( !hakeIcon.isNull() )
-      return hakeIcon;
+    const char *resource = resourceFor( HakeIconKind::Widget, key );
+    if ( !resource )
+      resource = resourceFor( HakeIconKind::Action, key );
+    if ( resource )
+    {
+      const QIcon hakeIcon = icon( QLatin1String( resource ) );
+      if ( !hakeIcon.isNull() )
+        return hakeIcon;
+    }
   }
-  return QgsApplication::getThemeIcon( stockThemeIcon );
+  return stockThemeIcon.isEmpty() ? QIcon() : QgsApplication::getThemeIcon( stockThemeIcon );
 }

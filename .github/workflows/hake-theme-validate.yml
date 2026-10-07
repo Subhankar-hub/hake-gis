@@ -33,3 +33,6 @@ jobs:
 
       - name: Validate Options sidebar icon coverage
         run: python3 scripts/hake_options_icon_coverage.py
+
+      - name: Validate Hake icon coverage
+        run: python3 scripts/hake_icon_coverage.py

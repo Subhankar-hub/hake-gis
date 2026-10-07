@@ -935,11 +935,42 @@ namespace
    */
   QString hakeMonochromeColor( const QString &theme )
   {
+    // Hake icon palette stroke colors (see src/app/qgshakeicons.cpp).
     if ( theme == QLatin1String( "Hake Light" ) )
-      return QStringLiteral( "#1B2F4B" );
+      return QStringLiteral( "#164A73" );
     if ( theme == QLatin1String( "Hake Night" ) )
-      return QStringLiteral( "#C9D6E3" );
+      return QStringLiteral( "#CFE0F0" );
     return QString();
+  }
+
+  /**
+   * TRUE for icons that identify a data provider, processing provider or external
+   * service; they keep their stock colors under the Hake themes so they stay recognizable.
+   */
+  bool isProviderIdentityIcon( const QString &name )
+  {
+    static const QStringList identityIcons {
+      u"mIconPostgis.svg"_s,
+      u"mIconSpatialite.svg"_s,
+      u"mIconOracle.svg"_s,
+      u"mIconMssql.svg"_s,
+      u"mIconHana.svg"_s,
+      u"mIconWms.svg"_s,
+      u"mIconWfs.svg"_s,
+      u"mIconWcs.svg"_s,
+      u"mIconSensorThings.svg"_s,
+      u"mIconImageServer.svg"_s,
+      u"mIconAms.svg"_s,
+      u"mIconAfs.svg"_s,
+      u"mIconGpx.svg"_s,
+      u"mIconDelimitedText.svg"_s,
+      u"mIconMemory.svg"_s,
+      u"mIconCesium3dTiles.svg"_s,
+      u"mIconStac.svg"_s,
+      u"mGeoPackage.svg"_s,
+    };
+    const QString fileName = name.section( '/', -1 );
+    return identityIcons.contains( fileName ) || fileName.startsWith( QLatin1String( "provider" ) ) || fileName.startsWith( QLatin1String( "grass_" ) );
   }
 
   /**
@@ -1042,7 +1073,7 @@ QIcon QgsApplication::getThemeIcon( const QString &name, const QColor &fillColor
 
   QIcon icon;
   const bool colorBased = fillColor.isValid() || strokeColor.isValid();
-  const QString monochromeColor = colorBased ? QString() : hakeMonochromeColor( theme );
+  const QString monochromeColor = colorBased || isProviderIdentityIcon( name ) ? QString() : hakeMonochromeColor( theme );
   const bool monochrome = !monochromeColor.isEmpty();
 
   auto iconFromColoredSvg = [fillColor, strokeColor, cacheKey]( const QString &path ) -> QIcon {

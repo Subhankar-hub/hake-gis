@@ -2734,6 +2734,8 @@ class APP_EXPORT QgisApp : public QMainWindow, private Ui::MainWindow
     //! Widget embedded in mTopocentricMenu to display the topocentric origin
     QgsTopocentricWidget *mTopocentricWidget = nullptr;
     QToolButton *mMessageButton = nullptr;
+    //! TRUE while mMessageButton shows the unread messages icon
+    bool mLogMessageUnread = false;
     //! Menu that contains the list of actions of the selected vector layer
     QMenu *mFeatureActionMenu = nullptr;
     //! Popup menu

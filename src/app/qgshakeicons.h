@@ -16,6 +16,7 @@
 #ifndef QGSHAKEICONS_H
 #define QGSHAKEICONS_H
 
+#include "qgis.h"
 #include "qgis_app.h"
 #include "qgshaketheme.h"
 
@@ -33,11 +34,14 @@ class QgsBrowserModel;
  * Icons are SVGs compiled into the :/hake/icons resource. They are only used
  * under the "Hake Light" and "Hake Night" UI themes (light and dark color
  * substitution of the same SVGs) and only for the fixed set of targets listed
- * in qgshakeicons.cpp: core actions, ribbon panel dock toggles, Data Source
- * Manager pages, Layer Properties and Options dialog sidebar pages, Browser root items of
- * core providers, the Browser and Layers panel toolbars, and the bundled plugin commands
- * named in the Hake icon catalog.
- * Any other plugin or extension action keeps its own icon.
+ * in qgshakeicons.cpp: core actions (including the snapping, shape digitizing and
+ * annotation tools), ribbon panel dock toggles, Data Source Manager pages, Layer
+ * Properties, Project Properties and Options dialog sidebar pages, Browser root items of
+ * core providers, the Browser and Layers panel toolbars, app widgets addressed by a
+ * semantic key (status bar, About, Welcome screen, layer tree context menu), and the
+ * bundled plugin commands named in the Hake icon catalog.
+ * Any other plugin or extension action keeps its own icon. Unmapped stock icons are
+ * recolored to the same palette by QgsApplication::getThemeIcon().
  */
 class APP_EXPORT QgsHakeIcons
 {
@@ -74,6 +78,12 @@ class APP_EXPORT QgsHakeIcons
     static void applyToLayerProperties( QWidget *dialog, const QString &themeName );
 
     /**
+     * Applies the Hake icons to the application-owned sidebar pages of the Project Properties
+     * \a dialog when \a themeName is a Hake theme. Pages registered by plugins keep their own icons.
+     */
+    static void applyToProjectProperties( QWidget *dialog, const QString &themeName );
+
+    /**
      * Applies the Hake icons to the application-owned sidebar pages of the Options \a dialog when
      * \a themeName is a Hake theme, otherwise restores the icons those pages had before.
      * Pages registered by third-party plugins keep their own icons.
@@ -108,10 +118,17 @@ class APP_EXPORT QgsHakeIcons
     static void applyToBrowserModel( QgsBrowserModel *model, const QString &themeName );
 
     /**
-     * Returns the Hake icon for \a resource under the Hake theme, otherwise the
-     * stock theme icon \a stockThemeIcon. For actions whose icon changes at runtime.
+     * Returns the Hake icon mapped to \a key (a semantic widget key such as "statusbar:crs", or a
+     * core action objectName) under the Hake themes, otherwise the stock theme icon \a stockThemeIcon
+     * (a null icon if empty). For icons set outside actions, or swapped at runtime.
      */
-    static QIcon actionIcon( const QString &stockThemeIcon, const QString &resource );
+    static QIcon iconFor( const QString &key, const QString &stockThemeIcon );
+
+    /**
+     * Applies the geometry-specific Hake icons of the digitizing actions under \a root for an
+     * active layer of \a geometryType. Call after the stock icons for that geometry were set.
+     */
+    static void applyGeometryIcons( QObject *root, Qgis::GeometryType geometryType );
 };
 
 #endif // QGSHAKEICONS_H

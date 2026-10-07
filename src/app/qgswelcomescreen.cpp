@@ -20,6 +20,7 @@
 #include "qgis.h"
 #include "qgisapp.h"
 #include "qgsapplication.h"
+#include "qgshakeicons.h"
 #include "qgshaketheme.h"
 #include "qgshelp.h"
 #include "qgsmessagelog.h"
@@ -33,7 +34,9 @@
 #include <QMessageBox>
 #include <QQmlContext>
 #include <QQmlError>
+#include <QQmlEngine>
 #include <QQmlPropertyMap>
+#include <QQuickImageProvider>
 #include <QString>
 #include <QTimer>
 #include <QUrl>
@@ -44,6 +47,29 @@
 using namespace Qt::StringLiterals;
 
 #define FEED_URL "https://haketech.com/feed/"
+
+namespace
+{
+  /**
+   * Serves Hake icons to the Welcome Screen QML as image://hakeicon/<key>/<revision>.
+   * The key is a QgsHakeIcons::iconFor() key; the revision only defeats image caching across theme switches.
+   */
+  class QgsHakeIconImageProvider : public QQuickImageProvider
+  {
+    public:
+      QgsHakeIconImageProvider()
+        : QQuickImageProvider( QQuickImageProvider::Pixmap )
+      {}
+
+      QPixmap requestPixmap( const QString &id, QSize *size, const QSize &requestedSize ) override
+      {
+        const QSize pixmapSize = requestedSize.isValid() && !requestedSize.isEmpty() ? requestedSize : QSize( 24, 24 );
+        if ( size )
+          *size = pixmapSize;
+        return QgsHakeIcons::iconFor( id.section( '/', 0, 0 ), QString() ).pixmap( pixmapSize );
+      }
+  };
+} // namespace
 
 
 QgsWelcomeScreenController::QgsWelcomeScreenController( QgsWelcomeScreen *welcomeScreen )
@@ -167,6 +193,8 @@ QgsWelcomeScreen::QgsWelcomeScreen( bool skipVersionCheck, QWidget *parent )
   rootContext()->setContextProperty( u"productDisplayName"_s, Qgis::productDisplayName() );
   rootContext()->setContextProperty( u"appVersion"_s, Qgis::productVersionLabel() );
 
+  engine()->addImageProvider( u"hakeicon"_s, new QgsHakeIconImageProvider() );
+
   // Registered before the (lazy) QML load; later theme changes update the values in place.
   mThemeColors = new QQmlPropertyMap( this );
   updateThemeColors();
@@ -253,6 +281,10 @@ void QgsWelcomeScreen::updateThemeColors()
     if ( mThemeColors->value( key ).value<QColor>() != value )
       mThemeColors->insert( key, value );
   }
+
+  // hakeIcons switches the QML icons to image://hakeicon/; iconRevision forces them to reload per theme.
+  mThemeColors->insert( u"hakeIcons"_s, QgsHakeIcons::isHakeTheme( QgsApplication::themeName() ) );
+  mThemeColors->insert( u"iconRevision"_s, mThemeColors->value( u"iconRevision"_s ).toInt() + 1 );
 }
 
 void QgsWelcomeScreen::refreshGeometry()

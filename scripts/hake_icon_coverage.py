@@ -1,13 +1,20 @@
 #!/usr/bin/env python3
-"""Validate Hake icon coverage against the menu icon catalog.
+"""Validate Hake icon coverage against the menu icon catalog and the sources.
 
 Checks that every catalog row is mapped in the HAKE_ICONS registry in
-src/app/qgshakeicons.cpp, that every mapped SVG exists and is compiled into
-resources/icons/hake/hake_icons.qrc, and that every Hake SVG follows the icon
-style rules. Exit status: 0 PASS, 1 FAIL, 2 catalog missing.
+src/app/qgshakeicons.cpp, that the snapping, shape, annotation, property page
+and widget targets derived from the sources are mapped (or listed as
+exceptions), that every mapped SVG exists and is compiled into
+resources/icons/hake/hake_icons.qrc, that every Hake SVG follows the icon
+style rules, and runs the Options sidebar check. The catalog is not tracked in
+git; without it the catalog section is reported as NOT RUN and the remaining
+checks still decide the result. Exit status: 0 PASS, 1 FAIL, 2 catalog missing
+with --require-catalog.
 """
 
 import argparse
+import contextlib
+import io
 import re
 import sys
 import xml.etree.ElementTree as ET
@@ -89,6 +96,66 @@ FORBIDDEN_TAGS = {
 }
 STROKE_WIDTH_RANGE = (0.9, 2.6)
 
+# Registry kinds validated against source-derived inventories instead of the catalog.
+SOURCE_KINDS = {
+    "SNAP": "snapping widget objects",
+    "SNAPTYPE": "snapping types",
+    "SHAPE": "shape digitizing tools",
+    "ANNOT": "annotation item types",
+    "W": "widget icon keys",
+}
+REGISTRY_KINDS = ["A", "ALG", "PLUGIN", "DOCK", "DSM", "MENU", *SOURCE_KINDS]
+
+SNAPPING_WIDGET = ROOT / "src/app/qgssnappingwidget.cpp"
+SHAPE_TOOLS = ROOT / "src/app/maptools"
+ANNOTATION_REGISTRY = ROOT / "src/gui/annotations/qgsannotationitemguiregistry.cpp"
+QGIS_H = ROOT / "src/core/qgis.h"
+PROJECT_UI = ROOT / "src/ui/qgsprojectpropertiesbase.ui"
+QGISAPP = ROOT / "src/app/qgisapp.cpp"
+QML_DIR = ROOT / "src/app/qml"
+LAYER_PROPERTIES_UI = [
+    "src/ui/qgsvectorlayerpropertiesbase.ui",
+    "src/ui/qgsrasterlayerpropertiesbase.ui",
+    "src/ui/mesh/qgsmeshlayerpropertiesbase.ui",
+    "src/ui/qgsvectortilelayerpropertiesbase.ui",
+    "src/ui/qgspointcloudlayerpropertiesbase.ui",
+    "src/ui/qgstiledscenelayerpropertiesbase.ui",
+    "src/ui/annotations/qgsannotationlayerpropertiesbase.ui",
+]
+
+# Application-owned targets that intentionally have no Hake mapping: target -> reason.
+EXCEPTIONS = {
+    "snap:SnappingOptionToolBar": "toolbar container, no icon",
+    "snap:SnappingOptionDialog": "dialog container, no icon",
+    "snap:avoidIntersectionsModeMenu": "menu container, no icon",
+    "snap:tracingMenu": "menu container, no icon",
+    "snap:openDialogAction": "text-only menu entry",
+    "snap:mModeAction": "toolbar widget holder",
+    "snap:mEditAdvancedConfigAction": "toolbar widget holder",
+    "snap:mTypeAction": "toolbar widget holder",
+    "snap:mToleranceAction": "toolbar widget holder",
+    "snap:mUnitAction": "toolbar widget holder",
+    "snap:mAvoidIntersectionsModeAction": "toolbar widget holder",
+    "snap:tracingWidgetAction": "toolbar widget holder",
+    "snap:SnappingModeButton": "shows its default action's (mapped) icon",
+    "snap:SnappingTypeButton": "shows its default action's (mapped) icon",
+    "snap:AvoidIntersectionsModeButton": "shows its default action's (mapped) icon",
+    "snap:SnappingScaleModeButton": "shows its default action's (mapped) icon",
+    "snap:SnappingToleranceSpinBox": "input widget, no icon",
+    "snap:SnappingUnitComboBox": "input widget, no icon",
+    "snap:SnappingMinScaleSpinBox": "input widget, no icon",
+    "snap:SnappingMaxScaleSpinBox": "input widget, no icon",
+}
+
+# Layer properties pages added at runtime (not in the .ui files); each must appear in the sources.
+RUNTIME_LAYER_PAGES = {
+    "mOptsPage_3DView": "3D view page added by the 3D renderer factory",
+    "mOptsPage_Digitizing": "vector digitizing page added at runtime",
+    "mOptsPage_Elevation": "elevation page added at runtime",
+    "QgsPointCloudRendererPropsDialogBase": "point cloud symbology page, matched by class name",
+    "QgsTiledSceneRendererPropsDialogBase": "tiled scene symbology page, matched by class name",
+}
+
 
 def parse_catalog(path):
     rows = []
@@ -132,20 +199,104 @@ def parse_registry(path):
     return [
         (m.group(1), m.group(2), m.group(3))
         for m in re.finditer(
-            r'\{\s*(A|ALG|PLUGIN|DOCK|DSM|MENU)\s*,\s*"([^"]+)"\s*,\s*"([^"]+)"\s*\}',
+            rf'\{{\s*({"|".join(REGISTRY_KINDS)})\s*,\s*"([^"]+)"\s*,\s*"([^"]+)"\s*\}}',
             body.group(1),
         )
     ]
 
 
-def parse_property_pages(path):
+def parse_page_table(path, table):
     text = path.read_text(encoding="utf-8")
-    body = re.search(r"HAKE_PROPERTY_PAGE_ICONS\[\]\s*=\s*\{(.*?)\n\s*\};", text, re.S)
+    body = re.search(rf"{table}\[\]\s*=\s*\{{(.*?)\n\s*\}};", text, re.S)
     if not body:
         return []
-    return re.findall(
-        r'\{\s*"(mOptsPage_[A-Za-z]+)"\s*,\s*"([^"]+)"\s*\}', body.group(1)
+    return re.findall(r'\{\s*"([A-Za-z0-9_]+)"\s*,\s*"([^"]+)"\s*\}', body.group(1))
+
+
+def parse_property_pages(path):
+    return parse_page_table(path, "HAKE_PROPERTY_PAGE_ICONS")
+
+
+def parse_geometry_icons(path):
+    text = path.read_text(encoding="utf-8")
+    body = re.search(r"HAKE_GEOMETRY_ICONS\[\]\s*=\s*\{(.*?)\n\s*\};", text, re.S)
+    actions = re.search(r"GEOMETRY_ACTIONS\[\]\s*=\s*\{(.*?)\};", text, re.S)
+    entries = (
+        re.findall(r'\{\s*"(\w+)"\s*,\s*Qgis::GeometryType::(\w+)\s*,\s*"([^"]+)"\s*\}', body.group(1))
+        if body
+        else []
     )
+    return entries, re.findall(r'"(\w+)"', actions.group(1)) if actions else []
+
+
+def stacked_pages(ui):
+    root = ET.parse(ui).getroot()
+    for widget in root.iter("widget"):
+        if widget.get("name") == "mOptionsStackedWidget":
+            return [c.get("name") for c in widget if c.tag == "widget"]
+    return []
+
+
+def source_inventories():
+    """Returns {kind: {key: origin}} for the targets derived from the sources."""
+    inv = {}
+    snap = re.findall(r'setObjectName\(\s*u"([^"]+)"_s\s*\)', SNAPPING_WIDGET.read_text(encoding="utf-8"))
+    inv["SNAP"] = {k: "qgssnappingwidget.cpp" for k in snap}
+    enum = re.search(r"enum class SnappingType\b.*?\{(.*?)\};", QGIS_H.read_text(encoding="utf-8"), re.S)
+    types = re.findall(r"^\s*(\w+)\s+SIP_MONKEYPATCH", enum.group(1), re.M) if enum else []
+    inv["SNAPTYPE"] = {t: "Qgis::SnappingType" for t in types if t != "NoSnap"}
+    shapes = {}
+    for f in sorted(SHAPE_TOOLS.glob("qgsmaptoolshape*.[ch]*")):
+        for tid in re.findall(r'TOOL_ID\w*\s*=\s*u"([^"]+)"_s', f.read_text(encoding="utf-8")):
+            shapes[tid] = f.name
+    inv["SHAPE"] = shapes
+    annot = re.findall(
+        r'new QgsAnnotationItemGuiMetadata\(\s*u"([^"]+)"_s', ANNOTATION_REGISTRY.read_text(encoding="utf-8")
+    )
+    inv["ANNOT"] = {a: "QgsAnnotationItemGuiRegistry::addDefaultItems" for a in annot}
+    widget_keys = {}
+    for src in sorted((ROOT / "src/app").rglob("*.cpp")):
+        text = src.read_text(encoding="utf-8", errors="replace")
+        keys = re.findall(r'iconFor\(\s*u"([^"]+)"_s', text) + re.findall(
+            r'withHakeIcon\([^;]*?,\s*u"([^"]+)"_s\s*\)', text
+        )
+        if src != REGISTRY and '#include "qgshakeicons.h"' in text:
+            # Widget keys passed through containers (e.g. the About sidebar list).
+            keys += re.findall(r'u"((?:about|statusbar|welcome|layertree):[a-z-]+)"_s', text)
+        for key in keys:
+            widget_keys[key] = src.name
+    for qml in sorted(QML_DIR.rglob("*.qml")):
+        for key in re.findall(r'image://hakeicon/([^/"]+)/', qml.read_text(encoding="utf-8")):
+            widget_keys[key] = qml.name
+    inv["W"] = widget_keys
+    return inv
+
+
+def project_page_inventory():
+    pages = {p: "qgsprojectpropertiesbase.ui" for p in stacked_pages(PROJECT_UI)}
+    for factory in re.findall(
+        r"registerProjectPropertiesWidgetFactory\(\s*new (\w+)Factory\(", QGISAPP.read_text(encoding="utf-8")
+    ):
+        pages[factory] = "project properties factory (widget class name)"
+    return pages
+
+
+def layer_page_inventory():
+    pages = {}
+    for ui in LAYER_PROPERTIES_UI:
+        for p in stacked_pages(ROOT / ui):
+            pages.setdefault(p, Path(ui).name)
+    return pages
+
+
+def source_has_literal(key):
+    pattern = re.compile(rf'"{re.escape(key)}"|\b{re.escape(key)}\b')
+    for d in ("src/app", "src/gui", "src/ui"):
+        for f in (ROOT / d).rglob("*"):
+            if f.suffix in (".cpp", ".h", ".ui") and f != REGISTRY:
+                if pattern.search(f.read_text(encoding="utf-8", errors="replace")):
+                    return True
+    return False
 
 
 def parse_qrc(path):
@@ -244,9 +395,15 @@ def main():
         action="store_true",
         help="list every mapping and every lint warning",
     )
+    ap.add_argument(
+        "--require-catalog",
+        action="store_true",
+        help="exit with status 2 when the (untracked) catalog is missing",
+    )
     args = ap.parse_args()
 
-    if not args.catalog.is_file():
+    has_catalog = args.catalog.is_file()
+    if not has_catalog and args.require_catalog:
         print(f"Catalog not found: {args.catalog}")
         print("RESULT: NOT RUN (catalog missing)")
         return 2
@@ -258,13 +415,16 @@ def main():
         print(f"  FAIL: {msg}")
 
     print("=== Hake icon coverage ===")
-    rows = parse_catalog(args.catalog)
-    print(
-        f"Catalog: {args.catalog.relative_to(ROOT) if args.catalog.is_relative_to(ROOT) else args.catalog}"
-    )
-    print(f"Catalog rows: {len(rows)} (expected {EXPECTED_CATALOG_ROWS})")
-    if len(rows) != EXPECTED_CATALOG_ROWS:
-        fail(f"catalog row count {len(rows)} != {EXPECTED_CATALOG_ROWS}")
+    rows = parse_catalog(args.catalog) if has_catalog else []
+    if has_catalog:
+        print(
+            f"Catalog: {args.catalog.relative_to(ROOT) if args.catalog.is_relative_to(ROOT) else args.catalog}"
+        )
+        print(f"Catalog rows: {len(rows)} (expected {EXPECTED_CATALOG_ROWS})")
+        if len(rows) != EXPECTED_CATALOG_ROWS:
+            fail(f"catalog row count {len(rows)} != {EXPECTED_CATALOG_ROWS}")
+    else:
+        print(f"Catalog: NOT RUN ({args.catalog.name} is not tracked in git; source-derived checks still apply)")
     dup_ids = [i for i, n in Counter(r["id"] for r in rows).items() if n > 1]
     for i in dup_ids:
         fail(f"duplicate catalog id {i}")
@@ -318,8 +478,9 @@ def main():
 
     print("\n-- Orphan registry entries (not in catalog)")
     reference = [(k, key, r) for k, key, r in registry if (k, key) not in catalog_keys]
-    # Ribbon menu drop-downs are not menu commands, so the catalog does not list them.
-    orphans = [e for e in reference if e[0] not in ("A", "MENU")]
+    # Ribbon menu drop-downs are not menu commands, so the catalog does not list them;
+    # source-derived kinds are checked against their inventories below.
+    orphans = [e for e in reference if e[0] not in ("A", "MENU", *SOURCE_KINDS)] if has_catalog else []
     for kind, key, _ in orphans:
         fail(f"{kind} {key} is registered but not in the catalog")
     print(
@@ -329,7 +490,33 @@ def main():
         f"  ribbon menu drop-down mappings (MENU): {sum(1 for e in reference if e[0] == 'MENU')}"
     )
     if not orphans:
-        print("  no non-Action orphans")
+        print("  no non-Action orphans" if has_catalog else "  NOT RUN (no catalog)")
+
+    print("\n-- Source-derived targets")
+    inventories = source_inventories()
+    registered = {kind: {key for k, key, _ in registry if k == kind} for kind in REGISTRY_KINDS}
+    target_counts = {}
+    for kind, label in SOURCE_KINDS.items():
+        targets = inventories[kind]
+        mapped, excepted, missing_t = 0, 0, 0
+        for key, origin in sorted(targets.items()):
+            if key in registered[kind] or (kind == "W" and key in registered["A"]):
+                mapped += 1
+            elif f"{kind.lower()}:{key}" in EXCEPTIONS:
+                excepted += 1
+            else:
+                missing_t += 1
+                fail(f"{label}: '{key}' ({origin}) has no {kind} mapping")
+        for key in sorted(registered[kind] - set(targets)):
+            fail(f"{kind} {key} is registered but not found in the sources")
+        for exc in EXCEPTIONS:
+            k, _, key = exc.partition(":")
+            if k == kind.lower() and key not in targets:
+                fail(f"exception {exc} does not match a source target")
+            if k == kind.lower() and key in registered[kind]:
+                fail(f"exception {exc} is also mapped")
+        target_counts[kind] = (len(targets), mapped, excepted, missing_t)
+        print(f"  {label:<26} targets: {len(targets):>3}  mapped: {mapped:>3}  exceptions: {excepted:>3}  missing: {missing_t}")
 
     print("\n-- Resources")
     qrc = parse_qrc(QRC)
@@ -347,14 +534,25 @@ def main():
         elif res not in qrc_set:
             fail(f"{kind} {key}: resource {res} not in qrc")
     property_pages = parse_property_pages(REGISTRY)
-    for page, n in Counter(p for p, _ in property_pages).items():
-        if n > 1:
-            fail(f"property page {page} mapped {n} times")
-    for page, res in property_pages:
+    project_pages = parse_page_table(REGISTRY, "HAKE_PROJECT_PAGE_ICONS")
+    geometry_icons, geometry_actions = parse_geometry_icons(REGISTRY)
+    for label, table in (("layer properties page", property_pages), ("project properties page", project_pages)):
+        for page, n in Counter(p for p, _ in table).items():
+            if n > 1:
+                fail(f"{label} {page} mapped {n} times")
+        for page, res in table:
+            if res not in on_disk:
+                fail(f"{label} {page}: resource {res} missing on disk")
+            elif res not in qrc_set:
+                fail(f"{label} {page}: resource {res} not in qrc")
+    for action, geometry, res in geometry_icons:
         if res not in on_disk:
-            fail(f"property page {page}: resource {res} missing on disk")
-        elif res not in qrc_set:
-            fail(f"property page {page}: resource {res} not in qrc")
+            fail(f"geometry icon {action}/{geometry}: resource {res} missing on disk")
+        if action not in geometry_actions:
+            fail(f"geometry icon {action} is not listed in GEOMETRY_ACTIONS")
+    for action in geometry_actions:
+        if action not in registered["A"]:
+            fail(f"geometry action {action} has no A mapping for its default icon")
     extra_refs = source_references()
     for res in sorted(extra_refs - on_disk):
         fail(f"source references {res} which does not exist")
@@ -366,8 +564,27 @@ def main():
         fail("hake_icons.qrc is not listed in src/app/CMakeLists.txt")
     print(
         f"  qrc entries: {len(qrc)}  SVGs on disk: {len(on_disk)}  referenced outside registry: {len(extra_refs)}"
-        f"  layer properties pages: {len(property_pages)}"
+        f"  layer properties pages: {len(property_pages)}  project properties pages: {len(project_pages)}"
+        f"  geometry variants: {len(geometry_icons)}"
     )
+
+    print("\n-- Properties dialog pages")
+    page_counts = {}
+    for label, table, inventory, runtime in (
+        ("Layer Properties", property_pages, layer_page_inventory(), RUNTIME_LAYER_PAGES),
+        ("Project Properties", project_pages, project_page_inventory(), {}),
+    ):
+        mapping = dict(table)
+        for page, origin in sorted(inventory.items()):
+            if page not in mapping:
+                fail(f"{label}: page {page} ({origin}) has no Hake mapping")
+        for page in sorted(set(mapping) - set(inventory)):
+            if page not in runtime:
+                fail(f"{label}: {page} is mapped but no such page exists")
+            elif not source_has_literal(page):
+                fail(f"{label}: runtime page {page} not found in the sources")
+        page_counts[label] = (len(inventory), sum(1 for p in inventory if p in mapping), len(set(mapping) & set(runtime)))
+        print(f"  {label:<20} .ui/factory pages: {page_counts[label][0]:>3}  mapped: {page_counts[label][1]:>3}  runtime pages mapped: {page_counts[label][2]}")
 
     print("\n-- Reuse (one SVG serving several mappings)")
     users = defaultdict(list)
@@ -411,12 +628,37 @@ def main():
         for row, kind, key, res in covered:
             print(f"  {row['section']:<32} {kind:<6} {key:<48} {res}")
 
+    print("\n-- Options sidebar (scripts/hake_options_icon_coverage.py)")
+    import hake_options_icon_coverage as options_cov
+
+    buffer = io.StringIO()
+    with contextlib.redirect_stdout(buffer):
+        options_status = options_cov.main()
+    options_lines = buffer.getvalue().splitlines()
+    for line in options_lines if args.verbose else [l for l in options_lines if "FAIL" in l or "RESULT" in l]:
+        print(f"  {line.strip()}")
+    if options_status != 0:
+        fail("Options sidebar coverage failed")
+
+    print("\n-- Generated report")
+    kinds = Counter(k for k, _, _ in registry)
+    print(f"  HAKE_ICONS entries: {len(registry)} ({', '.join(f'{k} {kinds[k]}' for k in REGISTRY_KINDS if kinds[k])})")
+    print(f"  catalog rows covered: {len(covered)} of {len(rows) - len(excluded)}" if has_catalog else "  catalog rows covered: NOT RUN")
+    for kind, (total, mapped, excepted, missing_t) in target_counts.items():
+        print(f"  {SOURCE_KINDS[kind]}: {mapped} mapped, {excepted} exceptions, {missing_t} missing (of {total})")
+    for label, (total, mapped, runtime) in page_counts.items():
+        print(f"  {label} pages: {mapped} of {total} mapped, plus {runtime} runtime pages")
+    print(f"  geometry-specific variants: {len(geometry_icons)} across {len(geometry_actions)} actions")
+    print(f"  SVGs: {len(on_disk)} on disk, {len(qrc)} in qrc, {len(unused)} unreferenced, {lint_fail} lint errors")
+    print(f"  documented exceptions: {len(EXCEPTIONS)}")
+
     print()
     if failures:
         print(f"RESULT: FAIL ({len(failures)} problem(s))")
         return 1
     print(
-        f"RESULT: PASS ({len(covered)} mapped, {len(excluded)} excluded, {len(CORRECTED)} corrected)"
+        f"RESULT: PASS ({len(covered)} catalog mapped, {len(excluded)} excluded, {len(CORRECTED)} corrected,"
+        f" {sum(c[1] for c in target_counts.values())} source targets mapped)"
     )
     return 0
 

@@ -1,8 +1,15 @@
 <!DOCTYPE RCC>
 <RCC version="1.0">
   <qresource prefix="/hake/icons">
+    <file>app/hake-status-coordinate-extents.svg</file>
+    <file>app/hake-status-coordinate-tracking.svg</file>
+    <file>app/hake-status-crs-none.svg</file>
+    <file>app/hake-status-magnifier-lock.svg</file>
+    <file>app/hake-status-messages-read.svg</file>
+    <file>app/hake-status-messages.svg</file>
     <file>app/hake-theme-moon.svg</file>
     <file>app/hake-theme-sun.svg</file>
+    <file>app/hake-welcome-pin.svg</file>
     <file>analysis/hake-analysis-basic-statistics.svg</file>
     <file>analysis/hake-analysis-count-points-in-polygon.svg</file>
     <file>analysis/hake-analysis-create-grid.svg</file>
@@ -24,6 +31,16 @@
     <file>analysis/hake-analysis-regular-points.svg</file>
     <file>analysis/hake-analysis-statistical-summary.svg</file>
     <file>analysis/hake-analysis-sum-line-lengths.svg</file>
+    <file>annotations/hake-annotations-edit-nodes.svg</file>
+    <file>annotations/hake-annotations-line.svg</file>
+    <file>annotations/hake-annotations-marker.svg</file>
+    <file>annotations/hake-annotations-new-layer.svg</file>
+    <file>annotations/hake-annotations-picture.svg</file>
+    <file>annotations/hake-annotations-polygon.svg</file>
+    <file>annotations/hake-annotations-select.svg</file>
+    <file>annotations/hake-annotations-text-line.svg</file>
+    <file>annotations/hake-annotations-text-point.svg</file>
+    <file>annotations/hake-annotations-text-rect.svg</file>
     <file>browser/hake-browser-add-layer.svg</file>
     <file>browser/hake-browser-favorites.svg</file>
     <file>database/hake-database-db-manager.svg</file>
@@ -42,15 +59,20 @@
     <file>help/hake-help-donate.svg</file>
     <file>help/hake-help-get-involved.svg</file>
     <file>help/hake-help-home-page.svg</file>
+    <file>help/hake-help-license.svg</file>
     <file>help/hake-help-python-api.svg</file>
     <file>help/hake-help-report-issue.svg</file>
     <file>help/hake-help-sustaining-members.svg</file>
     <file>help/hake-help-tool-search.svg</file>
+    <file>help/hake-help-whats-new.svg</file>
+    <file>labels/hake-labels-change-properties.svg</file>
     <file>labels/hake-labels-labeling.svg</file>
     <file>labels/hake-labels-move-label.svg</file>
     <file>labels/hake-labels-pin-labels.svg</file>
+    <file>labels/hake-labels-pin-unpin.svg</file>
     <file>labels/hake-labels-rotate-label.svg</file>
     <file>labels/hake-labels-show-hide-labels.svg</file>
+    <file>labels/hake-labels-show-unplaced.svg</file>
     <file>layers/hake-layers-add-arcgis-rest.svg</file>
     <file>layers/hake-layers-add-delimited-text.svg</file>
     <file>layers/hake-layers-add-gpx.svg</file>
@@ -136,6 +158,7 @@
     <file>map/hake-map-decoration-scale-bar.svg</file>
     <file>map/hake-map-decoration-title.svg</file>
     <file>map/hake-map-elevation-controller.svg</file>
+    <file>map/hake-map-elevation-profile.svg</file>
     <file>map/hake-map-form-annotation.svg</file>
     <file>map/hake-map-full-screen.svg</file>
     <file>map/hake-map-html-annotation.svg</file>
@@ -173,8 +196,16 @@
     <file>menus/hake-menu-vector.svg</file>
     <file>menus/hake-menu-view.svg</file>
     <file>menus/hake-menu-web.svg</file>
+    <file>mesh/hake-mesh-digitize.svg</file>
+    <file>mesh/hake-mesh-force-by-lines.svg</file>
     <file>mesh/hake-mesh-mesh-calculator.svg</file>
     <file>mesh/hake-mesh-new-mesh-layer.svg</file>
+    <file>mesh/hake-mesh-reindex.svg</file>
+    <file>mesh/hake-mesh-select-all-vertices.svg</file>
+    <file>mesh/hake-mesh-select-expression.svg</file>
+    <file>mesh/hake-mesh-select-isolated-vertices.svg</file>
+    <file>mesh/hake-mesh-select-polygon.svg</file>
+    <file>mesh/hake-mesh-transform-vertices.svg</file>
     <file>navigation/hake-navigation-full-extent.svg</file>
     <file>navigation/hake-navigation-identify.svg</file>
     <file>navigation/hake-navigation-pan-to-selection.svg</file>
@@ -232,15 +263,19 @@
     <file>properties/hake-properties-digitizing.svg</file>
     <file>properties/hake-properties-display.svg</file>
     <file>properties/hake-properties-fields.svg</file>
+    <file>properties/hake-properties-histogram.svg</file>
     <file>properties/hake-properties-information.svg</file>
     <file>properties/hake-properties-joins.svg</file>
     <file>properties/hake-properties-legend.svg</file>
     <file>properties/hake-properties-masks.svg</file>
     <file>properties/hake-properties-metadata.svg</file>
+    <file>properties/hake-properties-relations.svg</file>
     <file>properties/hake-properties-rendering.svg</file>
+    <file>properties/hake-properties-sensors.svg</file>
     <file>properties/hake-properties-server.svg</file>
     <file>properties/hake-properties-source.svg</file>
     <file>properties/hake-properties-symbology.svg</file>
+    <file>properties/hake-properties-transparency.svg</file>
     <file>properties/hake-properties-variables.svg</file>
     <file>raster/hake-raster-align-rasters.svg</file>
     <file>raster/hake-raster-aspect.svg</file>
@@ -303,13 +338,52 @@
     <file>settings/hake-settings-keyboard-shortcuts.svg</file>
     <file>settings/hake-settings-options.svg</file>
     <file>settings/hake-settings-style-manager.svg</file>
+    <file>shapes/hake-shape-circle-2-points.svg</file>
+    <file>shapes/hake-shape-circle-2-tangents-point.svg</file>
+    <file>shapes/hake-shape-circle-3-points.svg</file>
+    <file>shapes/hake-shape-circle-3-tangents.svg</file>
+    <file>shapes/hake-shape-circle-center-point.svg</file>
+    <file>shapes/hake-shape-circular-string-radius.svg</file>
+    <file>shapes/hake-shape-ellipse-center-2-points.svg</file>
+    <file>shapes/hake-shape-ellipse-center-point.svg</file>
+    <file>shapes/hake-shape-ellipse-extent.svg</file>
+    <file>shapes/hake-shape-ellipse-foci.svg</file>
+    <file>shapes/hake-shape-rectangle-3-points-distance.svg</file>
+    <file>shapes/hake-shape-rectangle-3-points-projected.svg</file>
+    <file>shapes/hake-shape-rectangle-center.svg</file>
+    <file>shapes/hake-shape-rectangle-extent.svg</file>
+    <file>shapes/hake-shape-regular-polygon-2-points.svg</file>
+    <file>shapes/hake-shape-regular-polygon-center-corner.svg</file>
+    <file>shapes/hake-shape-regular-polygon-center-point.svg</file>
+    <file>snapping/hake-snapping-active-layer.svg</file>
+    <file>snapping/hake-snapping-advanced.svg</file>
+    <file>snapping/hake-snapping-all-layers.svg</file>
+    <file>snapping/hake-snapping-allow-overlap.svg</file>
+    <file>snapping/hake-snapping-area.svg</file>
+    <file>snapping/hake-snapping-avoid-overlap-active.svg</file>
+    <file>snapping/hake-snapping-avoid-overlap-advanced.svg</file>
+    <file>snapping/hake-snapping-centroid.svg</file>
+    <file>snapping/hake-snapping-enable.svg</file>
+    <file>snapping/hake-snapping-endpoint.svg</file>
+    <file>snapping/hake-snapping-intersection.svg</file>
+    <file>snapping/hake-snapping-middle.svg</file>
+    <file>snapping/hake-snapping-scale.svg</file>
+    <file>snapping/hake-snapping-segment.svg</file>
+    <file>snapping/hake-snapping-self.svg</file>
+    <file>snapping/hake-snapping-topological-editing.svg</file>
+    <file>snapping/hake-snapping-tracing.svg</file>
+    <file>snapping/hake-snapping-vertex.svg</file>
     <file>vector/hake-vector-add-geometry-attributes.svg</file>
     <file>vector/hake-vector-add-line.svg</file>
     <file>vector/hake-vector-add-part.svg</file>
     <file>vector/hake-vector-add-point.svg</file>
     <file>vector/hake-vector-add-polygon.svg</file>
+    <file>vector/hake-vector-add-record.svg</file>
     <file>vector/hake-vector-add-ring.svg</file>
+    <file>vector/hake-vector-advanced-digitizing.svg</file>
     <file>vector/hake-vector-buffer.svg</file>
+    <file>vector/hake-vector-cancel-all-edits.svg</file>
+    <file>vector/hake-vector-cancel-selected-edits.svg</file>
     <file>vector/hake-vector-centroids.svg</file>
     <file>vector/hake-vector-chamfer-fillet.svg</file>
     <file>vector/hake-vector-check-validity.svg</file>
@@ -326,6 +400,12 @@
     <file>vector/hake-vector-delete-selected.svg</file>
     <file>vector/hake-vector-densify.svg</file>
     <file>vector/hake-vector-difference.svg</file>
+    <file>vector/hake-vector-digitize-bezier.svg</file>
+    <file>vector/hake-vector-digitize-curve.svg</file>
+    <file>vector/hake-vector-digitize-nurbs.svg</file>
+    <file>vector/hake-vector-digitize-segment.svg</file>
+    <file>vector/hake-vector-digitize-shape.svg</file>
+    <file>vector/hake-vector-digitize-stream.svg</file>
     <file>vector/hake-vector-dissolve.svg</file>
     <file>vector/hake-vector-eliminate-polygons.svg</file>
     <file>vector/hake-vector-extract-vertices.svg</file>
@@ -349,9 +429,13 @@
     <file>vector/hake-vector-reproject-layer.svg</file>
     <file>vector/hake-vector-reshape.svg</file>
     <file>vector/hake-vector-reverse-line.svg</file>
+    <file>vector/hake-vector-rollback-all-edits.svg</file>
+    <file>vector/hake-vector-rollback-selected-edits.svg</file>
     <file>vector/hake-vector-rotate-feature.svg</file>
     <file>vector/hake-vector-rotate-point-symbols.svg</file>
+    <file>vector/hake-vector-save-all-edits.svg</file>
     <file>vector/hake-vector-save-edits.svg</file>
+    <file>vector/hake-vector-save-selected-edits.svg</file>
     <file>vector/hake-vector-scale-feature.svg</file>
     <file>vector/hake-vector-simplify-feature.svg</file>
     <file>vector/hake-vector-simplify.svg</file>
@@ -363,6 +447,7 @@
     <file>vector/hake-vector-toggle-editing.svg</file>
     <file>vector/hake-vector-trim-extend.svg</file>
     <file>vector/hake-vector-union.svg</file>
+    <file>vector/hake-vector-vertex-tool-active-layer.svg</file>
     <file>vector/hake-vector-vertex-tool.svg</file>
     <file>vector/hake-vector-voronoi.svg</file>
     <file>web/hake-web-metasearch-help.svg</file>

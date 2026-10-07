@@ -19,6 +19,7 @@
 
 #include "qgis.h"
 #include "qgsapplication.h"
+#include "qgshakeicons.h"
 #include "qgslogger.h"
 #include "qgsnetworkaccessmanager.h"
 
@@ -58,6 +59,13 @@ QgsAbout::QgsAbout( QWidget *parent )
   : QgsOptionsDialogBase( u"about"_s, parent, kAboutWindowFlags )
 {
   setupUi( this );
+  if ( QgsHakeIcons::isHakeTheme( QgsApplication::themeName() ) )
+  {
+    // Sidebar rows follow the page order in qgsabout.ui.
+    const QStringList pageIcons { u"about:about"_s, u"about:whats-new"_s, u"about:license"_s };
+    for ( int row = 0; row < std::min( static_cast<int>( pageIcons.size() ), mOptionsListWidget->count() ); ++row )
+      mOptionsListWidget->item( row )->setIcon( QgsHakeIcons::iconFor( pageIcons.at( row ), QString() ) );
+  }
   updateLogo();
   setWindowTitle( tr( "About %1" ).arg( Qgis::productDisplayName() ) );
   connect( btnQgisUser, &QPushButton::clicked, this, &QgsAbout::btnQgisUser_clicked );

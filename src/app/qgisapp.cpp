@@ -857,6 +857,8 @@ void QgisApp::annotationItemTypeAdded( int id )
   action->setData( id );
   action->setIcon( QgsGui::annotationItemGuiRegistry()->itemMetadata( id )->creationIcon() );
   action->setObjectName( u"mAction%1"_s.arg( name.replace( " ", "" ) ) );
+  // Stable, untranslated key for the Hake icon mapping.
+  action->setProperty( "annotationItemType", QgsGui::annotationItemGuiRegistry()->itemMetadata( id )->type() );
 
   mMapToolGroup->addAction( action );
 
@@ -993,6 +995,39 @@ void QgisApp::validateCrs( QgsCoordinateReferenceSystem &srs )
 static bool cmpByText_( QAction *a, QAction *b )
 {
   return QString::localeAwareCompare( a->text(), b->text() ) < 0;
+}
+
+/**
+ * Asks a Save / Discard (/ Cancel) question with the same result semantics as QMessageBox::question().
+ * Under the Hake themes the box and button icons come from the Hake set; \a saveIcon is the Hake resource for the Save button.
+ */
+static QMessageBox::StandardButton askSaveQuestion_( QWidget *parent, const QString &title, const QString &text, QMessageBox::StandardButtons buttons, const QString &saveIcon, QMessageBox::StandardButton defaultButton = QMessageBox::NoButton )
+{
+  QMessageBox box( QMessageBox::Question, title, text, buttons, parent );
+  if ( defaultButton != QMessageBox::NoButton )
+    box.setDefaultButton( defaultButton );
+#ifndef Q_OS_MACOS
+  // Keep the macOS native alert untouched; elsewhere only the icons change, not the layout.
+  if ( QgsHakeIcons::isHakeTheme( QgsApplication::themeName() ) )
+  {
+    const int boxIconSize = box.style()->pixelMetric( QStyle::PM_MessageBoxIconSize, nullptr, &box );
+    box.setIconPixmap( QgsHakeIcons::icon( u"dialog/hake-dialog-question.svg"_s ).pixmap( QSize( boxIconSize, boxIconSize ), box.devicePixelRatioF() ) );
+    if ( box.style()->styleHint( QStyle::SH_DialogButtonBox_ButtonsHaveIcons, nullptr, &box ) )
+    {
+      const std::pair<QMessageBox::StandardButton, QString> buttonIcons[] = {
+        { QMessageBox::Save, saveIcon },
+        { QMessageBox::Discard, u"dialog/hake-dialog-discard.svg"_s },
+        { QMessageBox::Cancel, u"dialog/hake-dialog-cancel.svg"_s },
+      };
+      for ( const auto &[button, resource] : buttonIcons )
+      {
+        if ( QAbstractButton *b = box.button( button ) )
+          b->setIcon( QgsHakeIcons::icon( resource ) );
+      }
+    }
+  }
+#endif
+  return box.exec() == -1 ? QMessageBox::Cancel : box.standardButton( box.clickedButton() );
 }
 
 
@@ -4336,7 +4371,7 @@ void QgisApp::createStatusBar()
   // Maintain uniform widget height in status bar by setting button height same as labels
   // For Qt/Mac 3.3, the default toolbutton height is 30 and labels were expanding to match
   mOnTheFlyProjectionStatusButton->setMaximumHeight( mScaleWidget->height() );
-  mOnTheFlyProjectionStatusButton->setIcon( QgsApplication::getThemeIcon( u"mIconProjectionEnabled.svg"_s ) );
+  mOnTheFlyProjectionStatusButton->setIcon( QgsHakeIcons::iconFor( u"statusbar:crs"_s, u"mIconProjectionEnabled.svg"_s ) );
   mOnTheFlyProjectionStatusButton->setToolTip( tr(
     "CRS status - Click "
     "to open coordinate reference system dialog"
@@ -4347,7 +4382,7 @@ void QgisApp::createStatusBar()
 
   mMessageButton = new QToolButton( mStatusBar );
   mMessageButton->setAutoRaise( true );
-  mMessageButton->setIcon( QgsApplication::getThemeIcon( u"/mMessageLogRead.svg"_s ) );
+  mMessageButton->setIcon( QgsHakeIcons::iconFor( u"statusbar:messages-read"_s, u"/mMessageLogRead.svg"_s ) );
   mMessageButton->setToolTip( tr( "Messages" ) );
   mMessageButton->setObjectName( u"mMessageLogViewerButton"_s );
   mMessageButton->setMaximumHeight( mScaleWidget->height() );
@@ -4667,6 +4702,16 @@ void QgisApp::setTheme( const QString &themeName )
     QgsHakeIcons::applyToPanel( mAppRibbon->searchEntryWidget(), theme );
     mAppRibbon->refreshIcons();
   }
+
+  // Status bar icons are picked when their state changes; re-pick them for the new theme.
+  if ( mOnTheFlyProjectionStatusButton )
+    updateCrsStatusBar();
+  if ( mMessageButton && mLogDock )
+    toggleLogMessageIcon( mLogMessageUnread );
+  if ( mCoordsEdit )
+    mCoordsEdit->refreshIcons();
+  if ( mMagnifierWidget )
+    mMagnifierWidget->refreshIcons();
 
   // The geometry-specific digitizing icons are chosen per active layer; refresh them on live switches.
   if ( mThemeApplied && mLayerTreeView )
@@ -5241,13 +5286,14 @@ QgsMessageBar *QgisApp::messageBar()
 
 void QgisApp::toggleLogMessageIcon( bool hasLogMessage )
 {
-  if ( hasLogMessage && !mLogDock->isVisible() )
+  mLogMessageUnread = hasLogMessage && !mLogDock->isVisible();
+  if ( mLogMessageUnread )
   {
-    mMessageButton->setIcon( QgsApplication::getThemeIcon( u"/mMessageLog.svg"_s ) );
+    mMessageButton->setIcon( QgsHakeIcons::iconFor( u"statusbar:messages"_s, u"/mMessageLog.svg"_s ) );
   }
   else
   {
-    mMessageButton->setIcon( QgsApplication::getThemeIcon( u"/mMessageLogRead.svg"_s ) );
+    mMessageButton->setIcon( QgsHakeIcons::iconFor( u"statusbar:messages-read"_s, u"/mMessageLogRead.svg"_s ) );
   }
 }
 
@@ -11421,11 +11467,12 @@ bool QgisApp::toggleEditingVectorLayer( QgsVectorLayer *vlayer, bool allowCancel
     else if ( modifiedLayers.size() > 2 )
       modifiedLayerNames = tr( "%1, %2, …" ).arg( ( *modifiedLayers.constBegin() )->name(), ( *++modifiedLayers.constBegin() )->name() );
 
-    switch ( QMessageBox::question(
+    switch ( askSaveQuestion_(
       nullptr,
       tr( "Stop Editing" ),
       modifiedLayers.size() > 0 ? tr( "Do you want to save the changes to layers %1?" ).arg( modifiedLayerNames ) : tr( "Do you want to save the changes to layer %1?" ).arg( modifiedLayerNames ),
-      buttons
+      buttons,
+      u"vector/hake-vector-save-selected-edits.svg"_s
     ) )
     {
       case QMessageBox::Cancel:
@@ -11586,7 +11633,7 @@ bool QgisApp::toggleEditingMeshLayer( QgsMeshLayer *mlayer, bool allowCancel )
     QMessageBox::StandardButtons buttons = QMessageBox::Save | QMessageBox::Discard;
     if ( allowCancel )
       buttons = buttons | QMessageBox::Cancel;
-    switch ( QMessageBox::question( nullptr, tr( "Stop Editing" ), tr( "Do you want to save the changes to layer %1?" ).arg( mlayer->name() ), buttons ) )
+    switch ( askSaveQuestion_( nullptr, tr( "Stop Editing" ), tr( "Do you want to save the changes to layer %1?" ).arg( mlayer->name() ), buttons, u"vector/hake-vector-save-selected-edits.svg"_s ) )
     {
       case QMessageBox::Cancel:
         res = false;
@@ -11668,7 +11715,7 @@ bool QgisApp::toggleEditingPointCloudLayer( QgsPointCloudLayer *pclayer, bool al
     QMessageBox::StandardButtons buttons = QMessageBox::Save | QMessageBox::Discard;
     if ( allowCancel )
       buttons = buttons | QMessageBox::Cancel;
-    switch ( QMessageBox::question( nullptr, tr( "Stop Editing" ), tr( "Do you want to save the changes to layer %1?" ).arg( pclayer->name() ), buttons ) )
+    switch ( askSaveQuestion_( nullptr, tr( "Stop Editing" ), tr( "Do you want to save the changes to layer %1?" ).arg( pclayer->name() ), buttons, u"vector/hake-vector-save-selected-edits.svg"_s ) )
     {
       case QMessageBox::Cancel:
         res = false;
@@ -14313,24 +14360,7 @@ bool QgisApp::saveDirty()
     markDirty();
 
     // prompt user to save
-    QMessageBox
-      saveBox( QMessageBox::Question, tr( "Save Project" ), tr( "Do you want to save the current project? %1" ).arg( whyDirty ), QMessageBox::Save | QMessageBox::Cancel | QMessageBox::Discard, this );
-    saveBox.setDefaultButton( hasUnsavedEdits ? QMessageBox::Cancel : QMessageBox::Save );
-#ifndef Q_OS_MACOS
-    // Keep the macOS native alert untouched; elsewhere only the icons change, not the layout.
-    if ( QgsHakeIcons::isHakeTheme( QgsApplication::themeName() ) )
-    {
-      const int boxIconSize = saveBox.style()->pixelMetric( QStyle::PM_MessageBoxIconSize, nullptr, &saveBox );
-      saveBox.setIconPixmap( QgsHakeIcons::icon( u"dialog/hake-dialog-question.svg"_s ).pixmap( QSize( boxIconSize, boxIconSize ), devicePixelRatioF() ) );
-      if ( saveBox.style()->styleHint( QStyle::SH_DialogButtonBox_ButtonsHaveIcons, nullptr, &saveBox ) )
-      {
-        saveBox.button( QMessageBox::Save )->setIcon( QgsHakeIcons::icon( u"project/hake-project-save.svg"_s ) );
-        saveBox.button( QMessageBox::Discard )->setIcon( QgsHakeIcons::icon( u"dialog/hake-dialog-discard.svg"_s ) );
-        saveBox.button( QMessageBox::Cancel )->setIcon( QgsHakeIcons::icon( u"dialog/hake-dialog-cancel.svg"_s ) );
-      }
-    }
-#endif
-    answer = saveBox.exec() == -1 ? QMessageBox::Cancel : saveBox.standardButton( saveBox.clickedButton() );
+    answer = askSaveQuestion_( this, tr( "Save Project" ), tr( "Do you want to save the current project? %1" ).arg( whyDirty ), QMessageBox::Save | QMessageBox::Cancel | QMessageBox::Discard, u"project/hake-project-save.svg"_s, hasUnsavedEdits ? QMessageBox::Cancel : QMessageBox::Save );
     if ( QMessageBox::Save == answer )
     {
       if ( !fileSave() )
@@ -14432,11 +14462,12 @@ bool QgisApp::checkUnsavedRasterAttributeTableEdits( const QList<QgsMapLayer *> 
         buttons |= QMessageBox::Cancel;
       }
 
-      switch ( QMessageBox::question(
+      switch ( askSaveQuestion_(
         nullptr,
         tr( "Save Raster Attribute Table" ),
         tr( "Do you want to save the changes to the attribute tables (bands: %1) associated with layer '%2'?" ).arg( dirtyBands.join( ", "_L1 ), rasterLayer->name() ),
-        buttons
+        buttons,
+        u"vector/hake-vector-save-selected-edits.svg"_s
       ) )
       {
         case QMessageBox::Save:
@@ -15297,7 +15328,7 @@ void QgisApp::updateCrsStatusBar()
       mOnTheFlyProjectionStatusButton->setText( tr( "Unknown CRS" ) );
 
     mOnTheFlyProjectionStatusButton->setToolTip( tr( "Current CRS: %1" ).arg( projectCrs.userFriendlyIdentifier() ) );
-    mOnTheFlyProjectionStatusButton->setIcon( QgsApplication::getThemeIcon( u"mIconProjectionEnabled.svg"_s ) );
+    mOnTheFlyProjectionStatusButton->setIcon( QgsHakeIcons::iconFor( u"statusbar:crs"_s, u"mIconProjectionEnabled.svg"_s ) );
 
     if ( isTopocentric )
     {
@@ -15346,7 +15377,7 @@ void QgisApp::updateCrsStatusBar()
 
     mOnTheFlyProjectionStatusButton->setText( QString() );
     mOnTheFlyProjectionStatusButton->setToolTip( tr( "No projection" ) );
-    mOnTheFlyProjectionStatusButton->setIcon( QgsApplication::getThemeIcon( u"mIconProjectionDisabled.svg"_s ) );
+    mOnTheFlyProjectionStatusButton->setIcon( QgsHakeIcons::iconFor( u"statusbar:crs-none"_s, u"mIconProjectionDisabled.svg"_s ) );
   }
 }
 
@@ -15593,6 +15624,7 @@ void QgisApp::projectProperties( const QString &currentPage )
       factories << f;
   }
   QgsProjectProperties pp( mMapCanvas, this, QgsGuiUtils::ModalDialogFlags, factories );
+  QgsHakeIcons::applyToProjectProperties( &pp, QgsApplication::themeName() );
 
   qApp->processEvents();
 
@@ -16158,11 +16190,12 @@ void QgisApp::activateDeactivateLayerRelatedActions( QgsMapLayer *layer )
 
         if ( vlayer->geometryType() == Qgis::GeometryType::Point )
         {
-          mActionAddFeature->setIcon( QgsHakeIcons::actionIcon( u"/mActionCapturePoint.svg"_s, u"vector/hake-vector-add-point.svg"_s ) );
+          mActionAddFeature->setIcon( QgsApplication::getThemeIcon( u"/mActionCapturePoint.svg"_s ) );
           addFeatureText = tr( "Add Point Feature" );
-          mActionMoveFeature->setIcon( QgsHakeIcons::actionIcon( u"/mActionMoveFeaturePoint.svg"_s, u"vector/hake-vector-move-feature.svg"_s ) );
-          mActionMoveFeatureCopy->setIcon( QgsHakeIcons::actionIcon( u"/mActionMoveFeatureCopyPoint.svg"_s, u"vector/hake-vector-copy-move-feature.svg"_s ) );
-          mActionFeatureArray->setIcon( QgsHakeIcons::actionIcon( u"/mActionFeatureArrayPoint.svg"_s, u"vector/hake-vector-feature-array.svg"_s ) );
+          mActionMoveFeature->setIcon( QgsApplication::getThemeIcon( u"/mActionMoveFeaturePoint.svg"_s ) );
+          mActionMoveFeatureCopy->setIcon( QgsApplication::getThemeIcon( u"/mActionMoveFeatureCopyPoint.svg"_s ) );
+          mActionFeatureArray->setIcon( QgsApplication::getThemeIcon( u"/mActionFeatureArrayPoint.svg"_s ) );
+          QgsHakeIcons::applyGeometryIcons( this, Qgis::GeometryType::Point );
 
           mActionAddRing->setEnabled( false );
           mActionFillRing->setEnabled( false );
@@ -16190,11 +16223,12 @@ void QgisApp::activateDeactivateLayerRelatedActions( QgsMapLayer *layer )
         }
         else if ( vlayer->geometryType() == Qgis::GeometryType::Line )
         {
-          mActionAddFeature->setIcon( QgsHakeIcons::actionIcon( u"/mActionCaptureLine.svg"_s, u"vector/hake-vector-add-line.svg"_s ) );
+          mActionAddFeature->setIcon( QgsApplication::getThemeIcon( u"/mActionCaptureLine.svg"_s ) );
           addFeatureText = tr( "Add Line Feature" );
-          mActionMoveFeature->setIcon( QgsHakeIcons::actionIcon( u"/mActionMoveFeatureLine.svg"_s, u"vector/hake-vector-move-feature.svg"_s ) );
-          mActionMoveFeatureCopy->setIcon( QgsHakeIcons::actionIcon( u"/mActionMoveFeatureCopyLine.svg"_s, u"vector/hake-vector-copy-move-feature.svg"_s ) );
-          mActionFeatureArray->setIcon( QgsHakeIcons::actionIcon( u"/mActionFeatureArrayLine.svg"_s, u"vector/hake-vector-feature-array.svg"_s ) );
+          mActionMoveFeature->setIcon( QgsApplication::getThemeIcon( u"/mActionMoveFeatureLine.svg"_s ) );
+          mActionMoveFeatureCopy->setIcon( QgsApplication::getThemeIcon( u"/mActionMoveFeatureCopyLine.svg"_s ) );
+          mActionFeatureArray->setIcon( QgsApplication::getThemeIcon( u"/mActionFeatureArrayLine.svg"_s ) );
+          QgsHakeIcons::applyGeometryIcons( this, Qgis::GeometryType::Line );
 
           mActionReshapeFeatures->setEnabled( isEditable && canChangeGeometry );
           mActionSplitFeatures->setEnabled( isEditable && canAddFeatures );
@@ -16211,11 +16245,12 @@ void QgisApp::activateDeactivateLayerRelatedActions( QgsMapLayer *layer )
         }
         else if ( vlayer->geometryType() == Qgis::GeometryType::Polygon )
         {
-          mActionAddFeature->setIcon( QgsHakeIcons::actionIcon( u"/mActionCapturePolygon.svg"_s, u"vector/hake-vector-add-polygon.svg"_s ) );
+          mActionAddFeature->setIcon( QgsApplication::getThemeIcon( u"/mActionCapturePolygon.svg"_s ) );
           addFeatureText = tr( "Add Polygon Feature" );
-          mActionMoveFeature->setIcon( QgsHakeIcons::actionIcon( u"/mActionMoveFeature.svg"_s, u"vector/hake-vector-move-feature.svg"_s ) );
-          mActionMoveFeatureCopy->setIcon( QgsHakeIcons::actionIcon( u"/mActionMoveFeatureCopy.svg"_s, u"vector/hake-vector-copy-move-feature.svg"_s ) );
-          mActionFeatureArray->setIcon( QgsHakeIcons::actionIcon( u"/mActionFeatureArray.svg"_s, u"vector/hake-vector-feature-array.svg"_s ) );
+          mActionMoveFeature->setIcon( QgsApplication::getThemeIcon( u"/mActionMoveFeature.svg"_s ) );
+          mActionMoveFeatureCopy->setIcon( QgsApplication::getThemeIcon( u"/mActionMoveFeatureCopy.svg"_s ) );
+          mActionFeatureArray->setIcon( QgsApplication::getThemeIcon( u"/mActionFeatureArray.svg"_s ) );
+          QgsHakeIcons::applyGeometryIcons( this, Qgis::GeometryType::Polygon );
 
           mActionAddRing->setEnabled( isEditable && canChangeGeometry );
           mActionFillRing->setEnabled( isEditable && canChangeGeometry );
@@ -16231,6 +16266,7 @@ void QgisApp::activateDeactivateLayerRelatedActions( QgsMapLayer *layer )
         else if ( vlayer->geometryType() == Qgis::GeometryType::Null )
         {
           mActionAddFeature->setIcon( QgsApplication::getThemeIcon( u"/mActionNewTableRow.svg"_s ) );
+          QgsHakeIcons::applyGeometryIcons( this, Qgis::GeometryType::Null );
           addFeatureText = tr( "Add Record" );
           addFeatureCheckable = false;
           mActionAddRing->setEnabled( false );

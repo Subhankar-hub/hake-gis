@@ -541,11 +541,9 @@ qt_add_qml_module(qgis_app
     RESOURCE_PREFIX
         /qt/qml/
     RESOURCES
-        qml/images/basemap.jpg
         qml/images/close.svg
         qml/images/hake-gis.svg
         qml/images/hake-gis-icon.png
-        qml/images/love.svg
         qml/images/welcome-contours.svg
 )
 else()
@@ -564,11 +562,9 @@ qt_add_qml_module(qgis_app
     RESOURCE_PREFIX
         /qt/qml/
     RESOURCES
-        qml/images/basemap.jpg
         qml/images/close.svg
         qml/images/hake-gis.svg
         qml/images/hake-gis-icon.png
-        qml/images/love.svg
         qml/images/welcome-contours.svg
     NO_GENERATE_EXTRA_QMLDIRS
 )
